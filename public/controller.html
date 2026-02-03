@@ -13,38 +13,32 @@
             background-color: #050000; 
             background-image: url('https://www.transparenttextures.com/patterns/black-scales.png');
             color: var(--gold); 
-            overflow: hidden; /* Prevent body scroll, handle inside elements */
+            overflow: hidden; 
+            touch-action: manipulation; /* PREVENT ZOOM DELAY */
         }
         .font-imperial { font-family: 'Cinzel', serif; }
 
-        /* --- RANKING THEMES --- */
+        /* RANK GLOWS */
         .rank-1-glow { box-shadow: inset 0 0 30px #FFD700, 0 0 20px #FFD700; border: 2px solid #FFD700; }
         .rank-2-glow { box-shadow: inset 0 0 30px #C0C0C0, 0 0 20px #C0C0C0; border: 2px solid #C0C0C0; }
         .rank-3-glow { box-shadow: inset 0 0 30px #CD7F32, 0 0 20px #CD7F32; border: 2px solid #CD7F32; }
         
-        /* UI ELEMENTS */
+        /* UI */
         .glass-panel { 
-            background: var(--glass); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(197, 160, 89, 0.3); 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            background: var(--glass); backdrop-filter: blur(12px); 
+            border: 1px solid rgba(197, 160, 89, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-
         .btn-gold {
             background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-            color: #1a0505; font-weight: 900; 
-            text-transform: uppercase; letter-spacing: 0.15em;
-            border: 1px solid #fff;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-            transition: all 0.1s;
+            color: #1a0505; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em;
+            border: 1px solid #fff; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); transition: all 0.1s;
         }
-        .btn-gold:active { transform: scale(0.95); box-shadow: 0 0 5px #FFD700; }
+        .btn-gold:active { transform: scale(0.96); }
         .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; }
 
         .btn-quick {
             background: rgba(255,255,255,0.05); border: 1px solid #5c4110; color: #C5A059;
-            font-family: 'Cinzel', serif; font-weight: 700;
-            transition: all 0.2s;
+            font-family: 'Cinzel', serif; font-weight: 700; transition: all 0.2s;
         }
         .btn-quick:active { background: #FFD700; color: black; }
 
@@ -54,21 +48,15 @@
         }
         .imperial-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
-        /* LEADERBOARD DRAWER */
-        #leaderboard-drawer {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(110%);
-        }
+        #leaderboard-drawer { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(110%); }
         #leaderboard-drawer.open { transform: translateY(0); }
-
-        /* ANIMATIONS */
         @keyframes pulse-gold { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         .animate-gold { animation: pulse-gold 2s infinite; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col relative">
+<body class="h-[100dvh] w-screen flex flex-col relative">
 
-    <div id="login-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] bg-black">
+    <div id="login-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center p-6 bg-black bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
         <div class="mb-8 text-center">
             <h1 class="font-imperial text-5xl font-black text-[#FFD700] mb-2 drop-shadow-[0_0_10px_gold]">IMPERIAL<br>COURT</h1>
             <p class="text-[#C5A059] tracking-widest text-sm uppercase">Enter Your Dynasty Name</p>
@@ -81,25 +69,25 @@
 
     <div id="app-view" class="hidden flex-col h-full w-full relative">
         
-        <div id="status-bar" class="h-20 flex items-center justify-between px-6 glass-panel rounded-b-3xl mx-2 mt-2 relative z-10">
+        <div id="status-bar" class="h-16 flex items-center justify-between px-6 glass-panel rounded-b-2xl mx-2 mt-2 relative z-10 shrink-0">
             <div class="flex flex-col">
-                <span class="text-[10px] text-[#C5A059] uppercase tracking-widest">Your Rank</span>
+                <span class="text-[9px] text-[#C5A059] uppercase tracking-widest">Rank</span>
                 <div class="flex items-center gap-2">
-                    <span id="my-rank-icon" class="text-xl">⚔️</span>
-                    <span id="my-rank-text" class="font-imperial font-bold text-xl text-white">Soldier</span>
+                    <span id="my-rank-icon" class="text-lg">⚔️</span>
+                    <span id="my-rank-text" class="font-imperial font-bold text-lg text-white">Soldier</span>
                 </div>
             </div>
             <div class="text-right">
-                <span class="text-[10px] text-[#C5A059] uppercase tracking-widest">Treasury</span>
-                <div class="font-imperial font-black text-2xl text-[#FFD700] drop-shadow-md">RM <span id="wallet-balance">--</span></div>
+                <span class="text-[9px] text-[#C5A059] uppercase tracking-widest">Treasury</span>
+                <div class="font-imperial font-black text-xl text-[#FFD700]">RM <span id="wallet-balance">--</span></div>
             </div>
         </div>
 
-        <div class="flex-1 flex flex-col p-6 overflow-y-auto pb-24 relative">
+        <div class="flex-1 flex flex-col p-4 relative overflow-hidden">
             
-            <div id="state-bidding" class="hidden flex-col h-full justify-center">
-                <div class="mb-8 text-center">
-                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em] mb-2">Current Highest Tribute</p>
+            <div id="state-bidding" class="hidden flex-col h-full justify-center pb-20">
+                <div class="mb-6 text-center">
+                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em] mb-2">Highest Bid</p>
                     <div class="text-5xl font-imperial font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                         RM <span id="val-high-bid">0</span>
                     </div>
@@ -107,10 +95,10 @@
 
                 <div class="w-full glass-panel p-6 rounded-2xl">
                     <div class="grid grid-cols-4 gap-2 mb-4">
-                        <button onclick="quickBid(0.10)" class="btn-quick py-2 rounded">+10%</button>
-                        <button onclick="quickBid(0.25)" class="btn-quick py-2 rounded">+25%</button>
-                        <button onclick="quickBid(0.50)" class="btn-quick py-2 rounded">+50%</button>
-                        <button onclick="quickBid(1.00)" class="btn-quick py-2 rounded text-red-500 border-red-900">ALL IN</button>
+                        <button onclick="quickBid(0.10)" class="btn-quick py-3 rounded">+10%</button>
+                        <button onclick="quickBid(0.25)" class="btn-quick py-3 rounded">+25%</button>
+                        <button onclick="quickBid(0.50)" class="btn-quick py-3 rounded">+50%</button>
+                        <button onclick="quickBid(1.00)" class="btn-quick py-3 rounded text-red-500 border-red-900">ALL</button>
                     </div>
                     
                     <div class="relative mb-4">
@@ -125,7 +113,7 @@
                 </div>
             </div>
 
-            <div id="state-winner" class="hidden flex-col h-full items-center justify-center text-center animate-pulse">
+            <div id="state-winner" class="hidden flex-col h-full items-center justify-center text-center pb-20 animate-pulse">
                 <div class="text-8xl mb-4 drop-shadow-[0_0_30px_gold]">👑</div>
                 <h2 class="text-4xl font-imperial text-[#FFD700] font-black mb-2">VICTORY</h2>
                 <p class="text-white opacity-80 mb-8">The Fortune is Yours.</p>
@@ -134,14 +122,14 @@
                 </button>
             </div>
 
-            <div id="state-loser" class="hidden flex-col h-full items-center justify-center text-center opacity-60">
+            <div id="state-loser" class="hidden flex-col h-full items-center justify-center text-center pb-20 opacity-60">
                 <div class="text-6xl mb-4 grayscale">🔒</div>
                 <h2 class="text-3xl font-imperial text-white mb-2">SOLD</h2>
                 <p class="text-[#C5A059] uppercase tracking-widest text-xs">Winner</p>
                 <p id="winner-name" class="text-2xl font-bold text-white mt-1">--</p>
             </div>
 
-            <div id="state-idle" class="hidden flex-col h-full items-center justify-center text-center">
+            <div id="state-idle" class="hidden flex-col h-full items-center justify-center text-center pb-20">
                 <div class="animate-gold">
                     <h2 class="text-2xl font-imperial text-[#FFD700] mb-2">AWAITING EMPEROR</h2>
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em]">Prepare your treasury...</p>
@@ -149,19 +137,17 @@
             </div>
         </div>
 
-        <button onclick="toggleLeaderboard()" class="absolute bottom-6 right-6 z-40 bg-black/80 border border-[#C5A059] text-[#FFD700] px-4 py-3 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-md">
-            <span>🏆</span> <span class="font-imperial font-bold text-xs tracking-widest">RANKINGS</span>
+        <button onclick="toggleLeaderboard()" class="absolute bottom-6 right-6 z-40 bg-black/90 border border-[#C5A059] text-[#FFD700] px-5 py-3 rounded-full flex items-center gap-2 shadow-xl backdrop-blur-md">
+            <span class="text-lg">🏆</span> <span class="font-imperial font-bold text-xs tracking-widest">RANKS</span>
         </button>
 
-        <div id="leaderboard-drawer" class="absolute inset-x-0 bottom-0 h-[80%] bg-[#0a0202] rounded-t-3xl border-t-2 border-[#FFD700] z-50 flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
-            <div class="p-4 flex justify-between items-center border-b border-[#C5A059]/30">
+        <div id="leaderboard-drawer" class="absolute inset-x-0 bottom-0 h-[85%] bg-[#0f0505] rounded-t-3xl border-t-2 border-[#FFD700] z-50 flex flex-col shadow-[0_-10px_60px_rgba(0,0,0,1)]">
+            <div class="p-4 flex justify-between items-center border-b border-[#C5A059]/30 bg-[#1a0505]">
                 <h3 class="font-imperial text-xl text-[#FFD700]">DYNASTY RANKINGS</h3>
-                <button onclick="toggleLeaderboard()" class="text-[#C5A059] text-2xl px-2">&times;</button>
+                <button onclick="toggleLeaderboard()" class="text-[#C5A059] text-3xl px-2">&times;</button>
             </div>
-            <div id="leaderboard-list" class="flex-1 overflow-y-auto p-4 space-y-2">
-                </div>
+            <div id="leaderboard-list" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
         </div>
-
     </div>
 
     <script type="module">
@@ -196,7 +182,6 @@
             const userRef = ref(db, `teams/${id}`);
             const snap = await get(userRef);
             if(!snap.exists()) await set(userRef, { name, balance: 1000 });
-
             localStorage.setItem('imp_id', id); localStorage.setItem('imp_name', name);
             myId = id; myName = name;
             initApp();
@@ -207,13 +192,11 @@
             document.getElementById('app-view').classList.remove('hidden');
             document.getElementById('app-view').classList.add('flex');
 
-            // 1. WATCH MY BALANCE
             onValue(ref(db, `teams/${myId}/balance`), (snap) => {
                 myBalance = snap.val() || 0;
                 document.getElementById('wallet-balance').innerText = myBalance.toLocaleString();
             });
 
-            // 2. WATCH GAME STATE
             onValue(ref(db, 'gameState'), (snap) => {
                 const state = snap.val();
                 if(!state) return;
@@ -222,36 +205,29 @@
 
                 ['state-bidding', 'state-winner', 'state-loser', 'state-idle'].forEach(id => {
                     document.getElementById(id).classList.add('hidden');
+                    document.getElementById(id).classList.remove('flex');
                 });
 
-                if (state.phase === 'BIDDING') {
-                    document.getElementById('state-bidding').classList.remove('hidden');
-                    document.getElementById('state-bidding').classList.add('flex');
+                let activeId = 'state-idle';
+                if (state.phase === 'BIDDING') activeId = 'state-bidding';
+                else if (state.phase === 'SOLD') {
+                    activeId = (state.leaderId === myId) ? 'state-winner' : 'state-loser';
+                }
+                
+                const activeEl = document.getElementById(activeId);
+                activeEl.classList.remove('hidden');
+                activeEl.classList.add('flex');
+                
+                if(state.leaderName) document.getElementById('winner-name').innerText = state.leaderName;
+                if(activeId === 'state-bidding') {
                     const minBid = currentHighBid + 50;
                     document.getElementById('bid-amount').placeholder = `Min: ${minBid}`;
-                } 
-                else if (state.phase === 'SOLD') {
-                    if (state.leaderId === myId) {
-                        document.getElementById('state-winner').classList.remove('hidden');
-                        document.getElementById('state-winner').classList.add('flex');
-                    } else {
-                        document.getElementById('winner-name').innerText = state.leaderName;
-                        document.getElementById('state-loser').classList.remove('hidden');
-                        document.getElementById('state-loser').classList.add('flex');
-                    }
-                } 
-                else {
-                    document.getElementById('state-idle').classList.remove('hidden');
-                    document.getElementById('state-idle').classList.add('flex');
                 }
             });
 
-            // 3. WATCH RANKINGS (FOR THEME & LEADERBOARD)
             onValue(ref(db, 'teams'), (snap) => {
                 const teams = snap.val() || {};
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-                
-                // RENDER DRAWER
                 const list = document.getElementById('leaderboard-list');
                 list.innerHTML = '';
                 let myRankIndex = -1;
@@ -269,39 +245,23 @@
 
                     const row = document.createElement('div');
                     row.className = `flex justify-between p-3 rounded bg-white/5 border border-white/10 ${key===myId ? 'border-[#FFD700] bg-[#FFD700]/10' : ''}`;
-                    row.innerHTML = `
-                        <div class="flex gap-3">
-                            <span class="w-6 text-center ${colorClass} font-bold">${icon}</span>
-                            <span class="${colorClass} font-imperial truncate max-w-[150px]">${t.name}</span>
-                        </div>
-                        <span class="text-[#C5A059] font-mono">RM ${t.balance.toLocaleString()}</span>
-                    `;
+                    row.innerHTML = `<div class="flex gap-3"><span class="w-6 text-center ${colorClass} font-bold">${icon}</span><span class="${colorClass} font-imperial truncate max-w-[150px]">${t.name}</span></div><span class="text-[#C5A059] font-mono">RM ${t.balance.toLocaleString()}</span>`;
                     list.appendChild(row);
                 });
 
-                // UPDATE MY THEME
                 const statusDiv = document.getElementById('status-bar');
                 const rankText = document.getElementById('my-rank-text');
                 const rankIcon = document.getElementById('my-rank-icon');
                 
-                // Reset classes
                 statusDiv.classList.remove('rank-1-glow', 'rank-2-glow', 'rank-3-glow');
-
                 if(myRankIndex === 0) {
-                    statusDiv.classList.add('rank-1-glow');
-                    rankText.innerText = "EMPEROR"; rankText.style.color = "#FFD700";
-                    rankIcon.innerText = "👑";
+                    statusDiv.classList.add('rank-1-glow'); rankText.innerText = "EMPEROR"; rankText.style.color = "#FFD700"; rankIcon.innerText = "👑";
                 } else if(myRankIndex === 1) {
-                    statusDiv.classList.add('rank-2-glow');
-                    rankText.innerText = "WARLORD"; rankText.style.color = "#C0C0C0";
-                    rankIcon.innerText = "🥈";
+                    statusDiv.classList.add('rank-2-glow'); rankText.innerText = "WARLORD"; rankText.style.color = "#C0C0C0"; rankIcon.innerText = "🥈";
                 } else if(myRankIndex === 2) {
-                    statusDiv.classList.add('rank-3-glow');
-                    rankText.innerText = "GENERAL"; rankText.style.color = "#CD7F32";
-                    rankIcon.innerText = "🥉";
+                    statusDiv.classList.add('rank-3-glow'); rankText.innerText = "GENERAL"; rankText.style.color = "#CD7F32"; rankIcon.innerText = "🥉";
                 } else {
-                    rankText.innerText = "SOLDIER"; rankText.style.color = "white";
-                    rankIcon.innerText = "⚔️";
+                    rankText.innerText = "SOLDIER"; rankText.style.color = "white"; rankIcon.innerText = "⚔️";
                 }
             });
         }
@@ -322,10 +282,7 @@
         };
 
         window.toggleLeaderboard = () => document.getElementById('leaderboard-drawer').classList.toggle('open');
-        function showMsg(txt) { 
-            const el = document.getElementById('feedback-msg'); 
-            el.innerText = txt; setTimeout(() => el.innerText = "", 2000); 
-        }
+        function showMsg(txt) { const el = document.getElementById('feedback-msg'); el.innerText = txt; setTimeout(() => el.innerText = "", 2000); }
     </script>
 </body>
 </html>
