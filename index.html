@@ -11,21 +11,21 @@
         body { font-family: 'Playfair Display', serif; background-color: #050000; color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
         
-        /* BACKGROUND & UI */
-        .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.3; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
+        /* BACKGROUND */
+        .bg-pattern { position: absolute; inset: 0; opacity: 0.4; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
+        .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.9); }
 
         /* GRID */
         .angpao {
-            background: linear-gradient(160deg, #8a0000, #3a0000); border: 2px solid #5c0000; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.1s; position: relative;
+            background: linear-gradient(160deg, #8a0000, #4a0000); border: 2px solid #5c0000; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.2s; position: relative;
             font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.2); font-size: 2rem;
             display: flex; align-items: center; justify-content: center;
         }
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        /* ENVELOPE (Pushed down to avoid Timer) */
+        /* ENVELOPE */
         .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 60px; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
@@ -44,10 +44,6 @@
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
         
-        /* WHEEL (Hidden by default) */
-        .wheel-box { display: none; width: 500px; height: 500px; border-radius: 50%; border: 10px solid #FFD700; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: #000; overflow: hidden; }
-        .wheel-spinner { width: 100%; height: 100%; background: conic-gradient(#00aa00 0deg 180deg, #aa0000 180deg 360deg); transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); }
-        
         /* LEADERBOARD */
         .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
         .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, rgba(192,192,192,0.1), transparent); }
@@ -58,9 +54,8 @@
 
     <div class="bg-pattern"></div>
     
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/1202/1202-preview.mp3"></audio>
+    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-spin" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
 
@@ -85,8 +80,10 @@
         </div>
 
         <div id="wheel-stage" class="absolute inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center">
-            <div class="wheel-box"><div id="wheel-spinner" class="wheel-spinner"></div></div>
-            <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[20px] border-t-white z-[201]"></div>
+            <div class="w-[500px] h-[500px] rounded-full border-[10px] border-[#FFD700] relative bg-[#000] overflow-hidden">
+                <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] transition-transform duration-[4000ms] ease-out"></div>
+            </div>
+            <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white z-[201]"></div>
             <div class="mt-[550px] text-4xl font-imperial text-white">HIGH ROLLER: <span id="wager-display" class="text-[#FFD700]"></span></div>
         </div>
 
@@ -170,11 +167,11 @@
         // ASSETS
         const sfxTick = document.getElementById('sfx-tick');
         const sfxGong = document.getElementById('sfx-gong');
-        const sfxCoin = document.getElementById('sfx-coin');
         const sfxSpin = document.getElementById('sfx-spin');
         const bgm = document.getElementById('bgm');
+        bgm.volume = 0.2; // LIGHT VOLUME
 
-        // UPDATED CARD LIST WITH ITEMS & GAMBLE
+        // CARD DATA
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
             { id: 2, name: "Market Crash", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 },
@@ -206,11 +203,9 @@
         let gameState = { phase: 'GRID', round: 1 };
         let envelopesStatus = {};
         
-        // --- INIT ---
         renderGrid();
         startServerLoop();
 
-        // 1. STATE SYNC
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
             if(!data || !data.phase) {
@@ -227,7 +222,6 @@
             const vAuc = document.getElementById('view-auction');
             const wheel = document.getElementById('wheel-stage');
 
-            // --- VIEW LOGIC ---
             if (gameState.phase === 'GRID') {
                 vGrid.classList.remove('hidden');
                 vAuc.classList.add('hidden');
@@ -235,7 +229,6 @@
                 resetAuctionEffects();
             } 
             else if (gameState.phase === 'WAGER' || gameState.phase === 'SPIN') {
-                // HIGH ROLLER MODE
                 vGrid.classList.add('hidden');
                 vAuc.classList.add('hidden');
                 wheel.classList.remove('hidden');
@@ -243,13 +236,10 @@
                 
                 if(gameState.phase === 'SPIN') {
                     document.getElementById('wager-display').innerText = `SPINNING...`;
-                    // Trigger Spin Visual
                     const spinner = document.getElementById('wheel-spinner');
                     const isWin = gameState.spinResult === 'WIN';
-                    // Green (0-180), Red (180-360). Spin 5 times + result
                     const rotation = 1800 + (isWin ? 90 : 270); 
                     spinner.style.transform = `rotate(${rotation}deg)`;
-                    spinner.style.transition = "transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)";
                     sfxSpin.play();
                 } else {
                     document.getElementById('wager-display').innerText = "WAITING FOR INPUT...";
@@ -283,7 +273,6 @@
             }
         });
 
-        // 2. REVEAL LOGIC
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
@@ -291,12 +280,10 @@
                 if(gameState.phase === 'SPIN') {
                     update(ref(db, 'gameState'), { phase: 'REVEALED' });
                     sfxGong.play();
-                    // Just wait for Next Round click
                     setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 1000);
                     return;
                 }
 
-                // Normal Reveal
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
@@ -306,8 +293,6 @@
                 if(card) {
                     document.getElementById('card-title').innerText = card.name;
                     document.getElementById('card-desc').innerText = card.desc;
-                    
-                    // IF SOMEONE BOUGHT IT, EXECUTE
                     if(gameState.leaderId) {
                         if(card.type === 'GAMBLE_WAGER') {
                             setTimeout(() => {
@@ -322,7 +307,6 @@
             }
         });
 
-        // 3. ROSTER
         onValue(ref(db, 'teams'), (snap) => {
             const roster = document.getElementById('roster-grid');
             roster.innerHTML = '';
@@ -331,14 +315,23 @@
             sorted.forEach((key, idx) => {
                 const t = teams[key];
                 let cls = idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : ''));
+                let icon = idx===0 ? '👑' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
                 const div = document.createElement('div');
-                div.className = `p-2 flex justify-between bg-black/40 ${cls} mb-1`;
-                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs text-[#C5A059]">RM ${t.balance.toLocaleString()}</div></div>${t.immune ? '🛡️' : ''}`;
+                div.className = `p-3 flex justify-between bg-black/40 ${cls} mb-1 border-b border-white/5`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span>${icon}</span>
+                        <div>
+                            <div class="font-bold text-white">${t.name}</div>
+                            <div class="text-xs text-[#C5A059]">RM ${t.balance.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    ${t.immune ? '🛡️' : ''}
+                `;
                 roster.appendChild(div);
             });
         });
 
-        // --- ACTIONS ---
         window.adminAction = (action) => {
             if (action === 'START') {
                  set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
@@ -369,18 +362,25 @@
                 };
                 loop();
             }
+            // --- FIX FOR NEXT ROUND BUTTON ---
             if (action === 'NEXT') {
-                update(ref(db, `envelopes/${gameState.currentCard}`), true);
-                update(ref(db, 'gameState'), { 
-                    phase: 'GRID', round: (gameState.round||1)+1, currentCard: null, highestBid: 0, 
-                    wagerAmount: null, spinResult: null 
-                });
-                // Remove Immunity & Spy flags from everyone
+                const updates = {};
+                // Force update envelope even if state might be weird
+                if(gameState.currentCard) {
+                    updates[`envelopes/${gameState.currentCard}`] = true;
+                }
+                updates['gameState/phase'] = 'GRID';
+                updates['gameState/round'] = (gameState.round||1)+1;
+                updates['gameState/currentCard'] = null;
+                updates['gameState/highestBid'] = 0;
+                updates['gameState/leaderId'] = null;
+                updates['gameState/wagerAmount'] = null;
+                updates['gameState/spinResult'] = null;
+                
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
-                    const u = {};
-                    for(let k in t) { u[`teams/${k}/immune`] = null; }
-                    update(ref(db), u);
+                    for(let k in t) { updates[`teams/${k}/immune`] = null; }
+                    update(ref(db), updates);
                 });
             }
         };
@@ -437,7 +437,6 @@
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
-            // Logic: Pay Difference
             const isSelf = (state.leaderId === req.teamId);
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
@@ -458,23 +457,9 @@
             let newTime = state.bidDeadline;
             if (newTime - Date.now() < 10000) newTime = Date.now() + 10000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
-            await push(ref(db, 'currentRoundBids'), { teamName: team.name, amount: req.amount, timestamp: Date.now() });
             await remove(ref(db, `bidQueue/${key}`));
         });
         
-        onValue(ref(db, 'currentRoundBids'), (snap) => {
-            const list = document.getElementById('bids-list'); list.innerHTML = '';
-            const bids = snap.val();
-            if(bids) {
-                if(Object.keys(bids).length > list.childElementCount) sfxCoin.play();
-                Object.values(bids).sort((a,b) => b.timestamp - a.timestamp).forEach(b => {
-                    const el = document.createElement('div'); el.className = "flex justify-between text-sm p-2 border-b border-[#C5A059]/20";
-                    el.innerHTML = `<span class="text-[#C5A059]">${b.teamName}</span><span class="text-white font-bold">RM ${b.amount}</span>`;
-                    list.appendChild(el);
-                });
-            }
-        });
-
         async function executeCardEffect(cid, wid) {
             const card = cardsData.find(c => c.id === cid);
             const tSnap = await get(ref(db, 'teams'));
@@ -482,14 +467,6 @@
             const winner = teams[wid];
             const updates = {};
             
-            // Check Immunity for Negative cards (If someone ELSE targeted you)
-            // But here, the winner BOUGHT the card. Usually cards are good.
-            // Negative cards (like Taxes) affect the winner. Can they block their own card?
-            // Let's say YES for "Jade Seal" blocking bad luck.
-            if(card.val < 0 && winner.immune && winner.items?.jade_seal) {
-                // Not automatic. Must use seal button. If active 'immune' flag is true:
-            }
-
             // ITEM LOGIC
             if(card.type === 'ITEM') {
                 updates[`teams/${wid}/items/${card.item}`] = true;
@@ -500,7 +477,7 @@
             const wRef = `teams/${wid}/balance`;
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
-            // ... (Rest of logic same as before) ...
+            // ... (Rest of logic) ...
             
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
