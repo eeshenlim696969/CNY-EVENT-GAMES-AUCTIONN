@@ -10,11 +10,6 @@
         :root { --gold: #FFD700; --gold-dim: #C5A059; --glass: rgba(10, 0, 0, 0.95); }
         body { font-family: 'Playfair Display', serif; background-color: #050000; color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
-
-        /* --- ANIMATIONS --- */
-        @keyframes pulse-glow { 0% { box-shadow: 0 0 10px #FFD700; } 50% { box-shadow: 0 0 30px #FFD700; } 100% { box-shadow: 0 0 10px #FFD700; } }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-        
         .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); }
 
         /* GRID ITEMS */
@@ -36,9 +31,8 @@
         .roster-item.dead { opacity: 0.4; filter: grayscale(1); }
         .roster-item.leader { background: rgba(255, 215, 0, 0.1); border-left: 4px solid #FFD700; }
 
-        /* --- ENVELOPE (FIXED Z-INDEX) --- */
+        /* ENVELOPE */
         .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; }
-        
         .envelope-body {
             width: 100%; height: 100%; background: #a60000;
             border: 4px solid #FFD700; border-radius: 10px;
@@ -47,28 +41,23 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             transition: transform 1s ease-in-out;
         }
-        
         .envelope-lid {
             position: absolute; top: 0; left: 0; width: 100%; height: 50%;
             background: #8a0000; clip-path: polygon(0 0, 50% 100%, 100% 0);
             z-index: 12; transform-origin: top; transition: transform 1s;
         }
-
         .card-insert {
             position: absolute; top: 10%; left: 5%; width: 90%; height: 85%;
             background: #fffcf5; border: 2px solid #FFD700;
-            z-index: 5; /* Starts HIDDEN inside body */
-            color: black;
+            z-index: 5; color: black;
             display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
             transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             padding: 20px;
         }
-        
-        /* OPEN STATE - POP OUT */
+        /* OPEN STATE */
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-50%); z-index: 100 !important; box-shadow: 0 0 60px #FFD700; }
         .is-open .envelope-body { transform: translateY(20%); }
-
         .shaking { animation: shake 0.5s infinite; }
     </style>
 </head>
@@ -90,32 +79,29 @@
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8">
         
-        <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 transition-opacity duration-500 opacity-100 z-10">
-            <div class="flex-1 flex flex-col items-center justify-center">
-                <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
-                    <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">
-                        START GAME
-                    </button>
-                </div>
+        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
+            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">
+                START GAME
+            </button>
+        </div>
 
-                <div id="grid-container" class="grid grid-cols-5 gap-4 w-full max-w-[65vh] aspect-square p-6 glass-panel rounded-xl">
-                    </div>
-                
+        <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
+            <div class="flex-1 flex flex-col items-center justify-center">
+                <div id="grid-container" class="grid grid-cols-5 gap-4 w-full max-w-[65vh] aspect-square p-6 glass-panel rounded-xl"></div>
                 <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 px-12 py-4 bg-[#FFD700] hover:bg-white text-black font-imperial font-black text-2xl tracking-[0.2em] rounded shadow-[0_0_20px_#FFD700] transition-transform active:scale-95">
                     DRAW FORTUNE
                 </button>
             </div>
-
             <div class="w-[300px] glass-panel rounded-xl p-4 flex flex-col">
                 <h2 class="font-imperial text-center text-xl text-[#FFD700] mb-4 border-b border-[#C5A059] pb-2">DYNASTIES</h2>
                 <div id="roster-grid" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
             </div>
         </div>
 
-        <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 transition-opacity duration-500 opacity-0 pointer-events-none">
+        <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
                 
-                <div id="timer-box" class="mb-10 text-center opacity-0 transition-opacity">
+                <div id="timer-box" class="mb-10 text-center">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
                     <div id="countdown-val" class="text-7xl font-black font-imperial text-red-500 drop-shadow-[0_0_20px_red]">10.0s</div>
                 </div>
@@ -135,13 +121,9 @@
                     <div class="envelope-lid"></div>
                 </div>
 
-                <div class="mt-12 h-16 flex items-center justify-center w-full relative z-50">
-                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg">
-                        Waiting for Winner...
-                    </div>
-                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">
-                        NEXT ROUND
-                    </button>
+                <div class="mt-12 h-16 flex items-center justify-center w-full">
+                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg">Waiting for Winner to Break Seal...</div>
+                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">NEXT ROUND</button>
                 </div>
             </div>
 
@@ -158,7 +140,6 @@
     </main>
 
     <script type="module">
-        // --- YOUR CONFIG (ASIA REGION) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
             authDomain: "auction-ebc97.firebaseapp.com",
@@ -175,14 +156,13 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
-        // --- ASSETS ---
+        
+        // ASSETS & DATA
         const sfxTick = document.getElementById('sfx-tick');
         const sfxGong = document.getElementById('sfx-gong');
         const sfxAlarm = document.getElementById('sfx-alarm');
         const sfxCoin = document.getElementById('sfx-coin');
 
-        // --- GAME DATA ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
             { id: 2, name: "The Market Crash", desc: "Divide Score by 2", type: "MULTIPLY", val: 0.5 },
@@ -213,8 +193,6 @@
 
         let gameState = { phase: 'GRID', round: 1 };
         let envelopesStatus = {};
-
-        // --- DOM ---
         const gridContainer = document.getElementById('grid-container');
         const viewGrid = document.getElementById('view-grid');
         const viewAuction = document.getElementById('view-auction');
@@ -223,36 +201,30 @@
         const startOverlay = document.getElementById('start-overlay');
         const btnDraw = document.getElementById('btn-draw');
         
-        // --- INIT ---
         renderGrid();
         startServerLoop();
 
-        // --- 1. SYNC GAME STATE ---
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
-
-            // 🛑 AUTO-DETECT BROKEN STATE
-            // If data is null OR round is undefined, show START BUTTON
+            // SHOW START BUTTON IF BROKEN
             if(!data || !data.phase || !data.round) {
-                startOverlay.classList.remove('hidden'); // Show green button
+                startOverlay.classList.remove('hidden'); 
                 document.getElementById('status-text').innerText = "WAITING TO START";
                 return;
             }
-
-            // If data is good, hide start button
             startOverlay.classList.add('hidden');
             gameState = data;
-            
             document.getElementById('round-num').innerText = gameState.round;
             document.getElementById('status-text').innerText = gameState.phase;
 
+            // TOGGLE VIEWS STRICTLY
             if (gameState.phase === 'GRID') {
-                viewGrid.classList.remove('opacity-0', 'pointer-events-none');
-                viewAuction.classList.add('opacity-0', 'pointer-events-none');
+                viewGrid.classList.remove('hidden');
+                viewAuction.classList.add('hidden');
                 resetAuctionEffects();
             } else {
-                viewGrid.classList.add('opacity-0', 'pointer-events-none');
-                viewAuction.classList.remove('opacity-0', 'pointer-events-none');
+                viewGrid.classList.add('hidden');
+                viewAuction.classList.remove('hidden');
 
                 document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
                 document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
@@ -271,34 +243,29 @@
             }
         });
 
-        // --- 2. REVEAL TRIGGER ---
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true && gameState.phase === 'SOLD') {
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 update(ref(db), { revealTrigger: null }); 
-
                 sfxGong.play();
                 mainEnvelope.classList.add('is-open');
                 document.getElementById('msg-waiting').classList.add('hidden');
-
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 if(card) {
                     document.getElementById('card-title').innerText = card.name;
                     document.getElementById('card-desc').innerText = card.desc;
                     executeCardEffect(card.id, gameState.leaderId);
                 }
-                
                 setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
             }
         });
 
-        // --- 3. ROSTER ---
         onValue(ref(db, 'teams'), (snap) => {
             rosterGrid.innerHTML = '';
             const teams = snap.val() || {};
             Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance).forEach(key => {
                 const t = teams[key];
-                const isDead = t.balance < 50; 
+                const isDead = t.balance <= 0; 
                 const isLeader = (gameState.phase !== 'GRID' && gameState.leaderId === key);
                 const div = document.createElement('div');
                 div.className = `roster-item p-3 flex justify-between items-center ${isDead ? 'dead' : ''} ${isLeader ? 'leader' : ''}`;
@@ -308,45 +275,28 @@
             });
         });
 
-        // --- 4. ACTIONS ---
         window.adminAction = (action) => {
-            // FIX: THIS BUTTON RESETS EVERYTHING TO CLEAN STATE
             if (action === 'START') {
-                 set(ref(db, 'gameState'), { phase: 'GRID', round: 1, highestBid: 0 });
-                 set(ref(db, 'currentRoundBids'), {});
-                 set(ref(db, 'envelopes'), {});
-                 // Do not delete teams, just reset game flow
-                return;
+                 set(ref(db), { gameState: { phase: 'GRID', round: 1, highestBid: 0 }, currentRoundBids: {}, envelopes: {}, teams: {} });
+                 return;
             }
-
             if (action === 'DRAW') {
                 let available = [];
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
                 if(!available.length) return alert("No more cards!");
-
                 btnDraw.disabled = true;
-
                 let delay = 50, steps = 0;
                 const loop = () => {
                     document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
                     const r = available[Math.floor(Math.random()*available.length)];
                     document.getElementById(`grid-cell-${r}`).classList.add('active');
-                    
-                    // 🔊 PLAY TICK SOUND
-                    sfxTick.currentTime = 0; 
-                    sfxTick.play().catch(e => {}); 
-
+                    sfxTick.currentTime = 0; sfxTick.play().catch(e => {}); 
                     steps++; delay *= 1.1;
                     if (delay < 500) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
                             update(ref(db, 'gameState'), {
-                                phase: 'BIDDING', 
-                                currentCard: r, 
-                                highestBid: 0, 
-                                leaderId: null, // Reset leader
-                                leaderName: null, 
-                                bidDeadline: Date.now() + 15000 
+                                phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 
                             });
                             set(ref(db, 'currentRoundBids'), {});
                             btnDraw.disabled = false;
@@ -361,11 +311,7 @@
             }
         };
 
-        window.resetGame = () => { 
-            if(confirm("FULL RESET? This clears everything (Scores too).")) {
-                set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, currentRoundBids: {} });
-            }
-        }
+        window.resetGame = () => { if(confirm("FULL RESET?")) set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, currentRoundBids: {} }); }
 
         function renderGrid() {
             gridContainer.innerHTML = '';
@@ -385,14 +331,12 @@
                 }
             });
         }
-
         function resetAuctionEffects() {
             mainEnvelope.classList.remove('is-open', 'shaking');
             document.getElementById('sold-stamp').classList.add('hidden');
             document.getElementById('btn-next').classList.add('hidden');
             document.getElementById('msg-waiting').classList.add('hidden');
         }
-
         function startServerLoop() {
             setInterval(() => {
                 if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
@@ -403,15 +347,12 @@
                     } else {
                         const secs = (diff / 1000).toFixed(1);
                         document.getElementById('countdown-val').innerText = secs + "s";
-                        if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) {
-                            sfxAlarm.currentTime = 0; sfxAlarm.play(); 
-                        }
+                        if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) sfxAlarm.currentTime = 0; sfxAlarm.play(); 
                     }
                 }
             }, 100);
         }
 
-        // --- BID & CARD LOGIC ---
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
@@ -422,22 +363,18 @@
                 const state = stateSnap.val();
                 const minBid = (state.highestBid || 0) + 50;
                 if (state.phase !== 'BIDDING' || req.amount < minBid) { await remove(ref(db, `bidQueue/${key}`)); return; }
-
                 const bidderRef = ref(db, `teams/${req.teamId}`);
                 const bidderSnap = await get(bidderRef);
                 const bidder = bidderSnap.val();
                 if (!bidder || bidder.balance < req.amount) { await remove(ref(db, `bidQueue/${key}`)); return; }
-
                 if (state.leaderId) {
                     const prevRef = ref(db, `teams/${state.leaderId}`);
                     const prevSnap = await get(prevRef);
                     if (prevSnap.exists()) await update(prevRef, { balance: prevSnap.val().balance + state.highestBid });
                 }
                 await update(bidderRef, { balance: bidder.balance - req.amount });
-
                 let newTime = state.bidDeadline;
                 if (newTime - Date.now() < 10000) newTime = Date.now() + 10000;
-
                 await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: bidder.name, bidDeadline: newTime });
                 await push(ref(db, 'currentRoundBids'), { teamName: bidder.name, amount: req.amount, timestamp: Date.now() });
             } catch(e) { console.error(e); }
@@ -464,7 +401,6 @@
             const teams = teamsSnap.val() || {};
             const winner = teams[winnerId];
             if (!winner) return;
-
             const card = cardsData.find(c => c.id === cardId);
             let updates = {};
             const winnerRef = `teams/${winnerId}/balance`;
@@ -477,7 +413,6 @@
                  if(randOpp) { updates[winnerRef] = winner.balance + card.val; updates[`teams/${randOpp}/balance`] = Math.max(0, teams[randOpp].balance - card.val); }
             }
             else updates[winnerRef] = winner.balance + (card.val || 0);
-
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
     </script>
