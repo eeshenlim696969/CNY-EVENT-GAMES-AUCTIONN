@@ -24,7 +24,6 @@
             background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); 
             z-index: 50; border-color: #fff; color: #000;
         }
-        /* USED CARDS - DARK & UNSELECTABLE */
         .angpao.used { 
             background: #1a0505; border-color: #333; opacity: 0.2; 
             filter: grayscale(1); color: transparent; box-shadow: none;
@@ -36,7 +35,7 @@
         .roster-item.leader { background: rgba(255, 215, 0, 0.1); border-left: 4px solid #FFD700; }
 
         /* ENVELOPE */
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; }
+        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: -50px; }
         .envelope-body {
             width: 100%; height: 100%; background: #a60000;
             border: 4px solid #FFD700; border-radius: 10px;
@@ -63,13 +62,23 @@
         .is-open .card-insert { transform: translateY(-50%); z-index: 100 !important; box-shadow: 0 0 60px #FFD700; }
         .is-open .envelope-body { transform: translateY(20%); }
         .shaking { animation: shake 0.5s infinite; }
+
+        /* BUTTON FIX - ALWAYS ON TOP & AT BOTTOM */
+        .action-bar {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 200 !important; /* Higher than card (100) */
+            width: 100%; display: flex; justify-content: center;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
 
-    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio> <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-    <audio id="sfx-timer" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio> <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
+    <audio id="sfx-timer" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+
+    <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
         <h1 class="font-imperial text-3xl font-bold tracking-[0.2em] text-[#FFD700]">IMPERIAL AUCTION</h1>
         <div class="flex gap-8 font-imperial text-xl tracking-widest text-[#C5A059]">
             <div>ROUND <span id="round-num" class="text-white font-bold ml-2">--</span></div>
@@ -102,9 +111,9 @@
         <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
                 
-                <div id="timer-box" class="mb-10 text-center">
+                <div id="timer-box" class="mb-6 text-center">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
-                    <div id="countdown-val" class="text-7xl font-black font-imperial text-red-500 drop-shadow-[0_0_20px_red]">10.0s</div>
+                    <div id="countdown-val" class="text-6xl font-black font-imperial text-red-500 drop-shadow-[0_0_20px_red]">10.0s</div>
                 </div>
 
                 <div class="envelope-container" id="main-envelope">
@@ -122,9 +131,13 @@
                     <div class="envelope-lid"></div>
                 </div>
 
-                <div class="mt-12 h-16 flex items-center justify-center w-full">
-                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg">Waiting for Winner to Break Seal...</div>
-                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">NEXT ROUND</button>
+                <div class="action-bar">
+                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg bg-black/50 px-4 py-2 rounded">
+                        Waiting for Winner...
+                    </div>
+                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-16 py-4 bg-[#FFD700] text-black font-imperial font-black text-2xl tracking-widest rounded-lg hover:bg-white shadow-[0_0_30px_gold] border-2 border-white">
+                        NEXT ROUND
+                    </button>
                 </div>
             </div>
 
@@ -158,38 +171,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // ASSETS & DATA
         const sfxTick = document.getElementById('sfx-tick');
         const sfxGong = document.getElementById('sfx-gong');
         const sfxTimer = document.getElementById('sfx-timer');
         const sfxCoin = document.getElementById('sfx-coin');
 
+        // BALANCED CARDS: No more game-breaking steals
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "The Market Crash", desc: "Divide Score by 2", type: "MULTIPLY", val: 0.5 },
-            { id: 3, name: "The Tax Collector", desc: "Steal 3,000 from Highest Score", type: "STEAL_HIGH", val: 3000 },
-            { id: 4, name: "The Duel", desc: "Rivalry: Winner Steals 3,000", type: "DUEL", val: 3000 },
-            { id: 5, name: "The Golden Dragon", desc: "Multiply Score by 2x", type: "MULTIPLY", val: 2 },
+            { id: 2, name: "The Market Crash", desc: "Pay 20% Tax (Loss)", type: "MULTIPLY", val: 0.8 }, // NERFED: Lose 20% instead of 50%
+            { id: 3, name: "The Tax Collector", desc: "Steal 20% from Richest Team", type: "STEAL_PCT", val: 0.2 }, // NERFED: % based
+            { id: 4, name: "The Duel", desc: "Rivalry: Steal 2,000 from 2nd Place", type: "STEAL_RIVAL", val: 2000 }, // FIXED
+            { id: 5, name: "The Golden Dragon", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 }, // NERFED: 2x was too much
             { id: 6, name: "The Data Leak", desc: "-2,500 Points", type: "ADD", val: -2500 },
             { id: 7, name: "The Imperial Grant", desc: "Instant +5,000 Points", type: "ADD", val: 5000 },
             { id: 8, name: "The Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "The Robin Hood", desc: "Steal 2,000 from ANY team", type: "STEAL_CHOICE", val: 2000 },
-            { id: 10, name: "The Broken Vase", desc: "-4,000 Points", type: "ADD", val: -4000 },
-            { id: 11, name: "The Interest Rate", desc: "Gain 20% Interest", type: "MULTIPLY", val: 1.2 },
+            { id: 9, name: "The Robin Hood", desc: "Steal 1,500 from Random Team", type: "STEAL_CHOICE", val: 1500 },
+            { id: 10, name: "The Broken Vase", desc: "-3,000 Points", type: "ADD", val: -3000 },
+            { id: 11, name: "The Interest Rate", desc: "Gain 15% Interest", type: "MULTIPLY", val: 1.15 },
             { id: 12, name: "The God of Wealth", desc: "Instant +8,888 Points", type: "ADD", val: 8888 },
             { id: 13, name: "The 404 Error", desc: "-1,500 Points", type: "ADD", val: -1500 },
-            { id: 14, name: "The Twin Carp", desc: "+2,000 You & +2,000 Chosen Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "The Nian Monster", desc: "-8,000 Points", type: "ADD", val: -8000 },
+            { id: 14, name: "The Twin Carp", desc: "+2,000 You & +2,000 Random Ally", type: "GIVE_CHOICE", val: 2000 },
+            { id: 15, name: "The Nian Monster", desc: "-5,000 Points", type: "ADD", val: -5000 },
             { id: 16, name: "The Spy", desc: "Peek at next card", type: "PEEK", val: 0 },
-            { id: 17, name: "The Phoenix Rising", desc: "If Negative: Reset to 5,000. Else +1,000", type: "PHOENIX", val: 0 },
-            { id: 18, name: "The False Friend", desc: "Donate 1,000 to Lowest Score", type: "GIVE_LOW", val: 1000 },
-            { id: 19, name: "The Shared Bill", desc: "Everyone else loses -1,000", type: "GLOBAL_HIT", val: -1000 },
+            { id: 17, name: "The Phoenix Rising", desc: "If Negative: Reset to 3,000", type: "PHOENIX", val: 0 },
+            { id: 18, name: "The False Friend", desc: "Donate 1,000 to Poorest", type: "GIVE_LOW", val: 1000 },
+            { id: 19, name: "The Shared Bill", desc: "Everyone else pays 500", type: "GLOBAL_HIT", val: -500 },
             { id: 20, name: "The Jade Seal", desc: "Immunity for next round", type: "IMMUNITY", val: 0 },
-            { id: 21, name: "The Mystery Box", desc: "Roll 1-3: Lose 2,000. Roll 4-6: Win 4,000", type: "GAMBLE_DICE", val: 0 },
+            { id: 21, name: "The Mystery Box", desc: "Gamble: +/- 3,000", type: "GAMBLE_DICE", val: 0 },
             { id: 22, name: "The Sweeping Broom", desc: "-2,000 Points", type: "ADD", val: -2000 },
-            { id: 23, name: "The Swap", desc: "Swap Total Score with chosen team", type: "SWAP", val: 0 },
+            { id: 23, name: "The Swap", desc: "Swap Score with Random (If lower)", type: "SWAP", val: 0 }, // FIXED: Only swaps if beneficial
             { id: 24, name: "The Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
-            { id: 25, name: "The High Roller", desc: "Wager Amount -> Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
+            { id: 25, name: "The High Roller", desc: "All In: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
         ];
 
         let gameState = { phase: 'GRID', round: 1 };
@@ -205,10 +218,8 @@
         renderGrid();
         startServerLoop();
 
-        // 1. STATE SYNC
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
-            // SHOW START BUTTON IF BROKEN
             if(!data || !data.phase || !data.round) {
                 startOverlay.classList.remove('hidden'); 
                 document.getElementById('status-text').innerText = "WAITING TO START";
@@ -219,7 +230,6 @@
             document.getElementById('round-num').innerText = gameState.round;
             document.getElementById('status-text').innerText = gameState.phase;
 
-            // TOGGLE VIEWS STRICTLY
             if (gameState.phase === 'GRID') {
                 viewGrid.classList.remove('hidden');
                 viewAuction.classList.add('hidden');
@@ -227,7 +237,6 @@
             } else {
                 viewGrid.classList.add('hidden');
                 viewAuction.classList.remove('hidden');
-
                 document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
                 document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
 
@@ -245,7 +254,6 @@
             }
         });
 
-        // 2. REVEAL TRIGGER
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true && gameState.phase === 'SOLD') {
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
@@ -263,7 +271,6 @@
             }
         });
 
-        // 3. ROSTER SYNC
         onValue(ref(db, 'teams'), (snap) => {
             rosterGrid.innerHTML = '';
             const teams = snap.val() || {};
@@ -279,7 +286,6 @@
             });
         });
 
-        // 4. ADMIN ACTIONS (FIXED)
         window.adminAction = (action) => {
             if (action === 'START') {
                  set(ref(db), { gameState: { phase: 'GRID', round: 1, highestBid: 0 }, currentRoundBids: {}, envelopes: {}, teams: {} });
@@ -290,16 +296,12 @@
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
                 if(!available.length) return alert("No more cards!");
                 btnDraw.disabled = true;
-                
                 let delay = 50, steps = 0;
                 const loop = () => {
                     document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
                     const r = available[Math.floor(Math.random()*available.length)];
                     document.getElementById(`grid-cell-${r}`).classList.add('active');
-                    
-                    // NEW SHUFFLE SOUND
                     sfxTick.currentTime = 0; sfxTick.play().catch(e => {}); 
-                    
                     steps++; delay *= 1.1;
                     if (delay < 500) setTimeout(loop, delay);
                     else {
@@ -315,17 +317,15 @@
                 loop();
             }
             if (action === 'NEXT') {
-                // ATOMIC UPDATE (Fixes the "Next Round Broken" bug)
                 const updates = {};
-                updates[`envelopes/${gameState.currentCard}`] = true; // Mark as used
+                updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID';
                 updates['gameState/round'] = (gameState.round || 1) + 1;
                 updates['gameState/currentCard'] = null;
                 updates['gameState/highestBid'] = 0;
                 updates['gameState/leaderId'] = null;
                 updates['gameState/leaderName'] = null;
-                updates['currentRoundBids'] = null; // Clear bids
-                
+                updates['currentRoundBids'] = null;
                 update(ref(db), updates);
             }
         };
@@ -367,7 +367,6 @@
                         const secs = (diff / 1000).toFixed(1);
                         document.getElementById('countdown-val').innerText = secs + "s";
                         if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) {
-                             // NEW TIMER SOUND
                              sfxTimer.currentTime = 0; sfxTimer.play(); 
                         }
                     }
@@ -418,6 +417,7 @@
             }
         });
 
+        // BALANCED EFFECT LOGIC
         async function executeCardEffect(cardId, winnerId) {
             const teamsSnap = await get(ref(db, 'teams'));
             const teams = teamsSnap.val() || {};
@@ -426,15 +426,41 @@
             const card = cardsData.find(c => c.id === cardId);
             let updates = {};
             const winnerRef = `teams/${winnerId}/balance`;
+            
+            // Filter other teams
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const randOpp = others.length ? others[Math.floor(Math.random()*others.length)] : null;
+            
+            // FIX: If playing alone, give Pity Bonus instead of crashing
+            if(others.length === 0 && (card.type.includes('STEAL') || card.type.includes('SWAP'))) {
+                updates[winnerRef] = winner.balance + 1000; // Pity Bonus
+                await update(ref(db), updates);
+                return;
+            }
 
             if(card.type === 'ADD') updates[winnerRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[winnerRef] = Math.floor(winner.balance * card.val);
-            else if(card.type === 'STEAL_HIGH' || card.type === 'STEAL_CHOICE') {
-                 if(randOpp) { updates[winnerRef] = winner.balance + card.val; updates[`teams/${randOpp}/balance`] = Math.max(0, teams[randOpp].balance - card.val); }
+            
+            // STEAL % (Smart Logic)
+            else if(card.type === 'STEAL_PCT') {
+                // Find Richest
+                let richestId = others[0];
+                others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
+                if(richestId) {
+                    const stolen = Math.floor(teams[richestId].balance * card.val);
+                    updates[winnerRef] = winner.balance + stolen;
+                    updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
+                }
+            }
+            // SWAP (Safe Logic)
+            else if(card.type === 'SWAP') {
+                 if(randOpp && teams[randOpp].balance > winner.balance) {
+                     updates[winnerRef] = teams[randOpp].balance;
+                     updates[`teams/${randOpp}/balance`] = winner.balance;
+                 }
             }
             else updates[winnerRef] = winner.balance + (card.val || 0);
+
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
     </script>
