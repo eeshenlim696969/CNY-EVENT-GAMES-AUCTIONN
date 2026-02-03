@@ -169,14 +169,16 @@
 
     <script type="module">
         const firebaseConfig = {
-            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
-            authDomain: "auction-ebc97.firebaseapp.com",
-            projectId: "auction-ebc97",
-            storageBucket: "auction-ebc97.firebasestorage.app",
-            messagingSenderId: "883038465804",
-            appId: "1:883038465804:web:df2595623ca5276561a329",
-            measurementId: "G-69HD10GML7"
-        };
+    apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+    authDomain: "auction-ebc97.firebaseapp.com",
+    // ADD THIS LINE BELOW:
+    databaseURL: "https://auction-ebc97-default-rtdb.firebaseio.com",
+    projectId: "auction-ebc97",
+    storageBucket: "auction-ebc97.firebasestorage.app",
+    messagingSenderId: "883038465804",
+    appId: "1:883038465804:web:df2595623ca5276561a329",
+    measurementId: "G-69HD10GML7"
+};
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getDatabase, ref, onValue, set, update, get, remove, onChildAdded, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
