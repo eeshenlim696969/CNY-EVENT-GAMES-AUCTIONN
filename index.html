@@ -12,6 +12,21 @@
         .font-imperial { font-family: 'Cinzel', serif; }
         .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); }
 
+        /* --- ANIMATIONS --- */
+        @keyframes slam { 0% { transform: scale(5) rotate(0deg); opacity: 0; } 80% { transform: scale(0.9) rotate(-12deg); opacity: 1; } 100% { transform: scale(1) rotate(-12deg); opacity: 1; } }
+        @keyframes panic { 0% { transform: translate(0,0); color: #FFD700; } 25% { transform: translate(-2px,2px); color: red; } 50% { transform: translate(2px,-2px); color: red; } 75% { transform: translate(-2px,-2px); color: red; } 100% { transform: translate(0,0); color: #FFD700; } }
+        
+        /* GOOD REVEAL */
+        @keyframes flash-gold { 0% { background: rgba(255, 215, 0, 0); } 10% { background: rgba(255, 215, 0, 0.5); } 100% { background: transparent; } }
+        /* BAD REVEAL */
+        @keyframes flash-red { 0% { background: rgba(255, 0, 0, 0); } 10% { background: rgba(255, 0, 0, 0.4); } 100% { background: transparent; } }
+        @keyframes shake-screen { 0% { transform: translate(0,0); } 10% { transform: translate(-10px, 10px); } 20% { transform: translate(10px, -10px); } 30% { transform: translate(-10px, 10px); } 100% { transform: translate(0,0); } }
+        
+        @keyframes sunburst { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .fx-good { animation: flash-gold 1s ease-out; }
+        .fx-bad { animation: flash-red 0.5s ease-out, shake-screen 0.5s ease-out; }
+
         /* GRID ITEMS */
         .angpao {
             background: linear-gradient(160deg, #e60000, #8a0000);
@@ -20,55 +35,46 @@
             transition: all 0.1s; position: relative;
             font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 2rem;
         }
-        .angpao.active { 
-            background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); 
-            z-index: 50; border-color: #fff; color: #000;
-        }
-        .angpao.used { 
-            background: #1a0505; border-color: #333; opacity: 0.2; 
-            filter: grayscale(1); color: transparent; box-shadow: none;
-        }
+        .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; }
+        .angpao.used { background: #1a0505; border-color: #333; opacity: 0.2; filter: grayscale(1); color: transparent; box-shadow: none; }
 
-        /* ROSTER */
-        .roster-item { transition: all 0.3s; border-bottom: 1px solid rgba(197, 160, 89, 0.2); }
-        .roster-item.dead { opacity: 0.4; filter: grayscale(1); }
-        .roster-item.leader { background: rgba(255, 215, 0, 0.1); border-left: 4px solid #FFD700; }
+        /* ROSTER SCROLL FIX */
+        .roster-container { max-height: 70vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C5A059 #1a0505; }
+        
+        /* RANKING STYLES */
+        .rank-1 { color: #FFD700; font-size: 1.2rem; text-shadow: 0 0 10px #FFD700; border-left: 4px solid #FFD700; background: rgba(255,215,0,0.1); }
+        .rank-2 { color: #C0C0C0; border-left: 2px solid #C0C0C0; }
+        .rank-3 { color: #CD7F32; border-left: 2px solid #CD7F32; }
 
         /* ENVELOPE */
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: -50px; }
-        .envelope-body {
-            width: 100%; height: 100%; background: #a60000;
-            border: 4px solid #FFD700; border-radius: 10px;
-            position: absolute; top: 0; left: 0; z-index: 10;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            transition: transform 1s ease-in-out;
+        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 20px; }
+        .envelope-body { width: 100%; height: 100%; background: #a60000; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
+        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #8a0000; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; }
+        .card-insert { position: absolute; top: 10%; left: 5%; width: 90%; height: 85%; background: #fffcf5; border: 2px solid #FFD700; z-index: 5; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; }
+        
+        /* CARD STYLES */
+        .card-bad { border-color: #8a0000; background: #fff0f0; }
+        .card-bad h3 { color: #8a0000 !important; }
+        .card-bad .icon { color: #8a0000 !important; }
+
+        /* SUNBURST EFFECT BEHIND CARD */
+        .sunburst {
+            position: absolute; top: 50%; left: 50%; width: 600px; height: 600px;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(255,215,0,0.3) 10%, transparent 20%, rgba(255,215,0,0.3) 30%, transparent 40%);
+            transform: translate(-50%, -50%); z-index: 1; opacity: 0; pointer-events: none;
         }
-        .envelope-lid {
-            position: absolute; top: 0; left: 0; width: 100%; height: 50%;
-            background: #8a0000; clip-path: polygon(0 0, 50% 100%, 100% 0);
-            z-index: 12; transform-origin: top; transition: transform 1s;
-        }
-        .card-insert {
-            position: absolute; top: 10%; left: 5%; width: 90%; height: 85%;
-            background: #fffcf5; border: 2px solid #FFD700;
-            z-index: 5; color: black;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 20px;
-        }
-        /* OPEN STATE */
+        .is-open ~ .sunburst { opacity: 1; animation: sunburst 10s infinite linear; }
+
+        .slam-effect { animation: slam 0.4s forwards; }
+        .panic-mode { animation: panic 0.2s infinite; }
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-50%); z-index: 100 !important; box-shadow: 0 0 60px #FFD700; }
         .is-open .envelope-body { transform: translateY(20%); }
         .shaking { animation: shake 0.5s infinite; }
 
-        /* BUTTON FIX - ALWAYS ON TOP & AT BOTTOM */
-        .action-bar {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 200 !important; /* Higher than card (100) */
-            width: 100%; display: flex; justify-content: center;
-        }
+        .action-bar { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 200 !important; width: 100%; display: flex; justify-content: center; }
+        .confetti { position: absolute; width: 10px; height: 10px; background: #FFD700; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
@@ -77,8 +83,7 @@
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-timer" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
-
-    <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
+    <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio> <div id="fx-layer" class="absolute inset-0 pointer-events-none z-[300]"></div> <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
         <h1 class="font-imperial text-3xl font-bold tracking-[0.2em] text-[#FFD700]">IMPERIAL AUCTION</h1>
         <div class="flex gap-8 font-imperial text-xl tracking-widest text-[#C5A059]">
             <div>ROUND <span id="round-num" class="text-white font-bold ml-2">--</span></div>
@@ -88,39 +93,36 @@
     </header>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8">
-        
+        <div id="confetti-layer" class="absolute inset-0 pointer-events-none z-[250]"></div>
+
         <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
-            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">
-                START GAME
-            </button>
+            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">START GAME</button>
         </div>
 
         <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
             <div class="flex-1 flex flex-col items-center justify-center">
                 <div id="grid-container" class="grid grid-cols-5 gap-4 w-full max-w-[65vh] aspect-square p-6 glass-panel rounded-xl"></div>
-                <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 px-12 py-4 bg-[#FFD700] hover:bg-white text-black font-imperial font-black text-2xl tracking-[0.2em] rounded shadow-[0_0_20px_#FFD700] transition-transform active:scale-95">
-                    DRAW FORTUNE
-                </button>
+                <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 px-12 py-4 bg-[#FFD700] hover:bg-white text-black font-imperial font-black text-2xl tracking-[0.2em] rounded shadow-[0_0_20px_#FFD700] transition-transform active:scale-95">DRAW FORTUNE</button>
             </div>
-            <div class="w-[300px] glass-panel rounded-xl p-4 flex flex-col">
+            <div class="w-[350px] glass-panel rounded-xl p-4 flex flex-col h-full">
                 <h2 class="font-imperial text-center text-xl text-[#FFD700] mb-4 border-b border-[#C5A059] pb-2">DYNASTIES</h2>
-                <div id="roster-grid" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
+                <div id="roster-grid" class="roster-container flex-1 pr-2 space-y-2"></div>
             </div>
         </div>
 
         <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
                 
-                <div id="timer-box" class="mb-6 text-center">
+                <div id="timer-box" class="mb-4 text-center transition-all duration-100">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
-                    <div id="countdown-val" class="text-6xl font-black font-imperial text-red-500 drop-shadow-[0_0_20px_red]">10.0s</div>
+                    <div id="countdown-val" class="text-6xl font-black font-imperial text-[#FFD700] drop-shadow-[0_0_20px_#FFD700]">10.0s</div>
                 </div>
 
                 <div class="envelope-container" id="main-envelope">
-                    <div class="card-insert shadow-lg">
+                    <div class="card-insert shadow-lg" id="card-visual">
                         <h3 id="card-title" class="font-imperial text-[#8a0000] text-2xl font-bold mb-4 uppercase tracking-widest border-b-2 border-[#8a0000] pb-2">Title</h3>
                         <p id="card-desc" class="font-serif text-3xl font-bold text-black leading-tight">Description</p>
-                        <div class="mt-6 text-red-500 font-bold text-6xl">福</div>
+                        <div class="mt-6 text-red-500 font-bold text-6xl icon">福</div>
                     </div>
                     <div class="envelope-body">
                         <span class="text-8xl text-[#FFD700] opacity-80 font-imperial">福</span>
@@ -129,15 +131,12 @@
                         </div>
                     </div>
                     <div class="envelope-lid"></div>
+                    <div class="sunburst"></div>
                 </div>
 
                 <div class="action-bar">
-                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg bg-black/50 px-4 py-2 rounded">
-                        Waiting for Winner...
-                    </div>
-                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-16 py-4 bg-[#FFD700] text-black font-imperial font-black text-2xl tracking-widest rounded-lg hover:bg-white shadow-[0_0_30px_gold] border-2 border-white">
-                        NEXT ROUND
-                    </button>
+                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg bg-black/50 px-4 py-2 rounded">Waiting for Winner...</div>
+                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-16 py-4 bg-[#FFD700] text-black font-imperial font-black text-2xl tracking-widest rounded-lg hover:bg-white shadow-[0_0_30px_gold] border-2 border-white">NEXT ROUND</button>
                 </div>
             </div>
 
@@ -175,14 +174,14 @@
         const sfxGong = document.getElementById('sfx-gong');
         const sfxTimer = document.getElementById('sfx-timer');
         const sfxCoin = document.getElementById('sfx-coin');
+        const sfxBad = document.getElementById('sfx-bad');
 
-        // BALANCED CARDS: No more game-breaking steals
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "The Market Crash", desc: "Pay 20% Tax (Loss)", type: "MULTIPLY", val: 0.8 }, // NERFED: Lose 20% instead of 50%
-            { id: 3, name: "The Tax Collector", desc: "Steal 20% from Richest Team", type: "STEAL_PCT", val: 0.2 }, // NERFED: % based
-            { id: 4, name: "The Duel", desc: "Rivalry: Steal 2,000 from 2nd Place", type: "STEAL_RIVAL", val: 2000 }, // FIXED
-            { id: 5, name: "The Golden Dragon", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 }, // NERFED: 2x was too much
+            { id: 2, name: "The Market Crash", desc: "Pay 20% Tax (Loss)", type: "MULTIPLY", val: 0.8 },
+            { id: 3, name: "The Tax Collector", desc: "Steal 20% from Richest Team", type: "STEAL_PCT", val: 0.2 },
+            { id: 4, name: "The Duel", desc: "Rivalry: Steal 2,000 from 2nd Place", type: "STEAL_RIVAL", val: 2000 },
+            { id: 5, name: "The Golden Dragon", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
             { id: 6, name: "The Data Leak", desc: "-2,500 Points", type: "ADD", val: -2500 },
             { id: 7, name: "The Imperial Grant", desc: "Instant +5,000 Points", type: "ADD", val: 5000 },
             { id: 8, name: "The Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
@@ -200,7 +199,7 @@
             { id: 20, name: "The Jade Seal", desc: "Immunity for next round", type: "IMMUNITY", val: 0 },
             { id: 21, name: "The Mystery Box", desc: "Gamble: +/- 3,000", type: "GAMBLE_DICE", val: 0 },
             { id: 22, name: "The Sweeping Broom", desc: "-2,000 Points", type: "ADD", val: -2000 },
-            { id: 23, name: "The Swap", desc: "Swap Score with Random (If lower)", type: "SWAP", val: 0 }, // FIXED: Only swaps if beneficial
+            { id: 23, name: "The Swap", desc: "Swap Score with Random (If lower)", type: "SWAP", val: 0 },
             { id: 24, name: "The Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
             { id: 25, name: "The High Roller", desc: "All In: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
         ];
@@ -243,11 +242,13 @@
                 if(gameState.phase === 'BIDDING') {
                     document.getElementById('timer-box').classList.remove('opacity-0');
                     document.getElementById('sold-stamp').classList.add('hidden');
+                    document.getElementById('sold-stamp').querySelector('span').classList.remove('slam-effect');
                     mainEnvelope.classList.add('shaking');
                 } 
                 else if(gameState.phase === 'SOLD') {
                     document.getElementById('timer-box').classList.add('opacity-0');
                     document.getElementById('sold-stamp').classList.remove('hidden');
+                    document.getElementById('sold-stamp').querySelector('span').classList.add('slam-effect');
                     mainEnvelope.classList.remove('shaking');
                     document.getElementById('msg-waiting').classList.remove('hidden');
                 }
@@ -258,39 +259,76 @@
             if (snap.val() === true && gameState.phase === 'SOLD') {
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 update(ref(db), { revealTrigger: null }); 
-                sfxGong.play();
+                
+                // DETERMINE IF GOOD OR BAD CARD
+                const card = cardsData.find(c => c.id === gameState.currentCard);
+                const isBad = (card.val < 0 || card.val < 1 && card.type === 'MULTIPLY');
+                
+                const fxLayer = document.getElementById('fx-layer');
+                const cardVisual = document.getElementById('card-visual');
+                
+                if(isBad) {
+                    sfxBad.play(); // FAIL SOUND
+                    fxLayer.classList.add('fx-bad');
+                    cardVisual.classList.add('card-bad');
+                    document.body.style.animation = "shake-screen 0.5s";
+                } else {
+                    sfxGong.play(); // WIN SOUND
+                    fxLayer.classList.add('fx-good');
+                    cardVisual.classList.remove('card-bad');
+                    fireConfetti();
+                }
+
                 mainEnvelope.classList.add('is-open');
                 document.getElementById('msg-waiting').classList.add('hidden');
-                const card = cardsData.find(c => c.id === gameState.currentCard);
+                
                 if(card) {
                     document.getElementById('card-title').innerText = card.name;
                     document.getElementById('card-desc').innerText = card.desc;
                     executeCardEffect(card.id, gameState.leaderId);
                 }
-                setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
+                setTimeout(() => { 
+                    document.getElementById('btn-next').classList.remove('hidden');
+                    fxLayer.className = "absolute inset-0 pointer-events-none z-[300]";
+                    document.body.style.animation = "";
+                }, 2000);
             }
         });
 
         onValue(ref(db, 'teams'), (snap) => {
             rosterGrid.innerHTML = '';
             const teams = snap.val() || {};
-            Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance).forEach(key => {
+            // SORT BY BALANCE
+            const sortedKeys = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            
+            sortedKeys.forEach((key, index) => {
                 const t = teams[key];
                 const isDead = t.balance <= 0; 
-                const isLeader = (gameState.phase !== 'GRID' && gameState.leaderId === key);
+                let rankClass = "";
+                let icon = "";
+                
+                // LEADERBOARD VISUALS
+                if (index === 0) { rankClass = "rank-1"; icon = "👑 "; }
+                else if (index === 1) { rankClass = "rank-2"; icon = "🥈 "; }
+                else if (index === 2) { rankClass = "rank-3"; icon = "🥉 "; }
+
                 const div = document.createElement('div');
-                div.className = `roster-item p-3 flex justify-between items-center ${isDead ? 'dead' : ''} ${isLeader ? 'leader' : ''}`;
-                div.innerHTML = `<div><div class="font-imperial font-bold ${isLeader ? 'text-[#FFD700]' : 'text-white'}">${t.name}</div>
-                        <div class="text-xs ${isDead ? 'text-red-500 font-bold' : 'text-[#C5A059]'}">${isDead ? 'BANKRUPT' : 'RM ' + t.balance.toLocaleString()}</div></div>`;
+                div.className = `roster-item p-3 flex justify-between items-center ${isDead ? 'dead' : ''} ${rankClass}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${icon}</span>
+                        <div>
+                            <div class="font-imperial font-bold text-white">${t.name}</div>
+                            <div class="text-xs ${isDead ? 'text-red-500 font-bold' : 'text-[#C5A059]'}">${isDead ? 'BANKRUPT' : 'RM ' + t.balance.toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
                 rosterGrid.appendChild(div);
             });
         });
 
         window.adminAction = (action) => {
-            if (action === 'START') {
-                 set(ref(db), { gameState: { phase: 'GRID', round: 1, highestBid: 0 }, currentRoundBids: {}, envelopes: {}, teams: {} });
-                 return;
-            }
+            if (action === 'START') { set(ref(db), { gameState: { phase: 'GRID', round: 1, highestBid: 0 }, currentRoundBids: {}, envelopes: {}, teams: {} }); return; }
             if (action === 'DRAW') {
                 let available = [];
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
@@ -306,9 +344,7 @@
                     if (delay < 500) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
-                            update(ref(db, 'gameState'), {
-                                phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 
-                            });
+                            update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 });
                             set(ref(db, 'currentRoundBids'), {});
                             btnDraw.disabled = false;
                         }, 800);
@@ -355,23 +391,41 @@
             document.getElementById('sold-stamp').classList.add('hidden');
             document.getElementById('btn-next').classList.add('hidden');
             document.getElementById('msg-waiting').classList.add('hidden');
+            document.getElementById('confetti-layer').innerHTML = '';
+            document.getElementById('card-visual').classList.remove('card-bad');
         }
         function startServerLoop() {
             setInterval(() => {
                 if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                     const diff = gameState.bidDeadline - Date.now();
+                    const timerBox = document.getElementById('timer-box');
                     if (diff <= 0) {
                         update(ref(db, 'gameState'), { phase: 'SOLD' });
                         document.getElementById('countdown-val').innerText = "0.0s";
+                        timerBox.classList.remove('panic-mode');
                     } else {
                         const secs = (diff / 1000).toFixed(1);
                         document.getElementById('countdown-val').innerText = secs + "s";
-                        if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) {
-                             sfxTimer.currentTime = 0; sfxTimer.play(); 
-                        }
+                        if(diff < 5000) {
+                             timerBox.classList.add('panic-mode');
+                             if(Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) { sfxTimer.currentTime = 0; sfxTimer.play(); }
+                        } else { timerBox.classList.remove('panic-mode'); }
                     }
                 }
             }, 100);
+        }
+
+        function fireConfetti() {
+            const container = document.getElementById('confetti-layer');
+            const colors = ['#FFD700', '#C5A059', '#ffffff'];
+            for(let i=0; i<50; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                el.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                container.appendChild(el);
+            }
         }
 
         const bidQueueRef = ref(db, 'bidQueue');
@@ -417,7 +471,6 @@
             }
         });
 
-        // BALANCED EFFECT LOGIC
         async function executeCardEffect(cardId, winnerId) {
             const teamsSnap = await get(ref(db, 'teams'));
             const teams = teamsSnap.val() || {};
@@ -426,24 +479,16 @@
             const card = cardsData.find(c => c.id === cardId);
             let updates = {};
             const winnerRef = `teams/${winnerId}/balance`;
-            
-            // Filter other teams
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const randOpp = others.length ? others[Math.floor(Math.random()*others.length)] : null;
-            
-            // FIX: If playing alone, give Pity Bonus instead of crashing
             if(others.length === 0 && (card.type.includes('STEAL') || card.type.includes('SWAP'))) {
-                updates[winnerRef] = winner.balance + 1000; // Pity Bonus
+                updates[winnerRef] = winner.balance + 1000;
                 await update(ref(db), updates);
                 return;
             }
-
             if(card.type === 'ADD') updates[winnerRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[winnerRef] = Math.floor(winner.balance * card.val);
-            
-            // STEAL % (Smart Logic)
             else if(card.type === 'STEAL_PCT') {
-                // Find Richest
                 let richestId = others[0];
                 others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
                 if(richestId) {
@@ -452,7 +497,6 @@
                     updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
                 }
             }
-            // SWAP (Safe Logic)
             else if(card.type === 'SWAP') {
                  if(randOpp && teams[randOpp].balance > winner.balance) {
                      updates[winnerRef] = teams[randOpp].balance;
@@ -460,7 +504,6 @@
                  }
             }
             else updates[winnerRef] = winner.balance + (card.val || 0);
-
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
     </script>
