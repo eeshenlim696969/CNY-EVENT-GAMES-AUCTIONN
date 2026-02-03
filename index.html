@@ -21,14 +21,10 @@
         }
         .font-imperial { font-family: 'Cinzel', serif; }
 
-        /* --- SOUNDS (Hidden) --- */
-        /* These are using free CDN sounds. You can replace with local files. */
-        
         /* --- ANIMATIONS --- */
         @keyframes pulse-glow { 0% { box-shadow: 0 0 10px #FFD700; } 50% { box-shadow: 0 0 30px #FFD700; } 100% { box-shadow: 0 0 10px #FFD700; } }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-        @keyframes rise-up { 0% { transform: translateY(100%); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-
+        
         /* --- UI ELEMENTS --- */
         .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
         
@@ -172,15 +168,14 @@
     </main>
 
     <script type="module">
-        // --- PASTE YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+            authDomain: "auction-ebc97.firebaseapp.com",
+            projectId: "auction-ebc97",
+            storageBucket: "auction-ebc97.firebasestorage.app",
+            messagingSenderId: "883038465804",
+            appId: "1:883038465804:web:df2595623ca5276561a329",
+            measurementId: "G-69HD10GML7"
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -275,21 +270,17 @@
         // --- 2. REVEAL TRIGGER (From Controller) ---
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true && gameState.phase === 'SOLD') {
-                // Winner pressed the button!
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 update(ref(db), { revealTrigger: null }); // Reset trigger
 
-                // Trigger Animation
                 sfxGong.play();
                 mainEnvelope.classList.add('is-open');
                 document.getElementById('msg-waiting').classList.add('hidden');
 
-                // Fill Data
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 if(card) {
                     document.getElementById('card-title').innerText = card.name;
                     document.getElementById('card-desc').innerText = card.desc;
-                    // Apply Effect
                     executeCardEffect(card.id, gameState.leaderId);
                 }
                 
@@ -305,7 +296,7 @@
             const teams = snap.val() || {};
             Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance).forEach(key => {
                 const t = teams[key];
-                const isDead = t.balance < 50; // Bankrupt threshold
+                const isDead = t.balance < 50; 
                 const isLeader = (gameState.phase !== 'GRID' && gameState.leaderId === key);
                 
                 const div = document.createElement('div');
@@ -326,9 +317,7 @@
             list.innerHTML = '';
             const bids = snap.val();
             if(bids) {
-                // Play sound if new bid comes in (simple check: length changed)
                 if(Object.keys(bids).length > list.childElementCount) sfxCoin.play();
-                
                 Object.values(bids).sort((a,b) => b.timestamp - a.timestamp).forEach(b => {
                     const el = document.createElement('div');
                     el.className = "flex justify-between text-sm p-2 border-b border-[#C5A059]/20 bg-black/20";
@@ -350,7 +339,6 @@
                         const secs = (diff / 1000).toFixed(1);
                         document.getElementById('countdown-val').innerText = secs + "s";
                         if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) {
-                            // Tick sound every second under 5s
                             sfxAlarm.currentTime = 0; sfxAlarm.play(); 
                         }
                     }
@@ -369,9 +357,6 @@
                 const stateSnap = await get(ref(db, 'gameState'));
                 const state = stateSnap.val();
                 
-                // RULES:
-                // 1. Must be BIDDING phase
-                // 2. Bid must be > Highest + 50 (Minimum Increment)
                 const minBid = (state.highestBid || 0) + 50;
 
                 if (state.phase !== 'BIDDING' || req.amount < minBid) {
@@ -379,7 +364,6 @@
                     return;
                 }
 
-                // Check Funds
                 const bidderRef = ref(db, `teams/${req.teamId}`);
                 const bidderSnap = await get(bidderRef);
                 const bidder = bidderSnap.val();
@@ -389,24 +373,20 @@
                     return;
                 }
 
-                // --- EXECUTE SWAP ---
-                
-                // 1. Refund Previous Leader
+                // Refund Previous Leader
                 if (state.leaderId) {
                     const prevRef = ref(db, `teams/${state.leaderId}`);
                     const prevSnap = await get(prevRef);
                     if (prevSnap.exists()) {
                         const prevBal = prevSnap.val().balance;
-                        // Give money back!
                         await update(prevRef, { balance: prevBal + state.highestBid });
                     }
                 }
 
-                // 2. Charge New Leader
+                // Charge New Leader
                 await update(bidderRef, { balance: bidder.balance - req.amount });
 
-                // 3. Update State
-                // Timer Logic: If < 10s, reset to 10s
+                // Update State
                 let newTime = state.bidDeadline;
                 const now = Date.now();
                 if (newTime - now < 10000) newTime = now + 10000;
@@ -418,7 +398,6 @@
                     bidDeadline: newTime
                 });
 
-                // 4. Log
                 await push(ref(db, 'currentRoundBids'), { teamName: bidder.name, amount: req.amount, timestamp: Date.now() });
 
             } catch(e) { console.error(e); }
@@ -427,7 +406,6 @@
 
         // --- 7. CARD LOGIC ---
         async function executeCardEffect(cardId, winnerId) {
-            // (Same logic as previous, shortened for brevity)
             const teamsSnap = await get(ref(db, 'teams'));
             const teams = teamsSnap.val() || {};
             const winner = teams[winnerId];
@@ -439,13 +417,11 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const randOpp = others.length ? others[Math.floor(Math.random()*others.length)] : null;
 
-            // Simple Mapper
             if(card.type === 'ADD') updates[winnerRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[winnerRef] = Math.floor(winner.balance * card.val);
             else if(card.type === 'STEAL_HIGH' || card.type === 'STEAL_CHOICE') {
                  if(randOpp) { updates[winnerRef] = winner.balance + card.val; updates[`teams/${randOpp}/balance`] = Math.max(0, teams[randOpp].balance - card.val); }
             }
-            // ... Add all other cases here ...
             else updates[winnerRef] = winner.balance + (card.val || 0);
 
             if(Object.keys(updates).length) await update(ref(db), updates);
@@ -461,7 +437,6 @@
                 sfxDrum.play();
                 const btn = document.getElementById('btn-draw'); btn.disabled = true;
 
-                // Animation Loop
                 let delay = 50, steps = 0;
                 const loop = () => {
                     document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
@@ -471,7 +446,6 @@
                     if (delay < 500) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
-                            // START GAME
                             update(ref(db, 'gameState'), {
                                 phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000
                             });

@@ -97,13 +97,13 @@
 
     <script type="module">
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+            authDomain: "auction-ebc97.firebaseapp.com",
+            projectId: "auction-ebc97",
+            storageBucket: "auction-ebc97.firebasestorage.app",
+            messagingSenderId: "883038465804",
+            appId: "1:883038465804:web:df2595623ca5276561a329",
+            measurementId: "G-69HD10GML7"
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -125,7 +125,7 @@
             const id = name.toLowerCase().replace(/[^a-z0-9]/g, '');
             const userRef = ref(db, `teams/${id}`);
             const snap = await get(userRef);
-            if(!snap.exists()) await set(userRef, { name, balance: 1000 }); // Start with RM 1000
+            if(!snap.exists()) await set(userRef, { name, balance: 1000 });
 
             localStorage.setItem('imp_id', id); localStorage.setItem('imp_name', name);
             myId = id; myName = name;
@@ -143,7 +143,6 @@
                 myBalance = snap.val() || 0;
                 document.getElementById('wallet-balance').innerText = myBalance.toLocaleString();
                 
-                // Bankrupt Check
                 if (myBalance < 50) {
                     document.getElementById('bankrupt-overlay').classList.remove('hidden');
                 } else {
@@ -158,14 +157,12 @@
                 currentHighBid = state.highestBid || 0;
                 document.getElementById('val-high-bid').innerText = currentHighBid.toLocaleString();
 
-                // Hide All
                 ['state-bidding', 'state-winner', 'state-loser', 'state-idle'].forEach(id => {
                     document.getElementById(id).classList.add('hidden');
                 });
 
                 if (state.phase === 'BIDDING') {
                     document.getElementById('state-bidding').classList.remove('hidden');
-                    // Helper: Set input to min required
                     const minBid = currentHighBid + 50;
                     document.getElementById('bid-amount').placeholder = `Min: ${minBid}`;
                 } 
@@ -184,7 +181,6 @@
         }
 
         window.triggerServerReveal = () => {
-            // Tells server to open the envelope
             update(ref(db), { revealTrigger: true });
         };
 

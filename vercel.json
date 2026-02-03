@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/controller", "destination": "/controller.html" },
+    { "source": "/", "destination": "/index.html" }
+  ],
+  "cleanUrls": true
+}
