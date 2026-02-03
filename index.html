@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Auction - Emperor's View</title>
+    <title>Imperial Auction - Year of the Horse</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,7 @@
         body { font-family: 'Playfair Display', serif; background-color: #050000; color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
         
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.3; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
+        .bg-pattern { position: absolute; inset: 0; opacity: 0.4; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
         .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 40px rgba(0,0,0,0.9); }
 
         /* GRID */
@@ -24,7 +24,7 @@
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        /* ENVELOPE (Pushed down to avoid Timer) */
+        /* ENVELOPE */
         .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
@@ -129,7 +129,11 @@
                 </div>
 
                 <div class="mt-12 h-16 flex items-center justify-center w-full absolute bottom-10">
-                    <div id="msg-waiting" class="hidden text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-lg">Waiting for Winner...</div>
+                    
+                    <button onclick="adminAction('REVEAL')" id="btn-reveal" class="hidden px-12 py-4 bg-red-700 text-white font-imperial font-bold text-2xl tracking-widest rounded hover:bg-red-500 border border-red-400 shadow-[0_0_20px_red] animate-pulse">
+                        REVEAL DESTINY
+                    </button>
+
                     <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">
                         NEXT ROUND
                     </button>
@@ -173,30 +177,30 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.1; // 10% Volume (Very light)
 
-        // CARD DATA
+        // --- BALANCED CARD LIST (SAFE FOR ROUND 1) ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "Market Crash", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 },
+            { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 }, // Safe %
             { id: 3, name: "Tax Collector", desc: "Steal 15% from Richest", type: "STEAL_PCT", val: 0.15 },
             { id: 4, name: "The Duel", desc: "Steal 1,000 from 2nd Place", type: "STEAL_RIVAL", val: 1000 },
             { id: 5, name: "Golden Horse", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
-            { id: 6, name: "Bandits", desc: "Lose 500 Points", type: "ADD", val: -500 },
+            { id: 6, name: "Bandits", desc: "Lose 200 Points", type: "ADD", val: -200 }, // Safe flat
             { id: 7, name: "Imperial Grant", desc: "+5,000 Points", type: "ADD", val: 5000 },
             { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 500 from Random", type: "STEAL_CHOICE", val: 500 },
-            { id: 10, name: "Broken Vase", desc: "Lose 800 Points", type: "ADD", val: -800 },
+            { id: 9, name: "Robin Hood", desc: "Steal 300 from Random", type: "STEAL_CHOICE", val: 300 },
+            { id: 10, name: "Broken Vase", desc: "Lose 300 Points", type: "ADD", val: -300 }, // Safe flat
             { id: 11, name: "Interest Rate", desc: "Gain 20% Interest", type: "MULTIPLY", val: 1.2 },
             { id: 12, name: "God of Wealth", desc: "Jackpot! +8,888", type: "ADD", val: 8888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 1,000 Points", type: "ADD", val: -1000 },
+            { id: 13, name: "Bad Omen", desc: "Lose 400 Points", type: "ADD", val: -400 }, // Safe flat
             { id: 14, name: "Twin Carp", desc: "+2,000 You & Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
+            { id: 15, name: "Nian Monster", desc: "Lose 30% Balance", type: "MULTIPLY", val: 0.7 }, // Safe %
             { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
             { id: 17, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
             { id: 18, name: "False Friend", desc: "Donate 10% to Poorest", type: "GIVE_LOW", val: 0.1 },
             { id: 19, name: "Shared Bill", desc: "Everyone pays 200", type: "GLOBAL_HIT", val: -200 },
             { id: 20, name: "Jade Seal", desc: "Item: Immunity Button", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Lose 500 or Win 2,000", type: "GAMBLE_DICE", val: 0 },
-            { id: 22, name: "Bad Luck", desc: "Lose 600 Points", type: "ADD", val: -600 },
+            { id: 21, name: "Mystery Box", desc: "Lose 200 or Win 1,000", type: "GAMBLE_DICE", val: 0 },
+            { id: 22, name: "Bad Luck", desc: "Lose 250 Points", type: "ADD", val: -250 }, // Safe flat
             { id: 23, name: "The Swap", desc: "Swap Score (If lower)", type: "SWAP", val: 0 },
             { id: 24, name: "Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
             { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
@@ -260,16 +264,20 @@
                     document.getElementById('sold-stamp').classList.add('hidden');
                     document.getElementById('unsold-stamp').classList.add('hidden');
                     document.getElementById('main-envelope').classList.add('shaking');
+                    document.getElementById('btn-reveal').classList.add('hidden');
                 } 
                 else if(gameState.phase === 'SOLD') {
                     document.getElementById('timer-box').classList.add('opacity-0');
                     document.getElementById('main-envelope').classList.remove('shaking');
-                    document.getElementById('msg-waiting').classList.remove('hidden');
                     
                     if(gameState.leaderId) {
                         document.getElementById('sold-stamp').classList.remove('hidden');
+                        // SHOW ADMIN REVEAL BUTTON
+                        document.getElementById('btn-reveal').classList.remove('hidden');
                     } else {
                         document.getElementById('unsold-stamp').classList.remove('hidden');
+                        // IF UNSOLD, AUTO REVEAL AFTER 2s
+                        setTimeout(() => update(ref(db), { revealTrigger: true }), 2000);
                     }
                 }
             }
@@ -289,7 +297,7 @@
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
-                document.getElementById('msg-waiting').classList.add('hidden');
+                document.getElementById('btn-reveal').classList.add('hidden'); // Hide button
 
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 if(card) {
@@ -364,15 +372,13 @@
                 };
                 loop();
             }
+            if (action === 'REVEAL') {
+                update(ref(db), { revealTrigger: true });
+            }
+            // FIXED NEXT BUTTON
             if (action === 'NEXT') {
-                // FORCE RESET EVERYTHING TO ENSURE NO STUCK STATES
                 const updates = {};
-                // Force open envelope in DB so it doesn't get picked again
-                if(gameState.currentCard) {
-                    updates[`envelopes/${gameState.currentCard}`] = true;
-                }
-                
-                // Hard reset game state for next round
+                if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID';
                 updates['gameState/round'] = (gameState.round||1)+1;
                 updates['gameState/currentCard'] = null;
@@ -383,7 +389,6 @@
                 updates['gameState/spinResult'] = null;
                 updates['currentRoundBids'] = null;
                 
-                // Clear Immunity
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
                     for(let k in t) { updates[`teams/${k}/immune`] = null; }
@@ -414,7 +419,7 @@
             document.getElementById('sold-stamp').classList.add('hidden');
             document.getElementById('unsold-stamp').classList.add('hidden');
             document.getElementById('btn-next').classList.add('hidden');
-            document.getElementById('msg-waiting').classList.add('hidden');
+            document.getElementById('btn-reveal').classList.add('hidden');
             document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
         }
         function startServerLoop() {
@@ -424,11 +429,6 @@
                     if (diff <= 0) {
                         update(ref(db, 'gameState'), { phase: 'SOLD' });
                         document.getElementById('countdown-val').innerText = "0.0s";
-                        
-                        // AUTO REVEAL IF UNSOLD
-                        if(!gameState.highestBid) {
-                            setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
-                        }
                     } else {
                         document.getElementById('countdown-val').innerText = (diff/1000).toFixed(1) + "s";
                     }
@@ -441,20 +441,19 @@
             const req = snapshot.val();
             const key = snapshot.key;
             if(!req) return;
-            
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
-            // 1. GHOST CHECK: If team doesn't exist, create them
+            // GHOST CHECK
             const teamRef = ref(db, `teams/${req.teamId}`);
             let tSnap = await get(teamRef);
             if (!tSnap.exists()) {
-                await set(teamRef, { name: "Ghost_" + req.teamId.substr(0,4), balance: 1000 });
-                tSnap = await get(teamRef); // Fetch again
+                await set(teamRef, { name: "Player", balance: 1000 });
+                tSnap = await get(teamRef);
             }
             const team = tSnap.val();
 
-            // 2. LOGIC
+            // LOGIC
             const isSelf = (state.leaderId === req.teamId);
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
@@ -491,7 +490,6 @@
             const wRef = `teams/${wid}/balance`;
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
-            // ... (Add back other effects if needed, keep simple for stability)
             
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
