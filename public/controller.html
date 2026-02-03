@@ -17,13 +17,10 @@
         .btn-gold:active { transform: scale(0.95); }
         .glass-panel { background: rgba(20, 0, 0, 0.6); backdrop-filter: blur(10px); border: 1px solid #5c4110; }
         
-        /* Special States */
+        /* Winner Button Animation */
         .winner-mode { background: radial-gradient(circle, #aa8537 0%, #3a2500 100%); }
         .winner-btn { animation: pulse 1s infinite; border: 4px solid white; font-size: 1.5rem; height: 100px; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 30px white; } 100% { transform: scale(1); } }
-        
-        /* Bankrupt */
-        .bankrupt-mode { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
@@ -44,11 +41,6 @@
                 <div class="text-4xl font-imperial font-bold text-white"><span class="text-xl">RM</span> <span id="wallet-balance">1,000</span></div>
             </div>
             <div id="team-name-display" class="font-imperial text-[#F2C94C] font-bold">--</div>
-        </div>
-
-        <div id="bankrupt-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center text-center">
-            <h1 class="text-red-600 text-4xl font-black font-imperial mb-4">ELIMINATED</h1>
-            <p class="text-gray-400">Your dynasty has fallen.</p>
         </div>
 
         <div class="flex-1 flex flex-col justify-center items-center text-center">
@@ -77,9 +69,9 @@
             <div id="state-winner" class="hidden w-full h-full flex flex-col items-center justify-center winner-mode rounded-xl p-6">
                 <div class="text-6xl mb-4">👑</div>
                 <h2 class="text-2xl font-imperial text-white mb-2 font-black">YOU HAVE WON</h2>
-                <p class="text-black font-bold mb-8">The Artifact Awaits...</p>
-                <button onclick="triggerServerReveal()" class="btn-gold winner-btn w-full rounded-xl text-black">
-                    BREAK THE SEAL
+                <p class="text-black font-bold mb-8">Break the seal to reveal the card on screen.</p>
+                <button onclick="triggerServerReveal()" class="btn-gold winner-btn w-full rounded-xl text-black uppercase tracking-widest">
+                    BREAK SEAL
                 </button>
             </div>
 
@@ -90,25 +82,22 @@
             </div>
 
             <div id="state-idle" class="hidden">
-                <h2 class="text-xl font-imperial text-[#F2C94C] animate-pulse">AWAITING EMPEROR</h2>
+                <h2 class="text-xl font-imperial text-[#F2C94C] animate-pulse">AWAITING EMPEROR...</h2>
             </div>
         </div>
     </div>
 
     <script type="module">
         const firebaseConfig = {
-    apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
-    authDomain: "auction-ebc97.firebaseapp.com",
-    
-    // 👇 THIS IS THE CORRECT URL FOR YOUR REGION 👇
-    databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
-    
-    projectId: "auction-ebc97",
-    storageBucket: "auction-ebc97.firebasestorage.app",
-    messagingSenderId: "883038465804",
-    appId: "1:883038465804:web:df2595623ca5276561a329",
-    measurementId: "G-69HD10GML7"
-};
+            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+            authDomain: "auction-ebc97.firebaseapp.com",
+            databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "auction-ebc97",
+            storageBucket: "auction-ebc97.firebasestorage.app",
+            messagingSenderId: "883038465804",
+            appId: "1:883038465804:web:df2595623ca5276561a329",
+            measurementId: "G-69HD10GML7"
+        };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getDatabase, ref, onValue, get, set, update, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -142,19 +131,11 @@
             document.getElementById('app-view').classList.add('flex');
             document.getElementById('team-name-display').innerText = myName;
 
-            // Balance Listener
             onValue(ref(db, `teams/${myId}/balance`), (snap) => {
                 myBalance = snap.val() || 0;
                 document.getElementById('wallet-balance').innerText = myBalance.toLocaleString();
-                
-                if (myBalance < 50) {
-                    document.getElementById('bankrupt-overlay').classList.remove('hidden');
-                } else {
-                    document.getElementById('bankrupt-overlay').classList.add('hidden');
-                }
             });
 
-            // Game State Listener
             onValue(ref(db, 'gameState'), (snap) => {
                 const state = snap.val();
                 if(!state) return;
@@ -194,7 +175,7 @@
             const amount = parseInt(document.getElementById('bid-amount').value);
             const minRequired = currentHighBid + 50;
 
-            if (!amount || amount > myBalance) return showMsg("Insufficient Funds!");
+            if (isNaN(amount) || amount > myBalance) return showMsg("Insufficient Funds!");
             if (amount < minRequired) return showMsg(`Must Bid > ${minRequired}!`);
 
             const btn = document.getElementById('btn-submit');
