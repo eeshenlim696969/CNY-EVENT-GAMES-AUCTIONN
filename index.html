@@ -3,199 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Auction - Year of the Horse</title>
+    <title>Imperial Auction - Emperor's View</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #FFD700; --red: #8a0000; --bg: #050000; }
+        :root { --gold: #FFD700; --gold-dim: #C5A059; --glass: rgba(10, 0, 0, 0.9); }
         body { 
             font-family: 'Playfair Display', serif; 
-            background-color: var(--bg); 
+            background-color: #050000; 
+            background-image: url('https://www.transparenttextures.com/patterns/black-scales.png');
             color: var(--gold); 
             overflow: hidden; 
         }
         .font-imperial { font-family: 'Cinzel', serif; }
         
-        /* BACKGROUND */
-        .bg-pattern {
-            position: absolute; inset: 0; opacity: 0.2;
-            background-image: url('https://www.transparenttextures.com/patterns/black-scales.png');
-            z-index: 0;
-        }
+        /* CINEMATIC VIGNETTE */
         .vignette {
-            position: absolute; inset: 0; pointer-events: none; z-index: 1;
+            position: absolute; inset: 0; pointer-events: none;
             background: radial-gradient(circle, transparent 40%, #000 100%);
+            z-index: 5;
         }
 
         /* GLASS PANELS */
-        .glass {
-            background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        .glass-panel { 
+            background: rgba(20, 0, 0, 0.7); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3); 
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.8); 
         }
 
-        /* CARD GRID */
+        /* GRID ITEMS */
         .angpao {
-            background: linear-gradient(135deg, #a00 0%, #400 100%);
-            border: 1px solid #600; color: rgba(255,215,0,0.3);
+            background: linear-gradient(135deg, #8a0000 0%, #3a0000 100%);
+            border: 1px solid #5c0000; border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            position: relative;
+            font-family: 'Cinzel', serif; font-weight: 700; color: rgba(255,215,0,0.2); font-size: 1.5rem;
             display: flex; align-items: center; justify-content: center;
-            font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.5rem;
-            transition: all 0.2s; position: relative;
+            transition: all 0.2s;
         }
-        .angpao.active { background: #FFD700; color: #000; transform: scale(1.1); z-index: 50; box-shadow: 0 0 30px #FFD700; border-color: #fff; }
-        .angpao.used { background: #111; border-color: #333; color: transparent; opacity: 0.3; }
+        .angpao::after { content: ''; position: absolute; inset: 2px; border: 1px solid rgba(255,215,0,0.1); }
+        
+        .angpao.active { 
+            background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); 
+            z-index: 50; border-color: #fff; color: #000; opacity: 1;
+        }
+        .angpao.used { opacity: 0.1; filter: grayscale(1); border: none; background: #000; }
 
-        /* ENVELOPE */
-        .envelope-stage { perspective: 1200px; width: 340px; height: 460px; position: relative; margin-top: 20px; }
-        .env-body {
-            width: 100%; height: 100%; background: #900; border: 3px solid #FFD700; border-radius: 8px;
-            position: absolute; z-index: 10; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 20px 50px #000; transition: transform 0.8s ease-in-out;
-        }
-        .env-lid {
-            position: absolute; top: 0; width: 100%; height: 50%; background: #700;
-            clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12;
-            transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 3px solid #FFD700;
-        }
-        .card-insert {
-            position: absolute; top: 5%; left: 5%; width: 90%; height: 90%;
-            background: #fffcf0; border: 4px double #FFD700; z-index: 5;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            padding: 20px; color: #000; transition: transform 0.8s;
-        }
-        .card-insert.bad { background: #2a0000; border-color: #f00; color: #faa; }
-        
-        /* OPEN ANIMATION */
-        .open .env-lid { transform: rotateX(180deg); z-index: 1; }
-        .open .env-body { transform: translateY(30%); opacity: 0.5; }
-        .open .card-insert { transform: translateY(-50%) scale(1.1); z-index: 100; box-shadow: 0 0 60px gold; }
-        .open .card-insert.bad { box-shadow: 0 0 60px red; }
+        /* RANKING STYLES */
+        .rank-row { border-bottom: 1px solid rgba(197, 160, 89, 0.1); transition: all 0.3s; }
+        .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border-left: 4px solid #FFD700; }
+        .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.1), transparent); border-left: 4px solid #C0C0C0; }
+        .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.1), transparent); border-left: 4px solid #CD7F32; }
 
-        /* WHEEL (High Roller) */
-        .wheel-container { display: none; width: 400px; height: 400px; border-radius: 50%; border: 10px solid #FFD700; position: relative; overflow: hidden; background: #000; transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1); }
-        .wheel-active { display: block; animation: spin 0.5s infinite linear; }
-        .wheel-segment { position: absolute; width: 100%; height: 100%; clip-path: polygon(50% 50%, 100% 0, 100% 100%); }
+        /* ENVELOPE & ANIMATIONS */
+        .envelope-container { perspective: 1000px; width: 300px; height: 420px; position: relative; margin-top: 20px; }
+        .envelope-body { width: 100%; height: 100%; background: #960000; border: 2px solid #FFD700; border-radius: 8px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 60px rgba(0,0,0,0.9); transition: transform 1s ease-in-out; }
+        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #7a0000; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 2px solid #FFD700; }
         
-        /* UTILS */
-        .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, #FFD70022, transparent); }
-        .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, #C0C0C022, transparent); }
-        .rank-3 { border-left: 4px solid #CD7F32; background: linear-gradient(90deg, #CD7F3222, transparent); }
+        .card-insert { 
+            position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; 
+            background: #fffcf5; border: 4px double #FFD700; z-index: 5; color: black; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
+            transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            padding: 20px;
+        }
+        .card-bad { background: #1a0505; color: #ff9999; border-color: #ff0000; }
+        .card-bad h3 { color: #ff0000 !important; }
+
+        /* FX */
+        @keyframes sunburst { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .sunburst { position: absolute; top: 50%; left: 50%; width: 800px; height: 800px; background: conic-gradient(from 0deg, transparent 0%, rgba(255,215,0,0.1) 10%, transparent 20%); transform: translate(-50%, -50%); z-index: 1; opacity: 0; pointer-events: none; }
+        .is-open ~ .sunburst { opacity: 1; animation: sunburst 20s infinite linear; }
         
-        @keyframes slam { 0% { opacity:0; transform: scale(5); } 100% { opacity:1; transform: scale(1) rotate(-12deg); } }
-        .slam { animation: slam 0.4s forwards; }
-        .shake { animation: shake 0.5s infinite; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        /* STATES */
+        .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
+        .is-open .card-insert { transform: translateY(-50%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 80px rgba(255,215,0,0.4); }
+        .is-open .envelope-body { transform: translateY(20%); opacity: 0.5; }
+        .shaking { animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
+
+        /* BUTTONS */
+        .btn-action { 
+            background: linear-gradient(to bottom, #FFD700, #B8860B); 
+            color: #1a0000; font-family: 'Cinzel', serif; font-weight: 900; letter-spacing: 0.2em;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3); border: 1px solid #fff;
+            transition: all 0.2s;
+        }
+        .btn-action:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+
+        .confetti { position: absolute; width: 8px; height: 8px; background: gold; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col relative">
-
-    <div class="bg-pattern"></div>
+<body class="h-screen w-screen flex flex-col relative selection:bg-[#FFD700] selection:text-black">
+    
     <div class="vignette"></div>
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/1202/1202-preview.mp3"></audio> <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <div id="confetti-layer" class="absolute inset-0 pointer-events-none z-50"></div>
+    <div id="flash-layer" class="absolute inset-0 pointer-events-none z-50 mix-blend-overlay opacity-0 transition-opacity duration-500"></div>
+
+    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
+    <audio id="sfx-timer" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
     <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
-    <audio id="sfx-spin" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
 
-    <header class="h-24 flex justify-between items-center px-8 z-20 border-b border-white/10 bg-black/80">
+    <header class="h-24 flex justify-between items-center px-10 border-b border-[#C5A059]/30 bg-[#0a0000]/90 z-40 relative">
         <div class="flex items-center gap-4">
-            <div class="text-4xl">🐎</div>
-            <div>
-                <h1 class="font-imperial text-3xl font-bold text-[#FFD700] tracking-widest">YEAR OF THE HORSE</h1>
-                <p class="text-xs text-[#C5A059] uppercase tracking-[0.4em]">Imperial Auction</p>
-            </div>
+            <div class="w-12 h-12 rounded-full border-2 border-[#FFD700] flex items-center justify-center text-2xl">🐲</div>
+            <h1 class="font-imperial text-4xl font-bold tracking-[0.15em] text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">IMPERIAL AUCTION</h1>
         </div>
-        <div class="text-right">
-            <div class="text-xs text-[#C5A059] uppercase tracking-widest">Current Round</div>
-            <div id="round-num" class="text-3xl font-imperial font-bold text-white">--</div>
+        <div class="flex gap-12 font-imperial text-lg tracking-widest text-[#C5A059]">
+            <div>ROUND <span id="round-num" class="text-white text-2xl font-bold ml-2 drop-shadow-md">--</span></div>
+            <div>STATUS <span id="status-text" class="text-[#FFD700] text-2xl font-bold ml-2 drop-shadow-md">LOADING</span></div>
         </div>
-        <button onclick="resetGame()" class="absolute top-2 right-2 text-[9px] text-red-900 hover:text-red-500">RESET</button>
+        <button onclick="resetGame()" class="absolute top-2 right-2 text-[9px] text-red-900/30 hover:text-red-500 uppercase tracking-widest">Reset System</button>
     </header>
 
-    <main class="flex-1 flex gap-8 p-8 relative z-10">
+    <main class="flex-1 relative p-10 flex gap-10 z-30">
         
-        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/90 flex items-center justify-center hidden">
-            <button onclick="adminAction('START')" class="px-12 py-6 border-2 border-[#FFD700] text-[#FFD700] text-3xl font-imperial font-bold hover:bg-[#FFD700] hover:text-black transition">
-                OPEN THE GATES
+        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/90 flex items-center justify-center hidden backdrop-blur-sm">
+            <button onclick="adminAction('START')" class="btn-action px-20 py-8 text-4xl rounded-sm animate-pulse">
+                INITIALIZE DYNASTY
             </button>
         </div>
 
-        <div class="flex-1 glass rounded-xl relative flex flex-col items-center justify-center p-8">
+        <div class="flex-1 glass-panel rounded-2xl p-8 flex flex-col items-center justify-center relative">
             
-            <div id="view-grid" class="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500">
-                <div id="grid-container" class="grid grid-cols-5 gap-3 w-[60vh] h-[60vh]"></div>
-                <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold text-xl rounded shadow-[0_0_20px_gold]">
+            <div id="view-grid" class="absolute inset-0 flex flex-col items-center justify-center p-8 transition-opacity duration-500">
+                <div id="grid-container" class="grid grid-cols-5 gap-3 w-full max-w-[60vh] aspect-square p-4 border border-[#C5A059]/20 rounded-lg bg-black/40"></div>
+                <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 btn-action px-12 py-4 text-2xl rounded shadow-lg">
                     DRAW FORTUNE
                 </button>
             </div>
 
-            <div id="view-auction" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+            <div id="view-auction" class="absolute inset-0 flex flex-col items-center justify-center p-8 opacity-0 pointer-events-none transition-opacity duration-500">
                 
-                <div id="timer-display" class="absolute top-10 text-center">
-                    <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">Time Remaining</div>
-                    <div id="timer-val" class="text-6xl font-black font-imperial text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">10.0s</div>
+                <div id="timer-box" class="absolute top-10 w-full text-center">
+                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.4em] mb-2">Bidding Ends In</p>
+                    <div id="countdown-val" class="text-7xl font-imperial font-black text-[#FFD700] drop-shadow-[0_0_30px_rgba(255,0,0,0.5)]">10.0s</div>
                 </div>
 
-                <div id="envelope" class="envelope-stage">
+                <div class="envelope-container" id="main-envelope">
+                    <div class="sunburst"></div>
                     <div class="card-insert shadow-2xl" id="card-visual">
-                        <h2 id="card-title" class="font-imperial text-2xl font-bold mb-2 uppercase tracking-widest border-b-2 border-current pb-2 w-full">Title</h2>
-                        <p id="card-desc" class="text-2xl font-serif italic">Effect Description</p>
-                        <div class="mt-auto text-6xl">🧧</div>
+                        <h3 id="card-title" class="font-imperial text-[#8a0000] text-2xl font-black mb-4 uppercase tracking-widest border-b-2 border-[#8a0000] pb-2 w-full">Title</h3>
+                        <p id="card-desc" class="font-serif text-3xl font-bold italic leading-tight">Description</p>
+                        <div class="mt-auto text-[#C5A059]/20 font-imperial text-9xl absolute bottom-0 right-0 pointer-events-none">福</div>
                     </div>
-                    <div class="env-body">
-                        <span class="text-8xl text-[#FFD700] opacity-30 font-imperial">馬</span>
-                        <div id="stamp-sold" class="hidden absolute inset-0 flex items-center justify-center z-20 bg-black/60 rounded">
-                            <span class="text-red-500 border-8 border-red-500 p-2 text-6xl font-black -rotate-12 tracking-widest uppercase">SOLD</span>
-                        </div>
-                        <div id="stamp-unsold" class="hidden absolute inset-0 flex items-center justify-center z-20 bg-black/60 rounded">
-                            <span class="text-gray-400 border-8 border-gray-400 p-2 text-6xl font-black -rotate-12 tracking-widest uppercase">UNSOLD</span>
+                    <div class="envelope-body">
+                        <span class="text-9xl text-[#FFD700] opacity-50 font-imperial drop-shadow-lg">福</span>
+                        <div id="sold-stamp" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-lg">
+                            <span class="text-red-500 font-black border-8 border-red-500 p-4 text-6xl -rotate-12 uppercase tracking-widest shadow-[0_0_100px_red]">SOLD</span>
                         </div>
                     </div>
-                    <div class="env-lid"></div>
+                    <div class="envelope-lid"></div>
                 </div>
 
-                <div id="wheel-stage" class="hidden absolute inset-0 bg-black/90 z-[200] flex-col items-center justify-center">
-                    <div class="text-[#FFD700] font-imperial text-4xl mb-8 animate-pulse">HIGH ROLLER WAGER</div>
-                    <div class="w-[400px] h-[400px] rounded-full border-8 border-[#FFD700] relative bg-[#222] flex items-center justify-center overflow-hidden">
-                         <div id="wheel-spinner" class="w-full h-full absolute inset-0 bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] transition-transform duration-[4000ms] ease-out"></div>
-                         <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                             <div class="w-1 h-12 bg-white absolute top-0 triangle-down"></div>
-                         </div>
+                <div class="absolute bottom-10 z-[200]">
+                    <div id="msg-waiting" class="text-[#FFD700] animate-pulse tracking-[0.2em] uppercase font-bold text-xl bg-black/80 px-6 py-3 rounded-full border border-[#FFD700]">
+                        Waiting for Winner...
                     </div>
-                    <div id="wager-amount-display" class="mt-8 text-3xl font-bold text-white">Wager: RM <span id="val-wager">0</span></div>
-                </div>
-
-                <div class="absolute bottom-10 z-50 text-center">
-                    <div id="msg-wait" class="text-[#FFD700] animate-pulse tracking-widest uppercase mb-4 bg-black/50 px-4 py-1 rounded">Waiting...</div>
-                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-12 py-3 border border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black font-imperial font-bold text-xl transition">
+                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden btn-action px-16 py-4 text-2xl rounded-lg">
                         NEXT ROUND
                     </button>
                 </div>
-
             </div>
         </div>
 
-        <div class="w-96 flex flex-col gap-6">
-            <div class="glass rounded-xl flex-1 flex flex-col overflow-hidden">
-                <div class="p-4 border-b border-white/10 bg-black/40 text-center">
-                    <h2 class="font-imperial text-[#FFD700] tracking-widest">DYNASTY RANKINGS</h2>
+        <div class="w-[400px] flex flex-col gap-6">
+            
+            <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden h-[50%]">
+                <div class="p-4 border-b border-[#C5A059]/30 bg-[#1a0505]/50">
+                    <h2 class="font-imperial text-center text-xl text-[#FFD700] tracking-widest">DYNASTY RANKINGS</h2>
                 </div>
-                <div id="roster" class="flex-1 overflow-y-auto p-2 space-y-2"></div>
+                <div id="roster-grid" class="flex-1 overflow-y-auto p-2 space-y-1 custom-scroll">
+                    </div>
             </div>
 
-            <div class="glass rounded-xl h-48 flex flex-col p-4 text-center justify-center">
-                <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-2">Highest Bid</div>
-                <div class="text-5xl font-imperial font-black text-white drop-shadow-[0_0_15px_gold]">RM <span id="high-bid">0</span></div>
-                <div id="leader-name" class="text-green-400 font-bold mt-2 uppercase tracking-widest">--</div>
+            <div class="glass-panel rounded-xl h-[40%] flex flex-col">
+                <div class="p-4 border-b border-[#C5A059]/30 bg-[#1a0505]/50 text-center">
+                    <span class="text-[#C5A059] text-xs uppercase tracking-widest">Current Highest Bid</span>
+                    <div class="text-5xl font-imperial font-black text-white drop-shadow-[0_0_15px_gold] mt-2">RM <span id="val-high-bid">0</span></div>
+                    <div id="val-leader-name" class="text-green-400 font-bold mt-1 uppercase tracking-widest text-sm">--</div>
+                </div>
+                <div id="bids-list" class="flex-1 overflow-y-auto p-2 space-y-1 bg-black/20 custom-scroll">
+                    </div>
             </div>
         </div>
 
     </main>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update, get, remove, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
         const firebaseConfig = {
             apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
             authDomain: "auction-ebc97.firebaseapp.com",
@@ -207,390 +206,349 @@
             measurementId: "G-69HD10GML7"
         };
 
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, get, remove, onChildAdded, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
-        // --- ASSETS ---
-        const sfx = {
-            tick: document.getElementById('sfx-tick'),
-            coin: document.getElementById('sfx-coin'),
-            gong: document.getElementById('sfx-gong'),
-            bad: document.getElementById('sfx-bad'),
-            bgm: document.getElementById('bgm')
-        };
         
-        // --- DATA ---
-        const cards = [
-            { id: 1, name: "The Golden Horse", desc: "Instant +3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "Market Crash", desc: "Lose 25% of Wealth", type: "MULTIPLY", val: 0.75 },
-            { id: 3, name: "Tax Collector", desc: "Steal 15% from Richest", type: "STEAL_PCT", val: 0.15 },
-            { id: 4, name: "The Duel", desc: "Steal 1,000 from 2nd Place", type: "STEAL_RIVAL", val: 1000 },
-            { id: 5, name: "Dragon's Blessing", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
-            { id: 6, name: "Bandits", desc: "Lose 500 Points", type: "ADD", val: -500 },
-            { id: 7, name: "Imperial Decree", desc: "+5,000 Points", type: "ADD", val: 5000 },
-            { id: 8, name: "City Blockade", desc: "BANNED next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 500 from Random", type: "STEAL_CHOICE", val: 500 },
-            { id: 10, name: "Bad Omen", desc: "Lose 800 Points", type: "ADD", val: -800 },
-            { id: 11, name: "Merchant", desc: "Gain 20% Interest", type: "MULTIPLY", val: 1.2 },
-            { id: 12, name: "God of Wealth", desc: "Jackpot! +8,888", type: "ADD", val: 8888 },
-            { id: 13, name: "Famine", desc: "Lose 1,000 Points", type: "ADD", val: -1000 },
-            { id: 14, name: "Alliance", desc: "+2,000 You & Random Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 16, name: "The Spy", desc: "Gain Intel on Next Card", type: "ITEM", item: "spy_intel" },
-            { id: 17, name: "Phoenix", desc: "Reset to 3,000 if <1,000", type: "PHOENIX", val: 0 },
-            { id: 18, name: "Charity", desc: "Give 10% to Poorest", type: "GIVE_LOW", val: 0.1 },
-            { id: 19, name: "Tax Season", desc: "Everyone pays 200", type: "GLOBAL_HIT", val: -200 },
-            { id: 20, name: "Jade Seal", desc: "Item: Immunity Button", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Lose 500 or Win 2,000", type: "GAMBLE_DICE", val: 0 },
-            { id: 22, name: "Thieves", desc: "Lose 600 Points", type: "ADD", val: -600 },
-            { id: 23, name: "Chaos Swap", desc: "Swap Score if Lower", type: "SWAP", val: 0 },
-            { id: 24, name: "Festival", desc: "+2,000 Points", type: "ADD", val: 2000 },
-            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
+        // ASSETS
+        const sfxTick = document.getElementById('sfx-tick');
+        const sfxGong = document.getElementById('sfx-gong');
+        const sfxTimer = document.getElementById('sfx-timer');
+        const sfxCoin = document.getElementById('sfx-coin');
+        const sfxBad = document.getElementById('sfx-bad');
+        const flashLayer = document.getElementById('flash-layer');
+
+        // CARDS (Same Data)
+        const cardsData = [
+            { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
+            { id: 2, name: "The Market Crash", desc: "Pay 20% Tax (Loss)", type: "MULTIPLY", val: 0.8 },
+            { id: 3, name: "The Tax Collector", desc: "Steal 20% from Richest Team", type: "STEAL_PCT", val: 0.2 },
+            { id: 4, name: "The Duel", desc: "Rivalry: Steal 2,000 from 2nd Place", type: "STEAL_RIVAL", val: 2000 },
+            { id: 5, name: "The Golden Dragon", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
+            { id: 6, name: "The Data Leak", desc: "-2,500 Points", type: "ADD", val: -2500 },
+            { id: 7, name: "The Imperial Grant", desc: "Instant +5,000 Points", type: "ADD", val: 5000 },
+            { id: 8, name: "The Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
+            { id: 9, name: "The Robin Hood", desc: "Steal 1,500 from Random Team", type: "STEAL_CHOICE", val: 1500 },
+            { id: 10, name: "The Broken Vase", desc: "-3,000 Points", type: "ADD", val: -3000 },
+            { id: 11, name: "The Interest Rate", desc: "Gain 15% Interest", type: "MULTIPLY", val: 1.15 },
+            { id: 12, name: "The God of Wealth", desc: "Instant +8,888 Points", type: "ADD", val: 8888 },
+            { id: 13, name: "The 404 Error", desc: "-1,500 Points", type: "ADD", val: -1500 },
+            { id: 14, name: "The Twin Carp", desc: "+2,000 You & +2,000 Random Ally", type: "GIVE_CHOICE", val: 2000 },
+            { id: 15, name: "The Nian Monster", desc: "-5,000 Points", type: "ADD", val: -5000 },
+            { id: 16, name: "The Spy", desc: "Peek at next card", type: "PEEK", val: 0 },
+            { id: 17, name: "The Phoenix Rising", desc: "If Negative: Reset to 3,000", type: "PHOENIX", val: 0 },
+            { id: 18, name: "The False Friend", desc: "Donate 1,000 to Poorest", type: "GIVE_LOW", val: 1000 },
+            { id: 19, name: "The Shared Bill", desc: "Everyone else pays 500", type: "GLOBAL_HIT", val: -500 },
+            { id: 20, name: "The Jade Seal", desc: "Immunity for next round", type: "IMMUNITY", val: 0 },
+            { id: 21, name: "The Mystery Box", desc: "Gamble: +/- 3,000", type: "GAMBLE_DICE", val: 0 },
+            { id: 22, name: "The Sweeping Broom", desc: "-2,000 Points", type: "ADD", val: -2000 },
+            { id: 23, name: "The Swap", desc: "Swap Score with Random (If lower)", type: "SWAP", val: 0 },
+            { id: 24, name: "The Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
+            { id: 25, name: "The High Roller", desc: "All In: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
         ];
 
-        let state = { phase: 'GRID', round: 1 };
-        let envStatus = {};
-
-        // --- INIT ---
+        let gameState = { phase: 'GRID', round: 1 };
+        let envelopesStatus = {};
+        const gridContainer = document.getElementById('grid-container');
+        const viewGrid = document.getElementById('view-grid');
+        const viewAuction = document.getElementById('view-auction');
+        const rosterGrid = document.getElementById('roster-grid');
+        const mainEnvelope = document.getElementById('main-envelope');
+        const startOverlay = document.getElementById('start-overlay');
+        const btnDraw = document.getElementById('btn-draw');
+        
         renderGrid();
-        startLoop();
+        startServerLoop();
 
-        // 1. STATE MANAGEMENT
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
-            if(!data || !data.phase) {
-                document.getElementById('start-overlay').classList.remove('hidden'); return;
+            if(!data || !data.phase || !data.round) {
+                startOverlay.classList.remove('hidden'); 
+                document.getElementById('status-text').innerText = "WAITING";
+                return;
             }
-            document.getElementById('start-overlay').classList.add('hidden');
-            sfx.bgm.play().catch(()=>{}); // Try play bgm
+            startOverlay.classList.add('hidden');
+            gameState = data;
+            document.getElementById('round-num').innerText = gameState.round;
+            document.getElementById('status-text').innerText = gameState.phase;
 
-            state = data;
-            document.getElementById('round-num').innerText = state.round;
-            document.getElementById('high-bid').innerText = (state.highestBid || 0).toLocaleString();
-            document.getElementById('leader-name').innerText = state.leaderName || '--';
-
-            // Views
-            const vGrid = document.getElementById('view-grid');
-            const vAuc = document.getElementById('view-auction');
-            const env = document.getElementById('envelope');
-            const wheel = document.getElementById('wheel-stage');
-
-            if (state.phase === 'GRID') {
-                vGrid.style.opacity = 1; vGrid.style.pointerEvents = 'auto';
-                vAuc.style.opacity = 0; vAuc.style.pointerEvents = 'none';
-                resetEnv();
-            } else if (state.phase === 'WAGER' || state.phase === 'SPIN') {
-                 // HIGH ROLLER MODE
-                 vGrid.style.opacity = 0; vGrid.style.pointerEvents = 'none';
-                 vAuc.style.opacity = 1; vAuc.style.pointerEvents = 'auto';
-                 wheel.classList.remove('hidden');
-                 wheel.classList.add('flex');
-                 document.getElementById('val-wager').innerText = (state.wagerAmount || 0).toLocaleString();
-                 
-                 if(state.phase === 'SPIN') {
-                     // Trigger Spin Animation
-                     const spinner = document.getElementById('wheel-spinner');
-                     // Random outcome determines angle. 
-                     // Simple visual: Green is 0-180, Red is 180-360.
-                     // We will spin huge amount + result.
-                     const isWin = state.spinResult === 'WIN';
-                     const extraSpins = 3600; // 10 spins
-                     const target = isWin ? 90 : 270; // 90 is Green center, 270 is Red center
-                     spinner.style.transform = `rotate(${extraSpins + target}deg)`;
-                     
-                     setTimeout(() => {
-                         // End Spin
-                         if(state.phase === 'SPIN') update(ref(db, 'gameState'), { phase: 'REVEALED' }); // Handled by backend usually, but here we trigger next step
-                     }, 4000);
-                 }
-
+            if (gameState.phase === 'GRID') {
+                viewGrid.classList.remove('opacity-0', 'pointer-events-none');
+                viewAuction.classList.add('opacity-0', 'pointer-events-none');
+                resetAuctionEffects();
             } else {
-                vGrid.style.opacity = 0; vGrid.style.pointerEvents = 'none';
-                vAuc.style.opacity = 1; vAuc.style.pointerEvents = 'auto';
-                wheel.classList.add('hidden');
+                viewGrid.classList.add('opacity-0', 'pointer-events-none');
+                viewAuction.classList.remove('opacity-0', 'pointer-events-none');
+                
+                document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
+                document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
 
-                if (state.phase === 'BIDDING') {
-                    document.getElementById('timer-display').classList.remove('opacity-0');
-                    document.getElementById('stamp-sold').classList.add('hidden');
-                    document.getElementById('stamp-unsold').classList.add('hidden');
-                    env.classList.add('shake');
-                } else if (state.phase === 'SOLD') {
-                    document.getElementById('timer-display').classList.add('opacity-0');
-                    env.classList.remove('shake');
-                    
-                    if (state.leaderId) {
-                        document.getElementById('stamp-sold').classList.remove('hidden');
-                        document.getElementById('stamp-sold').querySelector('span').classList.add('slam');
-                    } else {
-                        // ZERO BIDS
-                        document.getElementById('stamp-unsold').classList.remove('hidden');
-                        document.getElementById('stamp-unsold').querySelector('span').classList.add('slam');
-                    }
-                    document.getElementById('msg-wait').classList.remove('hidden');
+                if(gameState.phase === 'BIDDING') {
+                    document.getElementById('timer-box').classList.remove('opacity-0');
+                    document.getElementById('sold-stamp').classList.add('hidden');
+                    mainEnvelope.classList.add('shaking');
+                } 
+                else if(gameState.phase === 'SOLD') {
+                    document.getElementById('timer-box').classList.add('opacity-0');
+                    document.getElementById('sold-stamp').classList.remove('hidden');
+                    mainEnvelope.classList.remove('shaking');
+                    document.getElementById('msg-waiting').classList.remove('hidden');
                 }
             }
         });
 
-        // 2. REVEAL TRIGGER
         onValue(ref(db, 'revealTrigger'), (snap) => {
-            if (snap.val() === true && (state.phase === 'SOLD' || state.phase === 'SPIN')) {
+            if (snap.val() === true && gameState.phase === 'SOLD') {
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
-                update(ref(db), { revealTrigger: null });
-
-                const card = cards.find(c => c.id === state.currentCard);
+                update(ref(db), { revealTrigger: null }); 
+                
+                const card = cardsData.find(c => c.id === gameState.currentCard);
                 const isBad = (card.val < 0 || (card.val < 1 && card.type === 'MULTIPLY'));
-                const cardEl = document.getElementById('card-visual');
+                const cardVisual = document.getElementById('card-visual');
                 
-                // Visuals
-                if (isBad) {
-                    sfx.bad.play();
-                    cardEl.classList.add('bad');
+                if(isBad) {
+                    sfxBad.play();
+                    cardVisual.classList.add('card-bad');
+                    flashLayer.style.backgroundColor = 'rgba(255,0,0,0.3)';
                 } else {
-                    sfx.gong.play();
-                    cardEl.classList.remove('bad');
+                    sfxGong.play();
+                    cardVisual.classList.remove('card-bad');
+                    flashLayer.style.backgroundColor = 'rgba(255,215,0,0.3)';
+                    fireConfetti();
                 }
 
-                // Fill Data
-                document.getElementById('card-title').innerText = card.name;
-                document.getElementById('card-desc').innerText = card.desc;
+                flashLayer.style.opacity = 1;
+                setTimeout(() => flashLayer.style.opacity = 0, 500);
+
+                mainEnvelope.classList.add('is-open');
+                document.getElementById('msg-waiting').classList.add('hidden');
                 
-                // Open Env
-                document.getElementById('envelope').classList.add('open');
-                document.getElementById('msg-wait').classList.add('hidden');
-
-                // EFFECT LOGIC (Only if someone bought it)
-                if (state.leaderId) {
-                    if (card.type === 'GAMBLE_WAGER') {
-                        // Trigger Wager Phase instead of immediate effect
-                        update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: state.leaderId });
-                    } else {
-                        executeCardEffect(card.id, state.leaderId);
-                    }
+                if(card) {
+                    document.getElementById('card-title').innerText = card.name;
+                    document.getElementById('card-desc').innerText = card.desc;
+                    executeCardEffect(card.id, gameState.leaderId);
                 }
-
-                setTimeout(() => {
-                    document.getElementById('btn-next').classList.remove('hidden');
-                }, 2000);
+                setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
             }
         });
 
-        // 3. ROSTER RENDER
         onValue(ref(db, 'teams'), (snap) => {
-            const roster = document.getElementById('roster');
-            roster.innerHTML = '';
+            rosterGrid.innerHTML = '';
             const teams = snap.val() || {};
-            const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            const sortedKeys = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
             
-            sorted.forEach((key, idx) => {
+            sortedKeys.forEach((key, index) => {
                 const t = teams[key];
-                let rankClass = "border-l-2 border-white/10";
-                if(idx===0) rankClass = "rank-1";
-                if(idx===1) rankClass = "rank-2";
-                if(idx===2) rankClass = "rank-3";
+                const isDead = t.balance <= 0; 
+                let rankClass = "rank-row";
+                let icon = "";
                 
+                if (index === 0) { rankClass += " rank-1"; icon = "👑"; }
+                else if (index === 1) { rankClass += " rank-2"; icon = "🥈"; }
+                else if (index === 2) { rankClass += " rank-3"; icon = "🥉"; }
+
                 const div = document.createElement('div');
-                div.className = `p-3 flex justify-between bg-black/40 ${rankClass} mb-1`;
+                div.className = `p-3 flex justify-between items-center ${rankClass} ${isDead ? 'opacity-30' : ''}`;
                 div.innerHTML = `
-                    <div>
-                        <div class="font-bold text-white">${t.name}</div>
-                        <div class="text-xs text-[#C5A059]">RM ${t.balance.toLocaleString()}</div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 text-center text-xl">${icon || (index+1)}</span>
+                        <div>
+                            <div class="font-imperial font-bold text-white">${t.name}</div>
+                            <div class="text-xs ${isDead ? 'text-red-500' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
+                        </div>
                     </div>
-                    ${t.immune ? '<span class="text-green-400 text-xs">🛡️</span>' : ''}
                 `;
-                roster.appendChild(div);
+                rosterGrid.appendChild(div);
             });
         });
 
-        // --- ADMIN ACTIONS ---
         window.adminAction = (action) => {
-            if (action === 'START') {
-                 set(ref(db), { gameState: { phase: 'GRID', round: 1 }, teams: {} });
-            }
+            if (action === 'START') { set(ref(db), { gameState: { phase: 'GRID', round: 1, highestBid: 0 }, currentRoundBids: {}, envelopes: {}, teams: {} }); return; }
             if (action === 'DRAW') {
-                // ... (Same Shuffle Logic) ...
-                // Pick random unused card
                 let available = [];
-                for(let i=1; i<=25; i++) if(!envStatus[i]) available.push(i);
-                if(!available.length) return alert("Empty");
-                
-                document.getElementById('btn-draw').disabled = true;
-                
+                for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
+                if(!available.length) return alert("No more cards!");
+                btnDraw.disabled = true;
                 let delay = 50, steps = 0;
                 const loop = () => {
                     document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
                     const r = available[Math.floor(Math.random()*available.length)];
-                    document.getElementById(`cell-${r}`).classList.add('active');
-                    sfx.tick.currentTime = 0; sfx.tick.play();
-                    
+                    document.getElementById(`grid-cell-${r}`).classList.add('active');
+                    sfxTick.currentTime = 0; sfxTick.play().catch(e => {}); 
                     steps++; delay *= 1.1;
-                    if(delay < 400) setTimeout(loop, delay);
+                    if (delay < 500) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
-                             update(ref(db, 'gameState'), {
-                                 phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, 
-                                 bidDeadline: Date.now() + 15000
-                             });
-                             set(ref(db, 'currentRoundBids'), {});
-                             document.getElementById('btn-draw').disabled = false;
-                        }, 500);
+                            update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 });
+                            set(ref(db, 'currentRoundBids'), {});
+                            btnDraw.disabled = false;
+                        }, 800);
                     }
                 };
                 loop();
             }
             if (action === 'NEXT') {
                 const updates = {};
-                updates[`envelopes/${state.currentCard}`] = true;
+                updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID';
-                updates['gameState/round'] = (state.round || 1) + 1;
+                updates['gameState/round'] = (gameState.round || 1) + 1;
                 updates['gameState/currentCard'] = null;
-                updates['gameState/wagerAmount'] = null;
-                updates['gameState/spinResult'] = null;
-                
-                // Remove Immunity/Spy Flags from all teams
-                get(ref(db, 'teams')).then(snap => {
-                    const teams = snap.val();
-                    for(let tid in teams) {
-                        updates[`teams/${tid}/immune`] = null;
-                        // Spy intel is one-use, handled in controller logic usually, but we clear flag here
-                    }
-                    update(ref(db), updates);
-                });
+                updates['gameState/highestBid'] = 0;
+                updates['gameState/leaderId'] = null;
+                updates['gameState/leaderName'] = null;
+                updates['currentRoundBids'] = null;
+                update(ref(db), updates);
             }
         };
 
-        window.resetGame = () => { if(confirm("Reset?")) set(ref(db), { gameState: { phase: 'GRID' } }); };
+        window.resetGame = () => { if(confirm("FULL RESET?")) set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, currentRoundBids: {} }); }
 
-        // --- HELPERS ---
         function renderGrid() {
-            const grid = document.getElementById('grid-container');
-            grid.innerHTML = '';
+            gridContainer.innerHTML = '';
             for(let i=1; i<=25; i++) {
                 const d = document.createElement('div');
-                d.id = `cell-${i}`;
-                d.className = 'angpao rounded';
+                d.id = `grid-cell-${i}`;
+                d.className = `angpao`;
                 d.innerText = i;
-                grid.appendChild(d);
+                gridContainer.appendChild(d);
             }
             onValue(ref(db, 'envelopes'), (snap) => {
-                envStatus = snap.val() || {};
+                const env = snap.val() || {};
+                envelopesStatus = env;
                 for(let i=1; i<=25; i++) {
-                    const el = document.getElementById(`cell-${i}`);
-                    if(envStatus[i]) el.classList.add('used'); else el.classList.remove('used');
+                    const el = document.getElementById(`grid-cell-${i}`);
+                    if(env[i]) el.classList.add('used'); else el.classList.remove('used');
                 }
             });
         }
-        function resetEnv() {
-            document.getElementById('envelope').classList.remove('open', 'shake');
-            document.getElementById('stamp-sold').classList.add('hidden');
-            document.getElementById('stamp-unsold').classList.add('hidden');
+        function resetAuctionEffects() {
+            mainEnvelope.classList.remove('is-open', 'shaking');
+            document.getElementById('sold-stamp').classList.add('hidden');
             document.getElementById('btn-next').classList.add('hidden');
-            document.getElementById('msg-wait').classList.add('hidden');
-            document.getElementById('card-visual').classList.remove('bad');
+            document.getElementById('msg-waiting').classList.add('hidden');
+            document.getElementById('confetti-layer').innerHTML = '';
+            document.getElementById('card-visual').classList.remove('card-bad');
         }
-        function startLoop() {
+        function startServerLoop() {
             setInterval(() => {
-                if(state.phase === 'BIDDING' && state.bidDeadline) {
-                    const diff = state.bidDeadline - Date.now();
-                    if(diff <= 0) {
+                if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
+                    const diff = gameState.bidDeadline - Date.now();
+                    if (diff <= 0) {
                         update(ref(db, 'gameState'), { phase: 'SOLD' });
-                        document.getElementById('timer-val').innerText = "0.0s";
-                        // AUTO REVEAL IF NO BIDS
-                        if(!state.highestBid) {
-                             setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
-                        }
+                        document.getElementById('countdown-val').innerText = "0.0s";
                     } else {
-                        document.getElementById('timer-val').innerText = (diff/1000).toFixed(1) + "s";
+                        const secs = (diff / 1000).toFixed(1);
+                        document.getElementById('countdown-val').innerText = secs + "s";
+                        if(diff < 5000 && Math.floor(diff/1000) !== Math.floor((diff+100)/1000)) { sfxTimer.currentTime = 0; sfxTimer.play(); }
                     }
                 }
             }, 100);
         }
 
-        // --- BID QUEUE (Fixed Logic) ---
-        const queueRef = ref(db, 'bidQueue');
-        onChildAdded(queueRef, async (snap) => {
-            const req = snap.val();
-            const key = snap.key;
-            if(!req) return;
-            
-            const stateSnap = await get(ref(db, 'gameState'));
-            const st = stateSnap.val();
-            
-            // Logic: Pay Difference
-            const isSelf = (st.leaderId === req.teamId);
-            const cost = isSelf ? (req.amount - (st.highestBid || 0)) : req.amount;
-            const min = (st.highestBid || 0) + 50;
-
-            if(st.phase !== 'BIDDING' || req.amount < min) { remove(ref(db, `bidQueue/${key}`)); return; }
-            
-            const teamRef = ref(db, `teams/${req.teamId}`);
-            const tSnap = await get(teamRef);
-            const team = tSnap.val();
-            
-            if(!team || team.balance < cost) { remove(ref(db, `bidQueue/${key}`)); return; }
-            
-            // Refund Prev
-            if(st.leaderId && !isSelf) {
-                const prevRef = ref(db, `teams/${st.leaderId}`);
-                const pSnap = await get(prevRef);
-                if(pSnap.exists()) update(prevRef, { balance: pSnap.val().balance + st.highestBid });
+        function fireConfetti() {
+            const container = document.getElementById('confetti-layer');
+            const colors = ['#FFD700', '#C5A059', '#ffffff'];
+            for(let i=0; i<50; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                el.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                container.appendChild(el);
             }
-            
-            // Charge
-            update(teamRef, { balance: team.balance - cost });
-            
-            // Extend Time
-            let newT = st.bidDeadline;
-            if(newT - Date.now() < 10000) newT = Date.now() + 10000;
-            
-            update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newT });
-            remove(ref(db, `bidQueue/${key}`));
-        });
-        
-        // --- SPIN LOGIC TRIGGER ---
-        // (Watched in Controller for input, Projector handles animation)
-
-        async function executeCardEffect(cid, wid) {
-            const card = cards.find(c => c.id === cid);
-            const tSnap = await get(ref(db, 'teams'));
-            const teams = tSnap.val();
-            const winner = teams[wid];
-            const updates = {};
-            const wRef = `teams/${wid}/balance`;
-            
-            // IMMUNITY CHECK (If effect harms me)
-            // But usually cards grant ME things. Negative cards harm me.
-            // If I bought a negative card, Immunity DOES work.
-            if(card.val < 0 && winner.immune) {
-                // BLOCKED
-                return; 
-            }
-            
-            // ITEMS
-            if(card.type === 'ITEM') {
-                updates[`teams/${wid}/items/${card.item}`] = true;
-                update(ref(db), updates);
-                return;
-            }
-
-            // LOGIC
-            const others = Object.keys(teams).filter(id => id !== wid);
-            
-            if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
-            else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
-            else if(card.type === 'STEAL_PCT') {
-                 // Steal from Richest
-                 let richId = others.sort((a,b) => teams[b].balance - teams[a].balance)[0];
-                 if(richId && !teams[richId].immune) {
-                     const amt = Math.floor(teams[richId].balance * card.val);
-                     updates[wRef] = winner.balance + amt;
-                     updates[`teams/${richId}/balance`] = teams[richId].balance - amt;
-                 }
-            }
-            // ... (Other types standard)
-            
-            if(Object.keys(updates).length) update(ref(db), updates);
         }
 
+        // --- BID QUEUE LOGIC (Fixed) ---
+        const bidQueueRef = ref(db, 'bidQueue');
+        onChildAdded(bidQueueRef, async (snapshot) => {
+            const req = snapshot.val();
+            const key = snapshot.key;
+            if(!req) return;
+            try {
+                const stateSnap = await get(ref(db, 'gameState'));
+                const state = stateSnap.val();
+                
+                const isSelfBid = (state.leaderId === req.teamId);
+                const cost = isSelfBid ? (req.amount - (state.highestBid || 0)) : req.amount;
+                const minBid = (state.highestBid || 0) + 50;
+
+                if (state.phase !== 'BIDDING' || req.amount < minBid) { await remove(ref(db, `bidQueue/${key}`)); return; }
+                
+                const bidderRef = ref(db, `teams/${req.teamId}`);
+                const bidderSnap = await get(bidderRef);
+                const bidder = bidderSnap.val();
+                
+                if (!bidder || bidder.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
+
+                if (state.leaderId && !isSelfBid) {
+                    const prevRef = ref(db, `teams/${state.leaderId}`);
+                    const prevSnap = await get(prevRef);
+                    if (prevSnap.exists()) await update(prevRef, { balance: prevSnap.val().balance + state.highestBid });
+                }
+
+                await update(bidderRef, { balance: bidder.balance - cost });
+
+                let newTime = state.bidDeadline;
+                if (newTime - Date.now() < 10000) newTime = Date.now() + 10000;
+                await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: bidder.name, bidDeadline: newTime });
+                await push(ref(db, 'currentRoundBids'), { teamName: bidder.name, amount: req.amount, timestamp: Date.now() });
+
+            } catch(e) { console.error(e); }
+            await remove(ref(db, `bidQueue/${key}`));
+        });
+        
+        onValue(ref(db, 'currentRoundBids'), (snap) => {
+            const list = document.getElementById('bids-list');
+            list.innerHTML = '';
+            const bids = snap.val();
+            if(bids) {
+                if(Object.keys(bids).length > list.childElementCount) sfxCoin.play();
+                Object.values(bids).sort((a,b) => b.timestamp - a.timestamp).forEach(b => {
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between text-sm p-2 border-b border-[#C5A059]/20";
+                    el.innerHTML = `<span class="text-[#C5A059]">${b.teamName}</span><span class="text-white font-bold">RM ${b.amount}</span>`;
+                    list.appendChild(el);
+                });
+            }
+        });
+
+        async function executeCardEffect(cardId, winnerId) {
+            const teamsSnap = await get(ref(db, 'teams'));
+            const teams = teamsSnap.val() || {};
+            const winner = teams[winnerId];
+            if (!winner) return;
+            const card = cardsData.find(c => c.id === cardId);
+            let updates = {};
+            const winnerRef = `teams/${winnerId}/balance`;
+            const others = Object.keys(teams).filter(id => id !== winnerId);
+            const randOpp = others.length ? others[Math.floor(Math.random()*others.length)] : null;
+            if(others.length === 0 && (card.type.includes('STEAL') || card.type.includes('SWAP'))) {
+                updates[winnerRef] = winner.balance + 1000;
+                await update(ref(db), updates);
+                return;
+            }
+            if(card.type === 'ADD') updates[winnerRef] = winner.balance + card.val;
+            else if(card.type === 'MULTIPLY') updates[winnerRef] = Math.floor(winner.balance * card.val);
+            else if(card.type === 'STEAL_PCT') {
+                let richestId = others[0];
+                others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
+                if(richestId) {
+                    const stolen = Math.floor(teams[richestId].balance * card.val);
+                    updates[winnerRef] = winner.balance + stolen;
+                    updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
+                }
+            }
+            else if(card.type === 'SWAP') {
+                 if(randOpp && teams[randOpp].balance > winner.balance) {
+                     updates[winnerRef] = teams[randOpp].balance;
+                     updates[`teams/${randOpp}/balance`] = winner.balance;
+                 }
+            }
+            else updates[winnerRef] = winner.balance + (card.val || 0);
+            if(Object.keys(updates).length) await update(ref(db), updates);
+        }
     </script>
 </body>
 </html>
