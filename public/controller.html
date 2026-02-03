@@ -9,7 +9,7 @@
     <style>
         body { 
             font-family: 'Playfair Display', serif; 
-            background: #2a0000; /* IMPERIAL RED */
+            background: #2a0000; /* RICH RED */
             background-image: url('https://www.transparenttextures.com/patterns/black-scales.png');
             color: #FFD700; 
             touch-action: manipulation; 
@@ -23,11 +23,17 @@
         }
         .btn-gold:active { transform: scale(0.95); }
         
-        /* NEW HEADER */
         .profile-header {
             background: linear-gradient(180deg, #1a0000 0%, #000000 100%);
             border-bottom: 2px solid #C5A059;
         }
+        
+        /* JADE SEAL BUTTON */
+        .btn-seal {
+            background: linear-gradient(180deg, #00ff00, #006600); color: white;
+            box-shadow: 0 0 20px #00ff00; animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 30px #00ff00; } 100% { box-shadow: 0 0 10px #00ff00; } }
     </style>
 </head>
 <body class="h-[100dvh] flex flex-col">
@@ -85,6 +91,19 @@
                 <div id="feedback" class="text-center text-red-300 h-6 text-sm font-bold tracking-wide mt-2"></div>
             </div>
 
+            <div id="state-winner" class="hidden flex-col h-full items-center justify-center text-center pb-20 animate-pulse">
+                <div class="text-8xl mb-4 drop-shadow-[0_0_30px_gold]">👑</div>
+                <h2 class="text-4xl font-imperial text-[#FFD700] font-black mb-2">VICTORY</h2>
+                <p class="text-white opacity-80 mb-8">Look at the Imperial Screen...</p>
+                </div>
+
+            <div id="state-loser" class="hidden flex-col h-full items-center justify-center text-center pb-20 opacity-60">
+                <div class="text-6xl mb-4 grayscale">🔒</div>
+                <h2 class="text-3xl font-imperial text-white mb-2">SOLD</h2>
+                <p class="text-[#C5A059] uppercase tracking-widest text-xs">Winner</p>
+                <p id="winner-name" class="text-2xl font-bold text-white mt-1">--</p>
+            </div>
+
             <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-6 rounded">
                 <div class="text-center">
                     <div class="text-6xl mb-2">🎲</div>
@@ -101,7 +120,7 @@
             </div>
         </div>
 
-        <button id="btn-seal" onclick="useSeal()" class="hidden absolute bottom-6 right-6 w-16 h-16 rounded-full text-2xl z-50 flex items-center justify-center border-2 border-white bg-green-700 shadow-[0_0_20px_green] active:scale-90 transition">🛡️</button>
+        <button id="btn-seal" onclick="useSeal()" class="hidden absolute bottom-6 right-6 w-16 h-16 rounded-full text-2xl z-50 flex items-center justify-center border-2 border-white btn-seal">🛡️</button>
 
     </div>
 
@@ -129,12 +148,13 @@
         let highBid = 0;
         let myCurrentBid = 0;
         
-        // CARD LOOKUP FOR SPY
         const cardNames = {
-            1: "Magic Bowl (+3k)", 2: "Market Crash (-25%)", 3: "Tax Collector (Steal)",
-            4: "Duel (Steal)", 5: "Golden Horse (x1.5)", 6: "Bandits (-500)",
-            7: "Imperial Grant (+5k)", 8: "Blockade (Ban)", 12: "God of Wealth (+8k)",
-            15: "Nian Monster (-50%)", 20: "Jade Seal (Item)", 25: "High Roller (Gamble)"
+            1: "Magic Bowl (+3k)", 2: "Market Crash (-20%)", 3: "Tax Collector",
+            4: "Duel", 5: "Golden Horse (x1.5)", 6: "Bandits (-200)",
+            7: "Imperial Grant (+5k)", 8: "Blockade", 9: "Robin Hood",
+            10: "Broken Vase (-300)", 11: "Interest (+20%)", 12: "God of Wealth (+8k)",
+            15: "Nian Monster (-30%)", 16: "Spy (Item)", 20: "Jade Seal (Item)",
+            25: "High Roller (Gamble)"
         };
 
         if(myId) init();
@@ -144,7 +164,6 @@
             if(!n) return;
             const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
             const r = ref(db, `teams/${id}`);
-            // Force write to ensure DB entry exists
             await set(r, { name: n, balance: 1000 });
             localStorage.setItem('id', id); localStorage.setItem('name', n);
             myId = id; myName = n;
@@ -155,17 +174,14 @@
             document.getElementById('login').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');
             document.getElementById('app').classList.add('flex');
-            
             document.getElementById('name-display').innerText = myName;
 
-            // 1. My Data
             onValue(ref(db, `teams/${myId}`), (snap) => {
                 const t = snap.val();
                 if(!t) return;
                 balance = t.balance;
                 document.getElementById('balance').innerText = balance.toLocaleString();
                 
-                // INVENTORY
                 const hasSeal = t.items && t.items.jade_seal;
                 const hasSpy = t.items && t.items.spy;
                 const sealBtn = document.getElementById('btn-seal');
@@ -173,7 +189,6 @@
                 window.hasSpy = hasSpy;
             });
             
-            // 2. Rank Check
             onValue(ref(db, 'teams'), (snap) => {
                 const teams = snap.val();
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
@@ -186,7 +201,6 @@
                 else { rText.innerText = `RANK #${rank}`; rText.style.color = "#C5A059"; rIcon.innerText = "⚔️"; }
             });
 
-            // 3. Game State
             onValue(ref(db, 'gameState'), (snap) => {
                 const st = snap.val();
                 if(!st) return;
@@ -195,7 +209,10 @@
                 
                 if(st.leaderId === myId) myCurrentBid = highBid; else myCurrentBid = 0;
 
-                ['view-bidding', 'view-wager', 'view-idle'].forEach(i => document.getElementById(i).classList.add('hidden'));
+                ['view-bidding', 'view-wager', 'view-idle', 'state-winner', 'state-loser'].forEach(i => {
+                    const el = document.getElementById(i);
+                    if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+                });
                 document.getElementById('spy-banner').classList.add('hidden');
 
                 if (st.phase === 'BIDDING') {
@@ -212,20 +229,22 @@
                 } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
                     document.getElementById('view-wager').classList.remove('hidden');
                     document.getElementById('view-wager').classList.add('flex');
+                } else if (st.phase === 'SOLD') {
+                    if (st.leaderId === myId) {
+                        document.getElementById('state-winner').classList.remove('hidden');
+                        document.getElementById('state-winner').classList.add('flex');
+                    } else {
+                        document.getElementById('state-loser').classList.remove('hidden');
+                        document.getElementById('state-loser').classList.add('flex');
+                        document.getElementById('winner-name').innerText = st.leaderName || "None";
+                    }
                 } else {
                     document.getElementById('view-idle').classList.remove('hidden');
-                    if(st.phase === 'SOLD') {
-                        document.getElementById('idle-msg').innerText = (st.leaderId === myId) ? "VICTORY" : "SOLD";
-                    } else if (st.phase === 'SPIN') {
-                        document.getElementById('idle-msg').innerText = "SPINNING...";
-                    } else {
-                        document.getElementById('idle-msg').innerText = "WAITING...";
-                    }
+                    document.getElementById('idle-msg').innerText = "WAITING...";
                 }
             });
         }
 
-        // FIXED BID LOGIC: Calculates total purchasing power
         window.quick = (p) => {
             const totalPower = balance + myCurrentBid;
             document.getElementById('bid-val').value = Math.floor(totalPower * p);
@@ -234,13 +253,9 @@
         window.submit = async () => {
             const v = parseInt(document.getElementById('bid-val').value);
             if(isNaN(v)) return;
-            
-            // Logic: Cost = New Bid - Old Bid. Check if wallet can cover cost.
             const cost = v - myCurrentBid;
-            
             if(cost > balance) return feedback("Low Funds");
             if(v < highBid + 50) return feedback("Too Low");
-            
             const b = document.getElementById('btn-bid');
             b.disabled = true; b.innerText = "...";
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
