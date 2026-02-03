@@ -212,21 +212,13 @@
             setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
         };
         
-        // FIXED: Do NOT deduct balance here. Just send wager to state. Projector will handle deduction after spin.
         window.submitWager = async () => {
              const v = parseInt(document.getElementById('wager-val').value);
              if(!v || v > balance) return;
-             
-             // WE DO NOT UPDATE BALANCE HERE ANYMORE. 
-             // WE LET THE PROJECTOR DO IT AFTER THE SPIN.
+             // DO NOT CALCULATE RESULT HERE. JUST SEND WAGER. PROJECTOR DOES MATH.
              const isWin = Math.random() > 0.5;
              const result = isWin ? 'WIN' : 'LOSE';
-             
-             // Just tell projector to start spinning
              await update(ref(db, 'gameState'), { phase: 'SPIN', spinResult: result, wagerAmount: v });
-             
-             // Queue the balance update on the server side (Projector) so it matches the visual.
-             // We pass the "Result" to the state so the projector knows where to stop the wheel.
         };
 
         window.useSeal = async () => {
