@@ -83,7 +83,11 @@
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-timer" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
-    <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio> <div id="fx-layer" class="absolute inset-0 pointer-events-none z-[300]"></div> <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
+    <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
+
+    <div id="fx-layer" class="absolute inset-0 pointer-events-none z-[300]"></div>
+
+    <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50">
         <h1 class="font-imperial text-3xl font-bold tracking-[0.2em] text-[#FFD700]">IMPERIAL AUCTION</h1>
         <div class="flex gap-8 font-imperial text-xl tracking-widest text-[#C5A059]">
             <div>ROUND <span id="round-num" class="text-white font-bold ml-2">--</span></div>
@@ -260,7 +264,6 @@
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 update(ref(db), { revealTrigger: null }); 
                 
-                // DETERMINE IF GOOD OR BAD CARD
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 const isBad = (card.val < 0 || card.val < 1 && card.type === 'MULTIPLY');
                 
@@ -268,12 +271,12 @@
                 const cardVisual = document.getElementById('card-visual');
                 
                 if(isBad) {
-                    sfxBad.play(); // FAIL SOUND
+                    sfxBad.play();
                     fxLayer.classList.add('fx-bad');
                     cardVisual.classList.add('card-bad');
                     document.body.style.animation = "shake-screen 0.5s";
                 } else {
-                    sfxGong.play(); // WIN SOUND
+                    sfxGong.play();
                     fxLayer.classList.add('fx-good');
                     cardVisual.classList.remove('card-bad');
                     fireConfetti();
@@ -298,7 +301,6 @@
         onValue(ref(db, 'teams'), (snap) => {
             rosterGrid.innerHTML = '';
             const teams = snap.val() || {};
-            // SORT BY BALANCE
             const sortedKeys = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
             
             sortedKeys.forEach((key, index) => {
@@ -307,7 +309,6 @@
                 let rankClass = "";
                 let icon = "";
                 
-                // LEADERBOARD VISUALS
                 if (index === 0) { rankClass = "rank-1"; icon = "👑 "; }
                 else if (index === 1) { rankClass = "rank-2"; icon = "🥈 "; }
                 else if (index === 2) { rankClass = "rank-3"; icon = "🥉 "; }
@@ -428,6 +429,7 @@
             }
         }
 
+        // --- BID QUEUE LOGIC (BUG FIXED V2) ---
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
@@ -436,22 +438,38 @@
             try {
                 const stateSnap = await get(ref(db, 'gameState'));
                 const state = stateSnap.val();
+                
+                // 1. Determine Cost
+                const isSelfBid = (state.leaderId === req.teamId);
+                const cost = isSelfBid ? (req.amount - (state.highestBid || 0)) : req.amount;
                 const minBid = (state.highestBid || 0) + 50;
+
+                // 2. Validate Bid
                 if (state.phase !== 'BIDDING' || req.amount < minBid) { await remove(ref(db, `bidQueue/${key}`)); return; }
+                
                 const bidderRef = ref(db, `teams/${req.teamId}`);
                 const bidderSnap = await get(bidderRef);
                 const bidder = bidderSnap.val();
-                if (!bidder || bidder.balance < req.amount) { await remove(ref(db, `bidQueue/${key}`)); return; }
-                if (state.leaderId) {
+                
+                // 3. Check Balance (Can they afford the COST?)
+                if (!bidder || bidder.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
+
+                // 4. REFUND PREVIOUS LEADER (Only if it's NOT a self-bid)
+                if (state.leaderId && !isSelfBid) {
                     const prevRef = ref(db, `teams/${state.leaderId}`);
                     const prevSnap = await get(prevRef);
                     if (prevSnap.exists()) await update(prevRef, { balance: prevSnap.val().balance + state.highestBid });
                 }
-                await update(bidderRef, { balance: bidder.balance - req.amount });
+
+                // 5. CHARGE NEW BIDDER (Only the cost)
+                await update(bidderRef, { balance: bidder.balance - cost });
+
+                // 6. UPDATE GAME STATE
                 let newTime = state.bidDeadline;
                 if (newTime - Date.now() < 10000) newTime = Date.now() + 10000;
                 await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: bidder.name, bidDeadline: newTime });
                 await push(ref(db, 'currentRoundBids'), { teamName: bidder.name, amount: req.amount, timestamp: Date.now() });
+
             } catch(e) { console.error(e); }
             await remove(ref(db, `bidQueue/${key}`));
         });
