@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Auction - Year of the Horse</title>
+    <title>Imperial Auction - Emperor's View</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
@@ -11,9 +11,8 @@
         body { font-family: 'Playfair Display', serif; background-color: #050000; color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
         
-        /* BACKGROUND */
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.4; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
-        .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.9); }
+        .bg-pattern { position: absolute; inset: 0; opacity: 0.3; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
+        .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 40px rgba(0,0,0,0.9); }
 
         /* GRID */
         .angpao {
@@ -25,8 +24,8 @@
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        /* ENVELOPE */
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 60px; }
+        /* ENVELOPE (Pushed down to avoid Timer) */
+        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
         
@@ -43,6 +42,9 @@
         .is-open .envelope-body { transform: translateY(20%); opacity: 0.5; }
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
+        
+        /* WHEEL */
+        .wheel-box { display: none; width: 500px; height: 500px; border-radius: 50%; border: 10px solid #FFD700; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: #000; overflow: hidden; }
         
         /* LEADERBOARD */
         .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
@@ -169,7 +171,7 @@
         const sfxGong = document.getElementById('sfx-gong');
         const sfxSpin = document.getElementById('sfx-spin');
         const bgm = document.getElementById('bgm');
-        bgm.volume = 0.2; // LIGHT VOLUME
+        bgm.volume = 0.1; // 10% Volume (Very light)
 
         // CARD DATA
         const cardsData = [
@@ -267,7 +269,7 @@
                     if(gameState.leaderId) {
                         document.getElementById('sold-stamp').classList.remove('hidden');
                     } else {
-                        document.getElementById('unsold-stamp').classList.remove('hidden'); // ZERO BID FIX
+                        document.getElementById('unsold-stamp').classList.remove('hidden');
                     }
                 }
             }
@@ -362,21 +364,26 @@
                 };
                 loop();
             }
-            // --- FIX FOR NEXT ROUND BUTTON ---
             if (action === 'NEXT') {
+                // FORCE RESET EVERYTHING TO ENSURE NO STUCK STATES
                 const updates = {};
-                // Force update envelope even if state might be weird
+                // Force open envelope in DB so it doesn't get picked again
                 if(gameState.currentCard) {
                     updates[`envelopes/${gameState.currentCard}`] = true;
                 }
+                
+                // Hard reset game state for next round
                 updates['gameState/phase'] = 'GRID';
                 updates['gameState/round'] = (gameState.round||1)+1;
                 updates['gameState/currentCard'] = null;
                 updates['gameState/highestBid'] = 0;
                 updates['gameState/leaderId'] = null;
+                updates['gameState/leaderName'] = null;
                 updates['gameState/wagerAmount'] = null;
                 updates['gameState/spinResult'] = null;
+                updates['currentRoundBids'] = null;
                 
+                // Clear Immunity
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
                     for(let k in t) { updates[`teams/${k}/immune`] = null; }
@@ -434,18 +441,26 @@
             const req = snapshot.val();
             const key = snapshot.key;
             if(!req) return;
+            
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
+            // 1. GHOST CHECK: If team doesn't exist, create them
+            const teamRef = ref(db, `teams/${req.teamId}`);
+            let tSnap = await get(teamRef);
+            if (!tSnap.exists()) {
+                await set(teamRef, { name: "Ghost_" + req.teamId.substr(0,4), balance: 1000 });
+                tSnap = await get(teamRef); // Fetch again
+            }
+            const team = tSnap.val();
+
+            // 2. LOGIC
             const isSelf = (state.leaderId === req.teamId);
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
 
             if (state.phase !== 'BIDDING' || req.amount < min) { await remove(ref(db, `bidQueue/${key}`)); return; }
-            const teamRef = ref(db, `teams/${req.teamId}`);
-            const tSnap = await get(teamRef);
-            const team = tSnap.val();
-            if (!team || team.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
+            if (team.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
 
             if (state.leaderId && !isSelf) {
                 const prevRef = ref(db, `teams/${state.leaderId}`);
@@ -467,7 +482,6 @@
             const winner = teams[wid];
             const updates = {};
             
-            // ITEM LOGIC
             if(card.type === 'ITEM') {
                 updates[`teams/${wid}/items/${card.item}`] = true;
                 update(ref(db), updates);
@@ -477,7 +491,7 @@
             const wRef = `teams/${wid}/balance`;
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
-            // ... (Rest of logic) ...
+            // ... (Add back other effects if needed, keep simple for stability)
             
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
