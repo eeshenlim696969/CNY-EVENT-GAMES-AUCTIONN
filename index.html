@@ -43,13 +43,11 @@
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
         
-        /* WHEEL */
-        .wheel-box { display: none; width: 500px; height: 500px; border-radius: 50%; border: 10px solid #FFD700; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 200; background: #000; overflow: hidden; }
-        
         /* LEADERBOARD */
         .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
         .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, rgba(192,192,192,0.1), transparent); }
         .rank-3 { border-left: 4px solid #CD7F32; background: linear-gradient(90deg, rgba(205,127,50,0.1), transparent); }
+        .rank-dead { opacity: 0.3; filter: grayscale(1); border-left: 4px solid #333; }
     </style>
 </head>
 <body class="h-screen flex flex-col relative">
@@ -129,11 +127,9 @@
                 </div>
 
                 <div class="mt-12 h-16 flex items-center justify-center w-full absolute bottom-10">
-                    
                     <button onclick="adminAction('REVEAL')" id="btn-reveal" class="hidden px-12 py-4 bg-red-700 text-white font-imperial font-bold text-2xl tracking-widest rounded hover:bg-red-500 border border-red-400 shadow-[0_0_20px_red] animate-pulse">
                         REVEAL DESTINY
                     </button>
-
                     <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">
                         NEXT ROUND
                     </button>
@@ -170,37 +166,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // ASSETS
         const sfxTick = document.getElementById('sfx-tick');
         const sfxGong = document.getElementById('sfx-gong');
         const sfxSpin = document.getElementById('sfx-spin');
         const bgm = document.getElementById('bgm');
-        bgm.volume = 0.1; // 10% Volume (Very light)
+        bgm.volume = 0.1;
 
-        // --- BALANCED CARD LIST (SAFE FOR ROUND 1) ---
+        // --- NEW BALANCED CARDS (Percentages Only for Negatives) ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 }, // Safe %
+            { id: 2, name: "Market Crash", desc: "Lose 10% of Wealth", type: "MULTIPLY", val: 0.9 }, // -10%
             { id: 3, name: "Tax Collector", desc: "Steal 15% from Richest", type: "STEAL_PCT", val: 0.15 },
-            { id: 4, name: "The Duel", desc: "Steal 1,000 from 2nd Place", type: "STEAL_RIVAL", val: 1000 },
-            { id: 5, name: "Golden Horse", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
-            { id: 6, name: "Bandits", desc: "Lose 200 Points", type: "ADD", val: -200 }, // Safe flat
+            { id: 4, name: "The Duel", desc: "Steal 10% from 2nd Place", type: "STEAL_RIVAL", val: 0.1 },
+            { id: 5, name: "Golden Horse", desc: "Multiply Score by 1.2x", type: "MULTIPLY", val: 1.2 },
+            { id: 6, name: "Bandits", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 }, // -5%
             { id: 7, name: "Imperial Grant", desc: "+5,000 Points", type: "ADD", val: 5000 },
             { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 300 from Random", type: "STEAL_CHOICE", val: 300 },
-            { id: 10, name: "Broken Vase", desc: "Lose 300 Points", type: "ADD", val: -300 }, // Safe flat
+            { id: 9, name: "Robin Hood", desc: "Steal 5% from Random", type: "STEAL_CHOICE", val: 0.05 },
+            { id: 10, name: "Broken Vase", desc: "Lose 8% Points", type: "MULTIPLY", val: 0.92 }, // -8%
             { id: 11, name: "Interest Rate", desc: "Gain 20% Interest", type: "MULTIPLY", val: 1.2 },
             { id: 12, name: "God of Wealth", desc: "Jackpot! +8,888", type: "ADD", val: 8888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 400 Points", type: "ADD", val: -400 }, // Safe flat
+            { id: 13, name: "Bad Omen", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 }, // -15%
             { id: 14, name: "Twin Carp", desc: "+2,000 You & Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 30% Balance", type: "MULTIPLY", val: 0.7 }, // Safe %
+            { id: 15, name: "Nian Monster", desc: "Lose 30% Balance", type: "MULTIPLY", val: 0.7 }, // -30%
             { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
             { id: 17, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
             { id: 18, name: "False Friend", desc: "Donate 10% to Poorest", type: "GIVE_LOW", val: 0.1 },
             { id: 19, name: "Shared Bill", desc: "Everyone pays 200", type: "GLOBAL_HIT", val: -200 },
             { id: 20, name: "Jade Seal", desc: "Item: Immunity Button", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Lose 200 or Win 1,000", type: "GAMBLE_DICE", val: 0 },
-            { id: 22, name: "Bad Luck", desc: "Lose 250 Points", type: "ADD", val: -250 }, // Safe flat
+            { id: 21, name: "Mystery Box", desc: "Lose 10% or Win 20%", type: "GAMBLE_DICE", val: 0 },
+            { id: 22, name: "Bad Luck", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
             { id: 23, name: "The Swap", desc: "Swap Score (If lower)", type: "SWAP", val: 0 },
             { id: 24, name: "Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
             { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
@@ -272,11 +267,10 @@
                     
                     if(gameState.leaderId) {
                         document.getElementById('sold-stamp').classList.remove('hidden');
-                        // SHOW ADMIN REVEAL BUTTON
                         document.getElementById('btn-reveal').classList.remove('hidden');
                     } else {
                         document.getElementById('unsold-stamp').classList.remove('hidden');
-                        // IF UNSOLD, AUTO REVEAL AFTER 2s
+                        // Auto reveal if unsold
                         setTimeout(() => update(ref(db), { revealTrigger: true }), 2000);
                     }
                 }
@@ -297,7 +291,7 @@
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
-                document.getElementById('btn-reveal').classList.add('hidden'); // Hide button
+                document.getElementById('btn-reveal').classList.add('hidden'); 
 
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 if(card) {
@@ -324,7 +318,8 @@
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
             sorted.forEach((key, idx) => {
                 const t = teams[key];
-                let cls = idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : ''));
+                const isDead = t.balance <= 0;
+                let cls = isDead ? 'rank-dead' : (idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : '')));
                 let icon = idx===0 ? '👑' : (idx===1 ? '🥈' : (idx===2 ? '🥉' : ''));
                 const div = document.createElement('div');
                 div.className = `p-3 flex justify-between bg-black/40 ${cls} mb-1 border-b border-white/5`;
@@ -333,7 +328,7 @@
                         <span>${icon}</span>
                         <div>
                             <div class="font-bold text-white">${t.name}</div>
-                            <div class="text-xs text-[#C5A059]">RM ${t.balance.toLocaleString()}</div>
+                            <div class="text-xs ${isDead ? 'text-red-600 font-bold' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
                         </div>
                     </div>
                     ${t.immune ? '🛡️' : ''}
@@ -375,7 +370,6 @@
             if (action === 'REVEAL') {
                 update(ref(db), { revealTrigger: true });
             }
-            // FIXED NEXT BUTTON
             if (action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -429,6 +423,10 @@
                     if (diff <= 0) {
                         update(ref(db, 'gameState'), { phase: 'SOLD' });
                         document.getElementById('countdown-val').innerText = "0.0s";
+                        
+                        if(!gameState.highestBid) {
+                            setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
+                        }
                     } else {
                         document.getElementById('countdown-val').innerText = (diff/1000).toFixed(1) + "s";
                     }
@@ -444,7 +442,6 @@
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
-            // GHOST CHECK
             const teamRef = ref(db, `teams/${req.teamId}`);
             let tSnap = await get(teamRef);
             if (!tSnap.exists()) {
@@ -453,7 +450,6 @@
             }
             const team = tSnap.val();
 
-            // LOGIC
             const isSelf = (state.leaderId === req.teamId);
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
@@ -488,8 +484,14 @@
             }
 
             const wRef = `teams/${wid}/balance`;
-            if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
-            else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
+            
+            // LOGIC FOR PERCENTAGE OR FLAT
+            if(card.type === 'ADD') {
+                updates[wRef] = winner.balance + card.val;
+            }
+            else if(card.type === 'MULTIPLY') {
+                updates[wRef] = Math.floor(winner.balance * card.val);
+            }
             
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
