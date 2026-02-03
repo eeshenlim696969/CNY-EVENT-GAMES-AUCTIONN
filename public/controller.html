@@ -16,23 +16,10 @@
         }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        
-        .btn-gold { 
-            background: linear-gradient(180deg, #FFD700, #B8860B); color: #2a0000; 
-            border: 1px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-weight: 900;
-        }
+        .btn-gold { background: linear-gradient(180deg, #FFD700, #B8860B); color: #2a0000; border: 1px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-weight: 900; }
         .btn-gold:active { transform: scale(0.95); }
-        
-        .profile-header {
-            background: linear-gradient(180deg, #1a0000 0%, #000000 100%);
-            border-bottom: 2px solid #C5A059;
-        }
-        
-        /* JADE SEAL BUTTON */
-        .btn-seal {
-            background: linear-gradient(180deg, #00ff00, #006600); color: white;
-            box-shadow: 0 0 20px #00ff00; animation: pulse-green 2s infinite;
-        }
+        .profile-header { background: linear-gradient(180deg, #1a0000 0%, #000000 100%); border-bottom: 2px solid #C5A059; }
+        .btn-seal { background: linear-gradient(180deg, #00ff00, #006600); color: white; box-shadow: 0 0 20px #00ff00; animation: pulse-green 2s infinite; }
         @keyframes pulse-green { 0% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 30px #00ff00; } 100% { box-shadow: 0 0 10px #00ff00; } }
     </style>
 </head>
@@ -44,28 +31,19 @@
         <button onclick="login()" class="mt-4 btn-gold w-full py-4 text-xl rounded shadow-[0_0_20px_gold]">ENTER</button>
     </div>
 
-    <div id="view-bankrupt" class="hidden absolute inset-0 z-40 bg-black flex-col items-center justify-center text-center p-8">
+    <div id="view-bankrupt" class="hidden absolute inset-0 z-40 bg-black flex flex-col items-center justify-center text-center p-8">
         <div class="text-6xl mb-4">☠️</div>
         <h1 class="font-imp text-4xl text-red-600 mb-2">DYNASTY FALLEN</h1>
         <p class="text-gray-400">Your treasury is empty.</p>
     </div>
 
     <div id="app" class="hidden flex-col h-full relative">
-        
         <div class="h-20 flex justify-between items-center px-4 profile-header shrink-0 shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-black border border-[#C5A059] flex items-center justify-center text-xl">
-                    <span id="rank-icon">⚔️</span>
-                </div>
-                <div class="flex flex-col">
-                    <span id="name-display" class="font-bold text-white text-lg leading-none">Player</span>
-                    <span id="rank-display" class="text-xs text-[#C5A059] uppercase tracking-widest">Soldier</span>
-                </div>
+                <div class="w-10 h-10 rounded-full bg-black border border-[#C5A059] flex items-center justify-center text-xl"><span id="rank-icon">⚔️</span></div>
+                <div class="flex flex-col"><span id="name-display" class="font-bold text-white text-lg leading-none">Player</span><span id="rank-display" class="text-xs text-[#C5A059] uppercase tracking-widest">Soldier</span></div>
             </div>
-            <div class="text-right">
-                <div class="text-[9px] text-[#C5A059] uppercase">Treasury</div>
-                <div class="font-imp font-bold text-xl text-white">RM <span id="balance" class="text-[#FFD700]">--</span></div>
-            </div>
+            <div class="text-right"><div class="text-[9px] text-[#C5A059] uppercase">Treasury</div><div class="font-imp font-bold text-xl text-white">RM <span id="balance" class="text-[#FFD700]">--</span></div></div>
         </div>
 
         <div id="spy-banner" class="hidden bg-[#000] border-y border-red-500 p-2 text-center shadow-lg">
@@ -74,47 +52,34 @@
         </div>
 
         <div class="flex-1 p-4 flex flex-col justify-center relative overflow-hidden">
-            
             <div id="view-bidding" class="hidden flex-col gap-4">
                 <div class="glass-panel p-4 rounded text-center">
                     <p class="text-[#C5A059] text-xs uppercase tracking-widest">Current High Bid</p>
                     <div class="text-5xl font-imp font-black text-white drop-shadow-md">RM <span id="high-bid">0</span></div>
                 </div>
-                
                 <div class="grid grid-cols-4 gap-2">
                     <button onclick="quick(0.1)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+10%</button>
                     <button onclick="quick(0.25)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+25%</button>
                     <button onclick="quick(0.5)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+50%</button>
                     <button onclick="quick(1)" class="glass-panel py-3 rounded text-xs text-red-400 border-red-900 hover:bg-red-600 hover:text-white transition">ALL</button>
                 </div>
-                
-                <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5A059]">RM</span>
-                    <input type="number" id="bid-val" class="w-full glass-panel p-4 pl-12 text-3xl font-bold rounded text-center" placeholder="0">
-                </div>
-                
+                <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5A059]">RM</span><input type="number" id="bid-val" class="w-full glass-panel p-4 pl-12 text-3xl font-bold rounded text-center" placeholder="0"></div>
                 <button onclick="submit()" id="btn-bid" class="btn-gold py-5 text-2xl rounded shadow-lg tracking-widest mt-2">OFFER TRIBUTE</button>
                 <div id="feedback" class="text-center text-red-300 h-6 text-sm font-bold tracking-wide mt-2"></div>
             </div>
 
             <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-6 rounded">
-                <div class="text-center">
-                    <div class="text-6xl mb-2">🎲</div>
-                    <h2 class="text-2xl font-imp text-[#FFD700]">HIGH ROLLER</h2>
-                    <p class="text-sm text-gray-300">Double or Nothing?</p>
-                </div>
+                <div class="text-center"><div class="text-6xl mb-2">🎲</div><h2 class="text-2xl font-imp text-[#FFD700]">HIGH ROLLER</h2><p class="text-sm text-gray-300">Double or Nothing?</p></div>
                 <input type="number" id="wager-val" class="w-full glass-panel p-4 text-3xl font-bold rounded text-center" placeholder="Amount">
                 <button onclick="submitWager()" class="btn-gold w-full py-4 text-xl rounded">SPIN THE WHEEL</button>
             </div>
 
             <div id="view-idle" class="hidden text-center opacity-70">
-                <div class="animate-pulse text-6xl mb-4">🐎</div>
-                <h2 class="font-imp text-2xl text-white" id="idle-msg">WAITING...</h2>
+                <div class="animate-pulse text-6xl mb-4">🐎</div><h2 class="font-imp text-2xl text-white" id="idle-msg">WAITING...</h2>
             </div>
         </div>
 
         <button id="btn-seal" onclick="useSeal()" class="hidden absolute bottom-6 right-6 w-16 h-16 rounded-full text-2xl z-50 flex items-center justify-center border-2 border-white bg-green-700 shadow-[0_0_20px_green] active:scale-90 transition">🛡️</button>
-
     </div>
 
     <script type="module">
@@ -134,12 +99,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        let myId = localStorage.getItem('id');
-        let myName = localStorage.getItem('name');
-        let balance = 1000;
-        let highBid = 0;
-        let myCurrentBid = 0;
+        let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
         
         const cardNames = {
             1: "Magic Bowl (+3k)", 2: "Market Crash (-10%)", 3: "Tax Collector",
@@ -147,7 +107,7 @@
             7: "Imperial Grant (+5k)", 8: "Blockade", 9: "Robin Hood",
             10: "Broken Vase (-8%)", 11: "Interest (+20%)", 12: "God of Wealth (+8k)",
             15: "Nian Monster (-30%)", 16: "Spy (Item)", 20: "Jade Seal (Item)",
-            25: "High Roller (Gamble)"
+            21: "Mystery Box", 25: "High Roller (Gamble)"
         };
 
         if(myId) init();
@@ -174,20 +134,16 @@
                 if(!t) return;
                 balance = t.balance;
                 document.getElementById('balance').innerText = balance.toLocaleString();
-                
-                // BANKRUPTCY CHECK
                 if(balance <= 0) {
                     document.getElementById('view-bankrupt').classList.remove('hidden');
                     document.getElementById('view-bankrupt').classList.add('flex');
                 } else {
                     document.getElementById('view-bankrupt').classList.add('hidden');
                 }
-                
                 const hasSeal = t.items && t.items.jade_seal;
-                const hasSpy = t.items && t.items.spy;
                 const sealBtn = document.getElementById('btn-seal');
                 if(hasSeal) sealBtn.classList.remove('hidden'); else sealBtn.classList.add('hidden');
-                window.hasSpy = hasSpy;
+                window.hasSpy = t.items && t.items.spy;
             });
             
             onValue(ref(db, 'teams'), (snap) => {
@@ -196,7 +152,6 @@
                 const rank = sorted.indexOf(myId) + 1;
                 const rText = document.getElementById('rank-display');
                 const rIcon = document.getElementById('rank-icon');
-                
                 if(rank === 1) { rText.innerText = "EMPEROR"; rText.style.color = "#FFD700"; rIcon.innerText = "👑"; }
                 else if(rank === 2) { rText.innerText = "WARLORD"; rText.style.color = "#C0C0C0"; rIcon.innerText = "🥈"; }
                 else { rText.innerText = `RANK #${rank}`; rText.style.color = "#C5A059"; rIcon.innerText = "⚔️"; }
@@ -207,7 +162,6 @@
                 if(!st) return;
                 highBid = st.highestBid || 0;
                 document.getElementById('high-bid').innerText = highBid.toLocaleString();
-                
                 if(st.leaderId === myId) myCurrentBid = highBid; else myCurrentBid = 0;
 
                 ['view-bidding', 'view-wager', 'view-idle'].forEach(i => {
@@ -220,13 +174,11 @@
                     document.getElementById('view-bidding').classList.remove('hidden');
                     document.getElementById('view-bidding').classList.add('flex');
                     document.getElementById('bid-val').placeholder = `Min: ${highBid+50}`;
-                    
                     if(window.hasSpy && st.currentCard) {
                         document.getElementById('spy-banner').classList.remove('hidden');
                         const cName = cardNames[st.currentCard] || `Mystery Card #${st.currentCard}`;
                         document.getElementById('spy-text').innerText = cName;
                     }
-
                 } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
                     document.getElementById('view-wager').classList.remove('hidden');
                     document.getElementById('view-wager').classList.add('flex');
@@ -260,14 +212,21 @@
             setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
         };
         
+        // FIXED: Do NOT deduct balance here. Just send wager to state. Projector will handle deduction after spin.
         window.submitWager = async () => {
              const v = parseInt(document.getElementById('wager-val').value);
              if(!v || v > balance) return;
+             
+             // WE DO NOT UPDATE BALANCE HERE ANYMORE. 
+             // WE LET THE PROJECTOR DO IT AFTER THE SPIN.
              const isWin = Math.random() > 0.5;
              const result = isWin ? 'WIN' : 'LOSE';
-             const newBal = isWin ? (balance + v) : (balance - v);
-             await update(ref(db, `teams/${myId}`), { balance: newBal });
+             
+             // Just tell projector to start spinning
              await update(ref(db, 'gameState'), { phase: 'SPIN', spinResult: result, wagerAmount: v });
+             
+             // Queue the balance update on the server side (Projector) so it matches the visual.
+             // We pass the "Result" to the state so the projector knows where to stop the wheel.
         };
 
         window.useSeal = async () => {
