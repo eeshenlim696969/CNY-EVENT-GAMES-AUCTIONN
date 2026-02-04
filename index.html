@@ -21,14 +21,16 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        /* 3D CARD */
-        .card-scene { perspective: 1500px; width: 100%; height: 100%; cursor: pointer; z-index: 10; transition: transform 0.2s; }
-        .card-scene:hover { transform: translateY(-5px); }
+        /* 3D CARD ENGINE */
+        .card-scene { perspective: 1500px; width: 100%; height: 100%; cursor: pointer; z-index: 10; transition: transform 0.2s; position: relative; }
+        .card-scene:hover { transform: translateY(-8px); }
         
+        /* IMPORTANT: PRESERVE 3D */
         .card-obj { 
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d; 
             transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
             border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            pointer-events: none; /* Let clicks pass through to parent */
         }
         .card-obj.flipped { transform: rotateY(180deg); }
 
@@ -38,22 +40,19 @@
             background: #1a1a1a; border: 3px solid var(--gold);
         }
 
-        .card-front { background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%); } /* Red Envelope */
-        .card-back { transform: rotateY(180deg); background: #000; } /* Result */
+        /* Front = Red Envelope */
+        .card-front { background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%); }
+        /* Back = Result */
+        .card-back { transform: rotateY(180deg); background: #000; }
 
-        /* THEMES */
-        .theme-WEALTH { border-color: #10b981; box-shadow: 0 0 25px rgba(16, 185, 129, 0.4); }
-        .theme-STEAL { border-color: #ef4444; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); }
-        .theme-GAMBLE { border-color: #a855f7; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); }
-        .theme-TRAP { border-color: #f97316; box-shadow: 0 0 25px rgba(249, 115, 22, 0.4); }
-        .theme-CHAOS { border-color: #94a3b8; box-shadow: 0 0 25px rgba(148, 163, 184, 0.4); }
-
-        /* MODAL FIX */
+        /* MODAL */
         #focus-modal { transition: opacity 0.3s; pointer-events: none; opacity: 0; }
         #focus-modal.active { pointer-events: auto; opacity: 1; }
-        /* Adjusted scale to fit screen better */
         #focus-card { transition: transform 0.8s; transform: scale(0.5) rotateY(0deg); }
-        #focus-modal.active #focus-card { transform: scale(0.85) rotateY(180deg); } 
+        #focus-modal.active #focus-card { transform: scale(0.9) rotateY(180deg); }
+
+        .pointer-none { pointer-events: none; }
+        .click-target { position: absolute; inset: 0; z-index: 50; cursor: pointer; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col">
@@ -81,7 +80,7 @@
             <div class="text-xs text-[#FFD700]/70 tracking-[0.5em] uppercase mb-1">Round</div>
             <div id="round-disp" class="text-5xl font-black text-white drop-shadow-md font-chinese">LOBBY</div>
         </div>
-        <button onclick="window.fullReset()" class="px-4 py-2 border-2 border-red-800 text-red-500 hover:bg-red-900/50 rounded-lg font-bold text-xs">RESET</button>
+        <button onclick="window.fullReset()" class="px-4 py-2 border-2 border-red-800 text-red-500 hover:bg-red-900/50 rounded-lg font-bold text-xs pointer-events-auto">RESET</button>
     </header>
 
     <div class="flex-1 p-8 flex gap-8 z-10 relative overflow-hidden">
@@ -110,9 +109,9 @@
 
         <div id="status-text" class="text-4xl font-black text-gray-500 tracking-widest font-chinese">--</div>
         
-        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-12 py-4 bg-red-800 text-white font-black text-2xl rounded-xl shadow-[0_0_30px_red] hover:scale-105 transition border-4 border-red-600">STOP BIDDING</button>
+        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-12 py-4 bg-red-800 text-white font-black text-2xl rounded-xl shadow-[0_0_30px_red] hover:scale-105 transition border-4 border-red-600 pointer-events-auto">STOP BIDDING</button>
         
-        <button onclick="window.nextRound()" id="btn-next" class="hidden px-12 py-4 bg-[#FFD700] text-black font-black text-2xl rounded-xl shadow-[0_0_30px_gold] hover:scale-105 transition border-4 border-white">NEXT ROUND</button>
+        <button onclick="window.nextRound()" id="btn-next" class="hidden px-12 py-4 bg-[#FFD700] text-black font-black text-2xl rounded-xl shadow-[0_0_30px_gold] hover:scale-105 transition border-4 border-white pointer-events-auto">NEXT ROUND</button>
         
         <div id="msg-hint" class="hidden text-[#FFD700]/80 text-xl animate-pulse tracking-widest font-bold">CLICK CARD TO REVEAL</div>
     </div>
@@ -126,9 +125,9 @@
                 <div id="f-back" class="absolute inset-0 backface-hidden rounded-3xl border-4 bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center" style="transform: rotateY(180deg);">
                     <div id="f-cat" class="text-sm font-bold uppercase tracking-[0.4em] text-gray-400 mb-6">CATEGORY</div>
                     <div id="f-title" class="text-5xl font-black text-white leading-tight mb-4 font-chinese">Title</div>
-                    <div id="f-val" class="text-7xl font-black gold-text mb-8 drop-shadow-xl">+$$$</div>
+                    <div id="f-val" class="text-6xl font-black gold-text mb-8 drop-shadow-xl">+$$$</div>
                     <div class="w-full h-1 bg-[#FFD700]/30 mb-8"></div>
-                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">WINNER</div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">WINNING BIDDER</div>
                     <div id="f-winner" class="text-4xl font-bold text-white">NAME</div>
                     <div id="f-cost" class="text-red-500 font-mono text-2xl mt-2 font-bold">-$0</div>
                 </div>
@@ -148,13 +147,13 @@
         const sfx = { flip: document.getElementById('sfx-flip'), win: document.getElementById('sfx-win'), trap: document.getElementById('sfx-trap'), start: document.getElementById('sfx-start'), tick: document.getElementById('sfx-tick') };
         window.initAudio = () => { document.getElementById('click-wall').remove(); sfx.start.play().catch(e => console.log("Audio waiting...")); };
 
-        // --- IMPROVED CARD DATA ---
+        // --- MATH-SAFE CARD DATA ---
         const deck = [
             { name: "Magic Bowl", val: 8000, type: "ADD", cat: "WEALTH" },
             { name: "Tax Refund", val: 12000, type: "ADD", cat: "WEALTH" },
             { name: "Gold Mine", val: 20000, type: "ADD", cat: "WEALTH" },
             { name: "Interest", val: 0.50, type: "MULTIPLY", cat: "WEALTH" }, // +50% Profit
-            { name: "Bull Run", val: 1.00, type: "MULTIPLY", cat: "WEALTH" }, // +100% Profit (Double)
+            { name: "Bull Run", val: 1.00, type: "MULTIPLY", cat: "WEALTH" }, // +100% Profit
             { name: "Jackpot", val: 50000, type: "ADD", cat: "WEALTH" },
             { name: "Pickpocket", val: 5000, type: "STEAL_FLAT", cat: "STEAL" },
             { name: "Mugger", val: 15000, type: "STEAL_FLAT", cat: "STEAL" },
@@ -170,6 +169,7 @@
         let state = { phase: 'LOBBY', round: 0, cards: [] };
         let timerInterval;
 
+        // --- CORE LOGIC ---
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
             if(!data) return;
@@ -177,7 +177,10 @@
             
             const lobby = document.getElementById('lobby-view');
             const status = document.getElementById('status-text');
-            
+            const btnLock = document.getElementById('btn-lock');
+            const btnNext = document.getElementById('btn-next');
+            const msgHint = document.getElementById('msg-hint');
+
             if (state.phase === 'LOBBY') {
                 lobby.classList.remove('hidden');
                 document.getElementById('grid').innerHTML = '';
@@ -186,16 +189,16 @@
             else if (state.phase === 'BIDDING') {
                 lobby.classList.add('hidden');
                 document.getElementById('round-disp').innerText = state.round;
-                status.classList.add('hidden'); // Hide status text, show timer
+                status.classList.add('hidden'); 
                 
-                document.getElementById('btn-lock').classList.remove('hidden');
-                document.getElementById('btn-next').classList.add('hidden');
-                document.getElementById('msg-hint').classList.add('hidden');
+                btnLock.classList.remove('hidden');
+                btnNext.classList.add('hidden');
+                msgHint.classList.add('hidden');
                 document.getElementById('timer-container').classList.remove('hidden');
                 
                 startTimer(20);
                 
-                // Force Redraw if empty
+                // Force Grid Refresh
                 const grid = document.getElementById('grid');
                 if(grid.childElementCount === 0) renderGrid(false);
             }
@@ -206,12 +209,13 @@
                 status.innerText = "REVEAL PHASE";
                 status.className = "absolute left-12 text-4xl font-black text-[#FFD700] tracking-widest font-chinese";
                 
-                document.getElementById('btn-lock').classList.add('hidden');
-                document.getElementById('btn-next').classList.remove('hidden');
-                document.getElementById('msg-hint').classList.remove('hidden');
+                btnLock.classList.add('hidden');
+                btnNext.classList.remove('hidden');
+                msgHint.classList.remove('hidden');
             }
         });
 
+        // LIVE BIDS
         onValue(ref(db, 'roundBids'), (snap) => {
             if(state.phase !== 'BIDDING') return;
             const bids = snap.val() || {};
@@ -223,9 +227,10 @@
             }
         });
 
+        // LEADERBOARD
         onValue(ref(db, 'teams'), (snap) => {
             const teams = snap.val() || {};
-            document.getElementById('player-count').innerText = `${Object.keys(teams).length} NOBLES READY`;
+            document.getElementById('player-count').innerText = `${Object.keys(teams).length} PLAYERS READY`;
             const roster = document.getElementById('roster');
             roster.innerHTML = '';
             const sorted = Object.keys(teams).sort((a,b) => parseInt(b.balance) - parseInt(a.balance));
@@ -250,7 +255,8 @@
             state.cards.forEach((card, idx) => {
                 const isRevealed = state.revealed && state.revealed[idx];
                 const div = document.createElement('div');
-                div.className = "card-scene";
+                // Added click-target so clicking anywhere works
+                div.className = "card-scene"; 
                 div.onclick = () => window.revealCard(idx);
                 
                 const visColor = card.visualCategory;
@@ -284,12 +290,12 @@
                 if(t <= 5 && t > 0) sfx.tick.play();
                 if(t <= 0) {
                     clearInterval(timerInterval);
-                    window.closeBidding(); // Auto close
+                    window.closeBidding(); 
                 }
             }, 1000);
         }
 
-        // --- GLOBAL FUNCTIONS ---
+        // --- FUNCTIONS ---
         window.startGame = async () => {
             sfx.start.play();
             const cards = generateCards();
@@ -307,21 +313,21 @@
         window.closeBidding = async () => { sfx.start.play(); update(ref(db, 'gameState'), { phase: 'REVEAL' }); };
 
         window.nextRound = async () => {
-            document.getElementById('grid').innerHTML = ''; // Force Clean Grid
+            // WIPE GRID VISUALLY FIRST
+            document.getElementById('grid').innerHTML = ''; 
+            
             const snap = await get(ref(db, 'teams'));
             const teams = snap.val();
             for(let k in teams) {
                 if(teams[k].frozen > 0) {
                     let f = teams[k].frozen - 1;
                     let b = teams[k].balance;
-                    if(f === 0) b = 2000; // Revive
+                    if(f === 0) b = 2000;
                     await update(ref(db, `teams/${k}`), { frozen: f, balance: b });
                 }
             }
             const cards = generateCards();
-            await update(ref(db, 'gameState'), { 
-                phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] 
-            });
+            await update(ref(db, 'gameState'), { phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] });
             await set(ref(db, 'roundBids'), {});
             window.closeFocus();
         };
@@ -340,16 +346,16 @@
             const card = state.cards[idx];
 
             let winnerId = null; let winningVal = 0; let isSniper = (bids.length === 1);
+            
             bids.forEach(b => { 
-                let power = b.isAllIn ? parseInt(b.amount) * 2 : parseInt(b.amount);
+                let amt = parseInt(b.amount);
+                let power = b.isAllIn ? amt * 2 : amt; 
                 if(power > winningVal) { winningVal = power; winnerId = b.teamId; } 
             });
 
+            // MODAL DISPLAY
             const modal = document.getElementById('focus-modal');
-            const fFront = document.getElementById('f-front');
             const fBack = document.getElementById('f-back');
-            
-            fFront.className = `absolute inset-0 backface-hidden rounded-3xl border-4 flex flex-col items-center justify-center p-10 text-center bg-[#2a0a0a] border-[#FFD700]`;
             fBack.className = `absolute inset-0 backface-hidden rounded-3xl border-4 border-[#FFD700] bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] flex flex-col items-center justify-center theme-${card.actualCategory}`;
             
             document.getElementById('f-cat').innerText = card.actualCategory;
@@ -360,7 +366,7 @@
                 const t = teams[winnerId]; const bid = bids.find(b=>b.teamId===winnerId);
                 const bidAmt = parseInt(bid.amount);
                 document.getElementById('f-winner').innerText = t.name;
-                document.getElementById('f-cost').innerText = `BID -$${bidAmt.toLocaleString()}`;
+                document.getElementById('f-cost').innerText = `PAID -$${bidAmt.toLocaleString()}`;
                 
                 if(card.cat === 'TRAP') sfx.trap.play(); else sfx.win.play();
                 if(card.cat === 'WEALTH') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#FFD700', '#FFA500'] });
@@ -368,64 +374,57 @@
                 // --- MATH LOGIC ---
                 let currentBal = parseInt(t.balance);
                 let mult = bid.isAllIn ? 3 : 1;
-                let newBal = currentBal - bidAmt; // Pay Bid
-
-                if(card.type === 'ADD') newBal += (card.val * mult); // Simple Add
                 
-                // MULTIPLY LOGIC:
-                // Wealth: (Bid + Profit) -> Refund Bid + (Bid * %)
-                // Or simplified: Investment Return.
-                // If I bid 2000 on +50%, I want 3000 back.
+                // 1. REFUND BID (Winning logic: you pay, but Wealth returns it)
+                // Actually, let's stick to standard: Pay Bid -> Get Effect.
+                // Standard: newBal = currentBal - bidAmt.
+                
+                // WEALTH CARD FIX:
+                // If it's a Wealth Card, we treat the Bid as an "Investment".
+                // Result = Bid + (Bid * Effect * Mult).
+                // So if you bid 2000 on +50%, you get 2000 + 1000 = 3000 back.
+                
+                let newBal = currentBal - bidAmt; // Deduct first
+                
+                if(card.type === 'ADD') {
+                    newBal += (card.val * mult); // Standard add
+                    // If it was All In, we should probably refund the bid too? 
+                    // No, ADD cards are just cash.
+                }
+                
                 if(card.type === 'MULTIPLY') {
-                    if (card.val >= 1) {
-                        // Profit Calculation: Refund Bid + (Bid * Ratio * Mult)
-                        // Actually let's do: (Base Investment) * Multiplier
-                        let investment = bidAmt;
-                        // But wait, user might have $10k and bid $1k. They want x1.5 on their $10k? No, usually on the card value.
-                        // Wait, previous prompt said "x1.5 total cash". That's dangerous.
-                        // Let's stick to Investment logic for fairness: The Card Effect applies to the BID or a Base amount.
-                        // User wants "Fun". Fun = Big Numbers.
-                        // Let's make Wealth Cards act on TOTAL NET WORTH if specified, or Flat amounts.
-                        // My deck has "Interest +50% Net Worth" (cat Wealth).
-                        // Let's apply multiplier to the NEW balance (after deduction).
-                        // +50% Profit = Balance * 1.5.
-                        // If All In (x3), +150% Profit = Balance * 2.5.
-                        
-                        // BUT, if All In, Balance is 0. So 0 * 1.5 = 0.
-                        // FIX: If All In, Base = Bid Amount (The money they put in).
-                        let base = (newBal === 0) ? bidAmt : newBal; 
-                        
-                        // Add the profit
-                        let profit = Math.floor(base * (card.val * mult)); 
-                        
-                        // Wait, if card.val is 1.5 (150%), profit is base * 1.5? No, total is base * 1.5.
-                        // If card says "x1.5", new total is base * 1.5.
-                        // If card says "+50%", val is 0.5.
-                        
-                        // My deck uses 1.5 for +50% (Interest). So multiply directly.
-                        // Wait, deck says "Interest val: 0.50". 
-                        
-                        if (card.val < 1) { // Percentage add (e.g. +50% = 0.5)
-                             newBal += Math.floor(base * (card.val * mult));
-                        } else { // Direct Multiplier (e.g. x2)
-                             // Logic: x2 becomes x6 if All In? That's insane.
-                             // Let's just add (val * mult) as a percentage gain.
-                             // x2 = +100% gain.
-                             newBal += Math.floor(base * ((card.val - 1) * mult));
-                        }
+                    // PROFIT MODE: Base is the Bid Amount.
+                    // Return = Bid + (Bid * Rate * Mult).
+                    let profit = 0;
+                    if(card.val <= 1) { // e.g. 0.5 (50%)
+                        profit = Math.floor(bidAmt * card.val * mult);
+                    } else { // e.g. 2.0 (200%)
+                        profit = Math.floor(bidAmt * (card.val - 1) * mult);
                     }
+                    newBal += (bidAmt + profit); // Refund Bid + Add Profit
                 }
                 
                 if(card.type === 'STEAL_FLAT') newBal += (card.val * mult);
-                if(card.type === 'STEAL_PCT') newBal += Math.floor((newBal + bidAmt) * (card.val * mult)); // Steal % based on own wealth (simplified)
+                if(card.type === 'STEAL_PCT') {
+                    // Steal % based on Bid Amount? Or arbitrary? Let's say Profit = Bid * % * Mult.
+                    let profit = Math.floor(bidAmt * card.val * mult);
+                    newBal += (bidAmt + profit);
+                }
                 
                 if(card.type === 'GAMBLE') { 
-                    if(Math.random() > 0.5) newBal += (card.val * mult); 
-                    else newBal -= 10000; 
+                    if(Math.random() > 0.5) {
+                        // WIN: Refund + Profit
+                        let profit = Math.floor(bidAmt * card.val * mult);
+                        newBal += (bidAmt + profit);
+                    } else {
+                        // LOSE: Do nothing (Bid already lost)
+                    }
                 }
                 
                 if(card.type === 'TRAP') { 
-                    if(card.val > 0 && card.val < 1) newBal = Math.floor(newBal * card.val); // Reduce to % (e.g. 0.5)
+                    // TRAP: Bid lost. Additional Penalty?
+                    // If % trap (0.5), lose 50% of REMAINING balance.
+                    if(card.val > 0 && card.val < 1) newBal = Math.floor(newBal * card.val); 
                     else newBal += card.val; // Flat subtract
                 }
                 
