@@ -5,117 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMPERIAL BATTLE ROYALE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <style>
         body { 
-            background: radial-gradient(circle at center, #4a0000 0%, #1a0000 60%, #000000 100%);
+            background-color: #050000; 
+            background-image: url("https://www.transparenttextures.com/patterns/black-scales.png");
             color: #fff; overflow: hidden; font-family: 'Cinzel', serif; 
         }
         
-        .pattern-overlay {
-            position: absolute; inset: 0; opacity: 0.15; pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-
-        /* CARD 3D STYLES */
-        .card-scene { perspective: 1200px; width: 100%; height: 100%; cursor: pointer; transition: transform 0.2s; z-index: 10; }
-        .card-scene:hover { transform: translateY(-10px) scale(1.02); }
-        .card-obj { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .card-obj.flipped { transform: rotateY(180deg); }
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border: 4px solid rgba(255,255,255,0.1); }
+        /* CARD STYLES */
+        .card-scene { perspective: 1200px; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
+        .card-scene:hover .card-obj { transform: translateY(-10px); }
         
-        /* CARD BACK (GEM) */
-        .gem-back { border-top: 2px solid rgba(255,255,255,0.6); border-bottom: 4px solid rgba(0,0,0,0.5); }
-        .gem-inset { width: 80%; height: 85%; background: rgba(0,0,0,0.2); border-radius: 12px; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.1); }
+        .card-obj { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        .card-obj.flipped { transform: rotateY(180deg); }
+        
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid #333; background: #111; }
+        .card-back { transform: rotateY(180deg); background: #1a1a1a; border-width: 4px; }
 
-        /* COLORS */
-        .style-WEALTH { background: linear-gradient(145deg, #4ade80, #166534); box-shadow: 0 0 30px rgba(74, 222, 128, 0.4); }
-        .style-STEAL { background: linear-gradient(145deg, #f87171, #991b1b); box-shadow: 0 0 30px rgba(248, 113, 113, 0.4); }
-        .style-GAMBLE { background: linear-gradient(145deg, #c084fc, #6b21a8); box-shadow: 0 0 30px rgba(192, 132, 252, 0.4); }
-        .style-TRAP { background: linear-gradient(145deg, #fb923c, #c2410c); box-shadow: 0 0 30px rgba(251, 146, 60, 0.4); }
-        .style-CHAOS { background: linear-gradient(145deg, #94a3b8, #475569); box-shadow: 0 0 30px rgba(148, 163, 184, 0.4); }
+        /* NEON GLOWS */
+        .theme-WEALTH { border-color: #10b981; box-shadow: 0 0 30px rgba(16, 185, 129, 0.4); }
+        .theme-STEAL { border-color: #ef4444; box-shadow: 0 0 30px rgba(239, 68, 68, 0.4); }
+        .theme-GAMBLE { border-color: #a855f7; box-shadow: 0 0 30px rgba(168, 85, 247, 0.4); }
+        .theme-TRAP { border-color: #f97316; box-shadow: 0 0 30px rgba(249, 115, 22, 0.4); }
+        .theme-CHAOS { border-color: #94a3b8; box-shadow: 0 0 30px rgba(148, 163, 184, 0.4); }
 
-        .card-reveal { transform: rotateY(180deg); background: linear-gradient(to bottom, #1a1a1a, #000); border: 2px solid #FFD700; }
-        .gold-text { background: linear-gradient(to bottom, #FFD700, #FDB931); -webkit-background-clip: text; color: transparent; text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3); }
+        /* CINEMATIC MODAL */
+        #focus-modal { transition: opacity 0.3s; pointer-events: none; opacity: 0; }
+        #focus-modal.active { pointer-events: auto; opacity: 1; }
+        
+        #focus-card { transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: scale(0.5) rotateY(0deg); }
+        #focus-modal.active #focus-card { transform: scale(1) rotateY(180deg); }
+
+        .gold-text { background: linear-gradient(to bottom, #FFD700, #B8860B); -webkit-background-clip: text; color: transparent; text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3); }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col">
-
-    <div class="pattern-overlay"></div>
-    <canvas id="canvas-bg" class="absolute top-0 left-0 w-full h-full z-0"></canvas>
-
-    <div id="click-wall" class="fixed inset-0 z-[999] bg-black/90 flex flex-col items-center justify-center cursor-pointer" onclick="this.remove()">
-        <div class="text-6xl mb-4">🔇 ➡ 🔊</div>
-        <div class="text-2xl font-bold text-[#FFD700] animate-pulse">CLICK ANYWHERE TO ENABLE SOUND</div>
-    </div>
 
     <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
     <audio id="sfx-start" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
 
-    <header class="h-24 flex justify-between items-center px-10 border-b border-[#FFD700]/30 bg-black/40 backdrop-blur-md z-40">
+    <header class="h-24 flex justify-between items-center px-10 border-b border-[#FFD700]/30 bg-[#1a0505] z-40 relative shadow-2xl">
         <div class="flex items-center gap-4">
-            <span class="text-5xl drop-shadow-[0_0_10px_gold]">🐎</span>
+            <span class="text-5xl drop-shadow-[0_0_10px_gold]">🏮</span>
             <div>
                 <h1 class="text-4xl font-black gold-text tracking-widest">IMPERIAL AUCTION</h1>
-                <div class="text-xs text-gray-300 font-mono tracking-[0.4em] uppercase">Year of the Horse</div>
+                <div class="text-xs text-gray-400 tracking-[0.6em] uppercase text-center">Year of the Horse</div>
             </div>
         </div>
         <div class="text-center">
-            <div class="text-[10px] text-gray-400 tracking-[0.5em] uppercase">Current Round</div>
+            <div class="text-[10px] text-gray-500 tracking-[0.5em]">ROUND</div>
             <div id="round-disp" class="text-5xl font-black text-white drop-shadow-md">LOBBY</div>
         </div>
-        <div id="status-badge" class="hidden px-6 py-2 border border-green-500 bg-green-900/40 text-green-400 rounded-lg font-bold animate-pulse tracking-widest uppercase">
-            Bidding Open
-        </div>
-        <button onclick="window.fullReset()" class="absolute top-4 right-4 text-[10px] text-red-500/50 hover:text-red-500 border border-red-500/20 px-2 rounded z-50">HARD RESET</button>
+        <button onclick="window.fullReset()" class="text-xs text-red-800 hover:text-red-500 border border-red-900 px-3 py-1 rounded">RESET SYSTEM</button>
     </header>
 
-    <div class="flex-1 p-8 flex gap-8 z-10 relative overflow-hidden">
+    <div class="flex-1 p-8 flex gap-8 z-10 relative">
         
-        <div id="lobby-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div class="text-6xl gold-text font-black mb-4 drop-shadow-2xl">THE IMPERIAL GATES ARE OPEN</div>
-            <div id="player-count" class="text-2xl text-white font-mono mb-12 tracking-widest bg-white/10 px-6 py-2 rounded-full border border-white/20">0 BIDDERS READY</div>
-            
-            <button onclick="window.startGame()" class="group relative px-12 py-6 bg-[#800000] overflow-hidden rounded-xl shadow-[0_0_40px_#800000] border-2 border-[#FFD700] transition transform hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto">
-                <span class="relative text-3xl font-black text-[#FFD700] tracking-[0.2em]">START GAME</span>
+        <div id="lobby-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95">
+            <h1 class="text-7xl gold-text font-black mb-6 drop-shadow-2xl">THE GATES ARE OPEN</h1>
+            <div id="player-count" class="text-3xl text-gray-300 mb-10 tracking-widest border-b-2 border-[#FFD700] pb-2">0 BIDDERS READY</div>
+            <button onclick="window.startGame()" class="px-16 py-6 bg-[#800000] text-[#FFD700] font-black text-4xl rounded-lg shadow-[0_0_50px_#800000] border-2 border-[#FFD700] hover:scale-105 transition duration-300 animate-pulse cursor-pointer pointer-events-auto">
+                BEGIN GAME
             </button>
         </div>
 
         <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-8 p-4 perspective-[2000px]"></div>
 
-        <div class="w-96 bg-black/60 border border-[#FFD700]/20 rounded-xl flex flex-col backdrop-blur-md shadow-2xl">
+        <div class="w-96 bg-[#0f0505]/90 border border-[#FFD700]/20 rounded-xl flex flex-col backdrop-blur-md shadow-2xl">
             <div class="p-4 border-b border-[#FFD700]/20 bg-[#1a0505]/80 rounded-t-xl">
-                <h2 class="text-center gold-text tracking-widest font-bold text-lg">DYNASTY WEALTH</h2>
+                <h2 class="text-center gold-text tracking-widest font-bold text-lg">DYNASTY RANKINGS</h2>
             </div>
             <div id="roster" class="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-sm"></div>
         </div>
     </div>
 
-    <div class="h-24 bg-black/80 border-t border-[#FFD700]/20 backdrop-blur-md flex justify-center items-center gap-8 z-40 relative">
-        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-10 py-3 bg-red-700 text-white font-bold text-xl rounded shadow-[0_0_30px_red] hover:scale-105 transition border border-red-400">STOP BIDDING</button>
-        <button onclick="window.nextRound()" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-black text-xl rounded shadow-[0_0_30px_gold] hover:scale-105 transition border border-white">NEXT ROUND</button>
-        <div id="msg-hint" class="hidden text-gray-400 font-mono text-xl animate-pulse tracking-widest">CLICK CARDS TO REVEAL</div>
+    <div class="h-24 bg-black/90 border-t border-[#FFD700]/20 flex justify-center items-center gap-8 z-40 relative">
+        <div id="status-text" class="absolute left-10 text-2xl font-bold text-gray-500 tracking-widest">--</div>
+        
+        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-12 py-3 bg-red-700 text-white font-bold text-xl rounded shadow-[0_0_30px_red] hover:scale-105 transition border border-red-400">STOP BIDDING</button>
+        
+        <button onclick="window.nextRound()" id="btn-next" class="hidden px-12 py-3 bg-[#FFD700] text-black font-black text-xl rounded shadow-[0_0_30px_gold] hover:scale-105 transition border border-white">NEXT ROUND</button>
+        
+        <div id="msg-hint" class="hidden text-gray-400 text-xl animate-pulse tracking-widest">CLICK CARDS TO REVEAL</div>
     </div>
 
-    <div id="focus-modal" class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-lg opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="relative w-[400px] h-[600px] perspective-[2000px]">
+    <div id="focus-modal" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-lg opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative w-[450px] h-[650px] perspective-[2000px]">
             <div id="focus-card" class="w-full h-full relative transform-style-3d shadow-2xl transition-transform duration-700">
-                <div id="f-front" class="absolute inset-0 backface-hidden rounded-2xl border-4 flex items-center justify-center bg-gray-800"><div class="text-9xl opacity-50">?</div></div>
-                <div id="f-back" class="absolute inset-0 backface-hidden rounded-2xl border-4 bg-black flex flex-col items-center justify-center p-6 text-center" style="transform: rotateY(180deg);">
-                    <div id="f-cat" class="text-xs uppercase tracking-[0.5em] text-gray-400 mb-4">CATEGORY</div>
-                    <div id="f-title" class="text-4xl font-black text-white leading-tight mb-2">TITLE</div>
-                    <div id="f-val" class="text-6xl font-black gold-text mb-6 text-shadow">+$$$</div>
-                    <div class="w-full h-px bg-white/20 mb-6"></div>
+                <div id="f-front" class="absolute inset-0 backface-hidden rounded-2xl border-4 flex items-center justify-center bg-gray-900 border-[#333]">
+                    <div class="text-9xl opacity-20">?</div>
+                </div>
+                <div id="f-back" class="absolute inset-0 backface-hidden rounded-2xl border-4 bg-black flex flex-col items-center justify-center p-8 text-center" style="transform: rotateY(180deg);">
+                    <div id="f-cat" class="text-xs uppercase tracking-[0.5em] text-gray-400 mb-6">CATEGORY</div>
+                    <div id="f-title" class="text-5xl font-black text-white leading-tight mb-4 font-[Ma_Shan_Zheng]">Title</div>
+                    <div id="f-val" class="text-7xl font-black gold-text mb-8 drop-shadow-lg">+$$$</div>
+                    <div class="w-full h-px bg-[#FFD700]/30 mb-8"></div>
                     <div class="text-xs text-gray-500 uppercase tracking-widest">WINNER</div>
-                    <div id="f-winner" class="text-3xl font-bold text-white mt-1">NAME</div>
-                    <div id="f-cost" class="text-red-400 font-mono text-lg mt-1">-$0</div>
+                    <div id="f-winner" class="text-4xl font-bold text-white mt-2">NAME</div>
+                    <div id="f-cost" class="text-red-500 font-mono text-xl mt-2 font-bold">-$0</div>
                 </div>
             </div>
         </div>
-        <button onclick="window.closeFocus()" class="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white rounded hover:bg-white/20 pointer-events-auto cursor-pointer">CLOSE</button>
+        <button onclick="window.closeFocus()" class="absolute bottom-10 px-10 py-3 border border-white/20 text-white hover:bg-white/10 rounded tracking-widest cursor-pointer pointer-events-auto">CLOSE</button>
     </div>
 
     <script type="module">
@@ -126,43 +121,33 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- PARTICLE FX ---
-        const canvas = document.getElementById('canvas-bg');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-        window.addEventListener('resize', resize); resize();
-        class Particle {
-            constructor() { this.reset(); }
-            reset() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2; this.speed = Math.random() * 0.5 + 0.1; this.alpha = Math.random() * 0.5 + 0.1; }
-            update() { this.y -= this.speed; if(this.y < 0) this.reset(); }
-            draw() { ctx.fillStyle = `rgba(255, 215, 0, ${this.alpha})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); }
-        }
-        for(let i=0; i<100; i++) particles.push(new Particle());
-        function loop() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.update();p.draw()}); requestAnimationFrame(loop); }
-        loop();
+        // --- SOUNDS ---
+        const sfx = { 
+            flip: document.getElementById('sfx-flip'), 
+            win: document.getElementById('sfx-win'), 
+            trap: document.getElementById('sfx-trap'), 
+            start: document.getElementById('sfx-start') 
+        };
 
         // --- DECK ---
         const deck = [
-            { name: "Magic Bowl", desc: "+$8,000", val: 8000, type: "ADD", cat: "WEALTH" },
-            { name: "Tax Refund", desc: "+$12,000", val: 12000, type: "ADD", cat: "WEALTH" },
-            { name: "Gold Mine", desc: "+$20,000", val: 20000, type: "ADD", cat: "WEALTH" },
-            { name: "Interest", desc: "+50% Net Worth", val: 1.5, type: "MULTIPLY", cat: "WEALTH" },
-            { name: "Bull Run", desc: "x2 Net Worth", val: 2.0, type: "MULTIPLY", cat: "WEALTH" },
-            { name: "Jackpot", desc: "+$50,000", val: 50000, type: "ADD", cat: "WEALTH" },
-            { name: "Pickpocket", desc: "Steal $5k", val: 5000, type: "STEAL_FLAT", cat: "STEAL" },
-            { name: "Mugger", desc: "Steal $15k", val: 15000, type: "STEAL_FLAT", cat: "STEAL" },
-            { name: "Taxman", desc: "Steal 30%", val: 0.30, type: "STEAL_PCT", cat: "STEAL" },
-            { name: "Embezzle", desc: "Steal 40%", val: 0.40, type: "STEAL_PCT", cat: "STEAL" },
-            { name: "Coin Flip", desc: "+$50k / -$10k", val: 50000, type: "GAMBLE", cat: "GAMBLE" },
-            { name: "High Roller", desc: "x3 / /2", val: 3.0, type: "GAMBLE", cat: "GAMBLE" },
-            { name: "Double Down", desc: "x2 / /2", val: 2.0, type: "GAMBLE", cat: "GAMBLE" },
-            { name: "Scam", desc: "Lose 50%", val: 0.5, type: "TRAP", cat: "TRAP" },
-            { name: "Rug Pull", desc: "Lose 25%", val: 0.75, type: "TRAP", cat: "TRAP" },
-            { name: "Audit", desc: "Lose 75%", val: 0.25, type: "TRAP", cat: "TRAP" },
-            { name: "Bad Luck", desc: "-$5,000", val: -5000, type: "ADD", cat: "TRAP" },
-            { name: "The Nuke", desc: "ALL -50%", val: 0.5, type: "CHAOS", cat: "CHAOS" },
-            { name: "Socialism", desc: "Redistribute", val: 0, type: "CHAOS", cat: "CHAOS" }
+            { name: "Magic Bowl", val: 8000, type: "ADD", cat: "WEALTH" },
+            { name: "Tax Refund", val: 12000, type: "ADD", cat: "WEALTH" },
+            { name: "Gold Mine", val: 20000, type: "ADD", cat: "WEALTH" },
+            { name: "Interest", val: 1.5, type: "MULTIPLY", cat: "WEALTH" },
+            { name: "Bull Run", val: 2.0, type: "MULTIPLY", cat: "WEALTH" },
+            { name: "Jackpot", val: 50000, type: "ADD", cat: "WEALTH" },
+            { name: "Pickpocket", val: 5000, type: "STEAL_FLAT", cat: "STEAL" },
+            { name: "Mugger", val: 15000, type: "STEAL_FLAT", cat: "STEAL" },
+            { name: "Taxman", val: 0.30, type: "STEAL_PCT", cat: "STEAL" },
+            { name: "Embezzle", val: 0.40, type: "STEAL_PCT", cat: "STEAL" },
+            { name: "Coin Flip", val: 50000, type: "GAMBLE", cat: "GAMBLE" },
+            { name: "High Roller", val: 3.0, type: "GAMBLE", cat: "GAMBLE" },
+            { name: "Scam", val: 0.5, type: "TRAP", cat: "TRAP" },
+            { name: "Rug Pull", val: 0.25, type: "TRAP", cat: "TRAP" },
+            { name: "Audit", val: 0, type: "TRAP", cat: "TRAP" },
+            { name: "The Nuke", val: 0.5, type: "CHAOS", cat: "CHAOS" },
+            { name: "Socialism", val: 0, type: "CHAOS", cat: "CHAOS" }
         ];
 
         let state = { phase: 'LOBBY', round: 0, cards: [] };
@@ -174,28 +159,35 @@
             state = data;
             
             const lobby = document.getElementById('lobby-view');
-            const status = document.getElementById('status-badge');
-            
+            const grid = document.getElementById('grid');
+            const status = document.getElementById('status-text');
+            const btnLock = document.getElementById('btn-lock');
+            const btnNext = document.getElementById('btn-next');
+            const msgHint = document.getElementById('msg-hint');
+
             if (state.phase === 'LOBBY') {
                 lobby.classList.remove('hidden');
-                document.getElementById('grid').innerHTML = '';
+                grid.innerHTML = '';
                 document.getElementById('round-disp').innerText = "LOBBY";
-            }
+            } 
             else if (state.phase === 'BIDDING') {
                 lobby.classList.add('hidden');
                 document.getElementById('round-disp').innerText = state.round;
                 status.innerText = "BIDDING OPEN";
-                status.classList.remove('hidden');
-                document.getElementById('btn-lock').classList.remove('hidden');
-                document.getElementById('btn-next').classList.add('hidden');
-                document.getElementById('msg-hint').classList.add('hidden');
+                status.className = "absolute left-10 text-2xl font-bold text-green-500 tracking-widest animate-pulse";
+                
+                btnLock.classList.remove('hidden');
+                btnNext.classList.add('hidden');
+                msgHint.classList.add('hidden');
                 renderGrid(false);
             }
             else if (state.phase === 'REVEAL') {
                 status.innerText = "REVEAL PHASE";
-                document.getElementById('btn-lock').classList.add('hidden');
-                document.getElementById('btn-next').classList.remove('hidden');
-                document.getElementById('msg-hint').classList.remove('hidden');
+                status.className = "absolute left-10 text-2xl font-bold text-yellow-500 tracking-widest";
+                
+                btnLock.classList.add('hidden');
+                btnNext.classList.remove('hidden');
+                msgHint.classList.remove('hidden');
             }
         });
 
@@ -214,15 +206,18 @@
         onValue(ref(db, 'teams'), (snap) => {
             const teams = snap.val() || {};
             document.getElementById('player-count').innerText = `${Object.keys(teams).length} BIDDERS READY`;
+            
             const roster = document.getElementById('roster');
             roster.innerHTML = '';
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            
             sorted.forEach((id, idx) => {
                 const t = teams[id];
                 const div = document.createElement('div');
                 let col = "text-gray-400";
                 if(idx===0) col = "text-[#FFD700] font-bold";
-                if(idx===1) col = "text-gray-300";
+                if(idx===1) col = "text-gray-300 font-bold";
+                
                 div.className = `flex justify-between p-2 border-b border-white/10 ${t.frozen ? 'opacity-50 line-through text-red-500' : col}`;
                 div.innerHTML = `<span>#${idx+1} ${t.name}</span><span>$${t.balance.toLocaleString()}</span>`;
                 roster.appendChild(div);
@@ -233,21 +228,22 @@
             const grid = document.getElementById('grid');
             if(grid.childElementCount > 0 && !isReveal) return;
             grid.innerHTML = '';
+            
             state.cards.forEach((card, idx) => {
                 const isRevealed = state.revealed && state.revealed[idx];
                 const div = document.createElement('div');
                 div.className = "card-scene";
                 div.onclick = () => window.revealCard(idx);
+                
                 const visColor = card.visualCategory;
                 div.innerHTML = `
                     <div class="card-obj ${isRevealed ? 'flipped' : ''}" id="card-obj-${idx}">
-                        <div class="card-face gem-back style-${visColor}">
-                            <div class="gem-inset"><div class="text-6xl text-white opacity-80 drop-shadow-lg">👑</div></div>
-                            <div class="absolute bottom-4 bg-black/60 px-4 py-1 rounded-full text-xs font-bold tracking-widest text-white backdrop-blur-sm" id="count-${idx}">0 BIDDERS</div>
-                            <div class="absolute top-4 text-4xl font-black text-white/20">${idx+1}</div>
+                        <div class="card-face theme-${visColor} border-4">
+                            <div class="text-8xl font-black text-white/10 pointer-events-none">${idx+1}</div>
+                            <div class="absolute bottom-6 bg-black/80 px-6 py-2 rounded-full text-sm font-bold tracking-widest text-white border border-white/20 pointer-events-none" id="count-${idx}">0 BIDDERS</div>
                         </div>
-                        <div class="card-face card-reveal style-${card.actualCategory}">
-                            <div class="text-6xl">👁️</div>
+                        <div class="card-face card-back theme-${card.actualCategory}">
+                            <div class="text-5xl">👁️</div>
                         </div>
                     </div>
                 `;
@@ -265,7 +261,7 @@
         };
 
         window.fullReset = async () => {
-            if(confirm("⚠ HARD RESET: Delete all data?")) {
+            if(confirm("HARD RESET?")) {
                 await set(ref(db), { gameState: { phase: 'LOBBY', round: 0 }, teams: {}, roundBids: {} });
                 location.reload();
             }
@@ -282,6 +278,7 @@
             for(let k in teams) {
                 if(teams[k].frozen > 0) await update(ref(db, `teams/${k}`), { frozen: 0, balance: 2000 });
             }
+            
             const cards = generateCards();
             await update(ref(db, 'gameState'), { 
                 phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] 
@@ -315,19 +312,22 @@
                 if(power > winningVal) { winningVal = power; winnerId = b.teamId; }
             });
 
+            // OPEN MODAL
             const modal = document.getElementById('focus-modal');
             const fFront = document.getElementById('f-front');
             const fBack = document.getElementById('f-back');
-            fFront.className = `absolute inset-0 backface-hidden rounded-2xl border-4 flex items-center justify-center style-${card.visualCategory}`;
-            fBack.className = `absolute inset-0 backface-hidden rounded-2xl border-4 flex flex-col items-center justify-center p-6 text-center style-${card.actualCategory}`;
             
-            document.getElementById('f-cat').innerText = card.cat;
+            fFront.className = `absolute inset-0 backface-hidden rounded-2xl border-4 flex items-center justify-center theme-${card.visualCategory} bg-[#111]`;
+            fBack.className = `absolute inset-0 backface-hidden rounded-2xl border-4 flex flex-col items-center justify-center p-8 text-center theme-${card.actualCategory} bg-[#000]`;
+            
+            document.getElementById('f-cat').innerText = card.actualCategory;
             document.getElementById('f-title').innerText = card.name;
             document.getElementById('f-val').innerText = getValText(card);
 
             if(winnerId && teams[winnerId]) {
                 const t = teams[winnerId];
                 const bid = bids.find(b=>b.teamId===winnerId);
+                
                 document.getElementById('f-winner').innerText = t.name;
                 document.getElementById('f-cost').innerText = `PAID -$${bid.amount.toLocaleString()}`;
                 
@@ -346,25 +346,32 @@
                 if(card.type === 'STEAL_FLAT') bal += (card.val * mult);
                 if(card.type === 'STEAL_PCT') bal = Math.floor(bal * (1 + card.val));
                 if(card.type === 'GAMBLE') { if(Math.random() > 0.5) bal += (card.val * mult); else bal -= 10000; }
-                if(card.type === 'TRAP' && card.val < 1 && card.val > 0) bal = Math.floor(bal * card.val);
+                if(card.type === 'TRAP') {
+                    if(card.val === 0) { /* Rug Pull */ }
+                    else if(card.val < 1 && card.val > 0) bal = Math.floor(bal * card.val);
+                    else bal += card.val;
+                }
+                
                 if(isSniper) bal += 1000;
 
                 let frozen = 0;
                 if(bal <= 0) { bal = 0; frozen = 1; }
+
                 await update(ref(db, `teams/${winnerId}`), { balance: bal, frozen: frozen });
+
             } else {
                 document.getElementById('f-winner').innerText = "NO BIDS";
                 document.getElementById('f-cost').innerText = "--";
             }
 
-            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('active');
             const cardObj = document.getElementById('focus-card');
             cardObj.style.transform = 'rotateY(0deg) scale(0.5)';
             setTimeout(() => { cardObj.style.transform = 'rotateY(180deg) scale(1)'; }, 100);
         };
 
         window.closeFocus = () => {
-            document.getElementById('focus-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('focus-modal').classList.remove('active');
         };
 
         function generateCards() {
