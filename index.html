@@ -23,7 +23,7 @@
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; }
+        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; z-index: 10; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
         .card-insert { position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; background: #fffcf5; border: 4px double #FFD700; z-index: 5; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; }
@@ -61,7 +61,7 @@
     </header>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
-        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
+        <div id="start-overlay" class="absolute inset-0 z-[300] bg-black/80 flex items-center justify-center hidden">
             <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">START GAME</button>
         </div>
 
@@ -71,9 +71,9 @@
                 <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] transition-transform duration-[4000ms] ease-out"></div>
             </div>
             <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-white z-[201]"></div>
-            <div id="wheel-result" class="mt-8 text-5xl font-black font-imperial text-white hidden">RESULT</div>
+            <div id="wheel-result" class="mt-8 text-6xl font-black font-imperial text-white hidden drop-shadow-[0_0_30px_gold]">RESULT</div>
             
-            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-8 px-12 py-4 bg-red-600 text-white font-imperial font-bold text-3xl rounded hover:bg-red-500 shadow-[0_0_30px_red] z-[300]">SPIN WHEEL</button>
+            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-8 px-12 py-4 bg-red-600 text-white font-imperial font-bold text-3xl rounded hover:bg-red-500 shadow-[0_0_30px_red] z-[300]">SPIN THE WHEEL</button>
             <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold] z-[300]">NEXT ROUND</button>
         </div>
 
@@ -90,7 +90,7 @@
 
         <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
-                <div id="timer-box" class="absolute top-0 w-full text-center z-50">
+                <div id="timer-box" class="absolute top-0 w-full text-center z-[60]">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
                     <div id="countdown-val" class="text-7xl font-black font-imperial text-white drop-shadow-[0_0_10px_black]">10.0s</div>
                 </div>
@@ -152,33 +152,33 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.1;
 
-        // --- FINAL REBALANCED CARDS ---
+        // --- FINAL BALANCED CARD DATA (All Negatives are %) ---
         const cardsData = [
-            { id: 1, name: "The Magic Bowl", desc: "+5,000 Points", type: "ADD", val: 5000 },
-            { id: 2, name: "Market Crash", desc: "Lose 10% of Wealth", type: "MULTIPLY", val: 0.9 }, // Safe
-            { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 }, // Aggressive
-            { id: 4, name: "The Duel", desc: "Steal 5,000 from 2nd Place", type: "STEAL_RIVAL", val: 5000 },
-            { id: 5, name: "Golden Horse", desc: "Triple Score (3x)", type: "MULTIPLY", val: 3.0 }, // Huge
-            { id: 6, name: "Bandits", desc: "Lose 500 Points", type: "ADD", val: -500 }, // Safe
-            { id: 7, name: "Imperial Grant", desc: "+10,000 Points", type: "ADD", val: 10000 },
+            { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
+            { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 },
+            { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
+            { id: 4, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
+            { id: 5, name: "Golden Horse", desc: "Triple Score (3x)", type: "MULTIPLY", val: 3.0 },
+            { id: 6, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
+            { id: 7, name: "Imperial Grant", desc: "+8,000 Points", type: "ADD", val: 8000 },
             { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 3,000 from Random", type: "STEAL_CHOICE", val: 3000 },
+            { id: 9, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
             { id: 10, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
             { id: 11, name: "Interest Rate", desc: "Gain 50% Interest", type: "MULTIPLY", val: 1.5 },
-            { id: 12, name: "God of Wealth", desc: "Jackpot! +28,888", type: "ADD", val: 28888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
+            { id: 12, name: "God of Wealth", desc: "Jackpot! +18,888", type: "ADD", val: 18888 },
+            { id: 13, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
             { id: 14, name: "Twin Carp", desc: "+5,000 You & Ally", type: "GIVE_CHOICE", val: 5000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 25% Balance", type: "MULTIPLY", val: 0.75 },
-            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
+            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
+            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" }, // Stored as 'spy_active'
             { id: 17, name: "Phoenix", desc: "Reset to 5k if <1k", type: "PHOENIX", val: 0 },
-            { id: 18, name: "False Friend", desc: "Donate 10% to Poorest", type: "GIVE_LOW", val: 0.1 },
-            { id: 19, name: "Shared Bill", desc: "Everyone pays 1,000", type: "GLOBAL_HIT", val: -1000 },
-            { id: 20, name: "Jade Seal", desc: "Item: Immunity Button", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, // Spin
-            { id: 22, name: "Bad Luck", desc: "Lose 300 Points", type: "ADD", val: -300 },
-            { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, // Chaos
-            { id: 24, name: "Lucky Song", desc: "+5,000 Points", type: "ADD", val: 5000 },
-            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 } // Spin
+            { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
+            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, // Multiplier for Global
+            { id: 20, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
+            { id: 21, name: "Mystery Box", desc: "Win 100% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 22, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
+            { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
+            { id: 24, name: "Lucky Song", desc: "+6,000 Points", type: "ADD", val: 6000 },
+            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
         ];
 
         let gameState = { phase: 'GRID', round: 1 };
@@ -230,11 +230,10 @@
                     if(!window.hasProcessedSpin) {
                         window.hasProcessedSpin = true;
                         spinner.style.transition = "transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)";
-                        
-                        setTimeout(() => {
+                        requestAnimationFrame(() => {
                             spinner.style.transform = `rotate(${rotation}deg)`;
-                            sfxSpin.play();
-                        }, 100);
+                            sfxSpin.currentTime = 0; sfxSpin.play();
+                        });
 
                         setTimeout(async () => {
                             const res = document.getElementById('wheel-result');
@@ -253,8 +252,8 @@
                                     let newBal = t.balance;
                                     
                                     if(gameState.wagerAmount === "MYSTERY") {
-                                        if(isWin) newBal = t.balance + Math.floor(baseVal * 2.0); // +200%
-                                        else newBal = Math.floor(t.balance * 0.5); // -50%
+                                        if(isWin) newBal = t.balance + baseVal; // +100%
+                                        else newBal = Math.max(0, t.balance - Math.floor(t.balance * 0.5));
                                     } else {
                                         const w = parseInt(gameState.wagerAmount);
                                         if(isWin) newBal = t.balance + w;
@@ -305,6 +304,7 @@
             }
         });
 
+        // REVEAL LOGIC
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
@@ -353,7 +353,9 @@
                 let cls = isDead ? 'rank-dead' : (idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : '')));
                 const div = document.createElement('div');
                 div.className = `p-3 flex justify-between bg-black/40 ${cls} mb-1 border-b border-white/5`;
-                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div></div>${t.immune ? '🛡️' : ''}`;
+                // Show Jade Seal Icon if protected
+                const icon = t.items && t.items.jade_seal ? '🛡️' : (idx===0 ? '👑' : '');
+                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div></div><div>${icon}</div>`;
                 roster.appendChild(div);
             });
         });
@@ -405,7 +407,20 @@
                 
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
-                    for(let k in t) { updates[`teams/${k}/immune`] = null; }
+                    for(let k in t) { 
+                        // SPY LOGIC: Move spy_active to trash, but keep new spy items?
+                        // Simple: Spy is one-time use per round.
+                        // If they had 'spy_active', delete it.
+                        // If they have 'spy_stored' (just won it), move to 'spy_active'.
+                        
+                        if(t[k].items) {
+                            if(t[k].items.spy_active) updates[`teams/${k}/items/spy_active`] = null;
+                            if(t[k].items.spy_stored) {
+                                updates[`teams/${k}/items/spy_stored`] = null;
+                                updates[`teams/${k}/items/spy_active`] = true;
+                            }
+                        }
+                    }
                     update(ref(db), updates);
                 });
             }
@@ -494,8 +509,14 @@
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== wid);
             
+            // --- ITEM GRANT ---
             if(card.type === 'ITEM') {
-                updates[`teams/${wid}/items/${card.item}`] = true;
+                if (card.item === 'spy_active') {
+                    // Win Spy -> Stored for next round
+                    updates[`teams/${wid}/items/spy_stored`] = true;
+                } else {
+                    updates[`teams/${wid}/items/${card.item}`] = true;
+                }
                 update(ref(db), updates);
                 return;
             }
@@ -508,36 +529,69 @@
                 base = winner.balance + (gameState.highestBid || 0);
             }
 
+            // --- AUTO-BLOCK CHECK FUNCTION ---
+            const checkShield = (tid) => {
+                if (teams[tid].items && teams[tid].items.jade_seal) {
+                    updates[`teams/${tid}/items/jade_seal`] = null; // Consume Seal
+                    return true; // Blocked
+                }
+                return false;
+            };
+
             if(card.type === 'ADD') {
                 updates[wRef] = winner.balance + card.val;
+                // If negative add, check shield? Usually self-inflicted bad cards are blocked too.
+                if (card.val < 0 && checkShield(wid)) {
+                    delete updates[wRef]; // Undo damage
+                }
             }
             else if(card.type === 'MULTIPLY') {
-                updates[wRef] = Math.floor(base * card.val);
+                if(card.val < 1) { // Negative
+                    if (checkShield(wid)) {
+                        // Blocked
+                    } else {
+                        updates[wRef] = Math.floor(winner.balance * card.val);
+                    }
+                } else { // Positive
+                    updates[wRef] = Math.floor(base * card.val); 
+                }
             }
             else if(card.type === 'STEAL_PCT') {
                 let richestId = others[0];
                 others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
-                if(richestId && !teams[richestId].immune) {
-                    const stolen = Math.floor(teams[richestId].balance * card.val);
-                    updates[wRef] = winner.balance + stolen;
-                    updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
+                if(richestId) {
+                    if(checkShield(richestId)) {
+                        // Blocked!
+                    } else {
+                        const stolen = Math.floor(teams[richestId].balance * card.val);
+                        updates[wRef] = winner.balance + stolen;
+                        updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
+                    }
                 }
             }
             else if(card.type === 'STEAL_RIVAL') {
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
                 const victimId = sorted[1]; 
-                if(victimId && victimId !== wid && !teams[victimId].immune) {
-                     const amt = card.val;
-                     updates[wRef] = winner.balance + amt;
-                     updates[`teams/${victimId}/balance`] = Math.max(0, teams[victimId].balance - amt);
+                if(victimId && victimId !== wid) {
+                     if(checkShield(victimId)) {
+                         // Blocked
+                     } else {
+                         const amt = Math.min(teams[victimId].balance, card.val);
+                         updates[wRef] = winner.balance + amt;
+                         updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
+                     }
                 }
             }
             else if(card.type === 'STEAL_CHOICE') {
                 const victimId = others[Math.floor(Math.random() * others.length)];
-                if(victimId && !teams[victimId].immune) {
-                    const amt = Math.min(teams[victimId].balance, card.val);
-                    updates[wRef] = winner.balance + amt;
-                    updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
+                if(victimId) {
+                    if(checkShield(victimId)) {
+                        // Blocked
+                    } else {
+                        const amt = Math.floor(teams[victimId].balance * card.val);
+                        updates[wRef] = winner.balance + amt;
+                        updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
+                    }
                 }
             }
             else if(card.type === 'GIVE_LOW') {
@@ -549,16 +603,23 @@
                 }
             }
             else if(card.type === 'GLOBAL_HIT') {
+                // Shared Bill: Everyone Loses % (e.g. 0.9)
                 others.forEach(oid => {
-                    if(!teams[oid].immune) updates[`teams/${oid}/balance`] = Math.max(0, teams[oid].balance + card.val);
+                    if(!checkShield(oid)) {
+                        updates[`teams/${oid}/balance`] = Math.floor(teams[oid].balance * card.val);
+                    }
                 });
             }
-            // CHAOS SWAP (Random Swap)
+            // CHAOS SWAP
             else if(card.type === 'SWAP') {
                 const targetId = others[Math.floor(Math.random() * others.length)];
-                if(targetId && !teams[targetId].immune) {
-                    updates[wRef] = teams[targetId].balance;
-                    updates[`teams/${targetId}/balance`] = winner.balance;
+                if(targetId) {
+                    if(checkShield(targetId)) {
+                        // Blocked
+                    } else {
+                        updates[wRef] = teams[targetId].balance;
+                        updates[`teams/${targetId}/balance`] = winner.balance;
+                    }
                 }
             }
             else if(card.type === 'PHOENIX') {
