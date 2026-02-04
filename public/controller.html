@@ -116,7 +116,15 @@
             const n = document.getElementById('inp-name').value;
             if(!n) return;
             const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+            
+            // DUPLICATE CHECK
             const r = ref(db, `teams/${id}`);
+            const s = await get(r);
+            if(s.exists()) {
+                alert("Name Taken! Choose another.");
+                return;
+            }
+            
             await set(r, { name: n, balance: 1000 });
             localStorage.setItem('id', id); localStorage.setItem('name', n);
             myId = id; myName = n;
@@ -215,7 +223,8 @@
         window.submitWager = async () => {
              const v = parseInt(document.getElementById('wager-val').value);
              if(!v || v > balance) return;
-             // DO NOT CALCULATE RESULT HERE. JUST SEND WAGER. PROJECTOR DOES MATH.
+             
+             // --- NO MATH HERE. JUST SEND SIGNAL ---
              const isWin = Math.random() > 0.5;
              const result = isWin ? 'WIN' : 'LOSE';
              await update(ref(db, 'gameState'), { phase: 'SPIN', spinResult: result, wagerAmount: v });
