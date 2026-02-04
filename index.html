@@ -3,96 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Battle Royale - Year of the Horse</title>
+    <title>Imperial Battle Royale</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #FFD700; --red: #500000; --trap: #ff4500; --win: #00ff00; }
-        body { background-color: #050000; color: white; overflow: hidden; font-family: 'Cinzel', serif; }
+        body { background: #050505; color: white; font-family: 'Cinzel', serif; overflow: hidden; }
         
-        /* BACKGROUND FX */
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.2; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
-        .vignette { position: absolute; inset: 0; background: radial-gradient(circle, transparent 40%, black 100%); z-index: 1; pointer-events: none; }
+        /* CARD COLORS */
+        .border-WEALTH { border-color: #22c55e; box-shadow: 0 0 15px #22c55e; } 
+        .bg-WEALTH { background: linear-gradient(135deg, #14532d, #000); }
         
-        /* CARD STYLES */
-        .card-container { perspective: 1000px; cursor: pointer; z-index: 10; transition: transform 0.2s; }
-        .card-container:hover { transform: translateY(-5px); }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
-        .flipped .card-inner { transform: rotateY(180deg); }
+        .border-STEAL { border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
+        .bg-STEAL { background: linear-gradient(135deg, #7f1d1d, #000); }
         
-        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 3px solid #333; background: #111; }
+        .border-GAMBLE { border-color: #a855f7; box-shadow: 0 0 15px #a855f7; }
+        .bg-GAMBLE { background: linear-gradient(135deg, #581c87, #000); }
         
-        /* CATEGORY COLORS (VISUALS) */
-        .border-WEALTH { border-color: #4ade80; box-shadow: 0 0 25px rgba(74, 222, 128, 0.3); } /* Green */
-        .border-STEAL { border-color: #ef4444; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3); } /* Red */
-        .border-GAMBLE { border-color: #a855f7; box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); } /* Purple */
-        .border-TRAP { border-color: #f97316; box-shadow: 0 0 25px rgba(249, 115, 22, 0.3); } /* Orange */
-        .border-CHAOS { border-color: #94a3b8; box-shadow: 0 0 25px rgba(148, 163, 184, 0.3); } /* Grey */
+        .border-TRAP { border-color: #f97316; box-shadow: 0 0 15px #f97316; }
+        .bg-TRAP { background: linear-gradient(135deg, #7c2d12, #000); }
+        
+        .border-CHAOS { border-color: #94a3b8; box-shadow: 0 0 15px #94a3b8; }
+        .bg-CHAOS { background: linear-gradient(135deg, #334155, #000); }
 
-        .card-back { transform: rotateY(180deg); border-width: 4px; }
-        
-        /* TEXTURES */
-        .gold-text { background: linear-gradient(to bottom, #FFD700, #B8860B); -webkit-background-clip: text; color: transparent; }
+        /* FLIP ANIMATION */
+        .card-container { perspective: 1000px; height: 100%; width: 100%; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
+        .flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-width: 4px; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #111; }
+        .card-back { transform: rotateY(180deg); border-color: #FFD700; background: #222; }
+
+        .sniper-anim { animation: sniper-pulse 1s infinite; border: 4px solid cyan; }
+        @keyframes sniper-pulse { 0% { box-shadow: 0 0 0 cyan; } 50% { box-shadow: 0 0 30px cyan; } 100% { box-shadow: 0 0 0 cyan; } }
     </style>
 </head>
-<body class="h-screen flex flex-col relative">
+<body class="h-screen flex flex-col">
 
-    <div class="bg-pattern"></div>
-    <div class="vignette"></div>
-
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio> <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-    <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
-    <audio id="sfx-start" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-
-    <header class="h-24 flex justify-between items-center px-10 border-b border-[#FFD700]/30 bg-[#1a0505]/95 z-50 relative">
+    <header class="h-24 border-b border-gray-800 flex justify-between items-center px-8 bg-[#0a0a0a] z-50">
         <div class="flex items-center gap-4">
-            <span class="text-5xl drop-shadow-lg">🐎</span>
+            <span class="text-4xl">🐎</span>
             <div>
-                <h1 class="text-3xl font-black gold-text tracking-[0.2em]">IMPERIAL AUCTION</h1>
-                <div class="text-xs text-gray-400 font-mono tracking-widest uppercase">Battle Royale Edition</div>
+                <h1 class="text-3xl text-[#FFD700] tracking-widest font-black">IMPERIAL AUCTION</h1>
+                <div class="text-xs text-gray-500 font-mono tracking-widest">BATTLE ROYALE EDITION</div>
             </div>
         </div>
         <div class="text-center">
             <div class="text-xs text-gray-500 tracking-[0.5em]">ROUND</div>
-            <div id="round-num" class="text-4xl font-bold text-white">1</div>
+            <div class="text-4xl font-bold" id="round-display">--</div>
         </div>
-        <div id="status-badge" class="px-6 py-2 border border-green-500 text-green-500 rounded font-bold animate-pulse tracking-widest">
-            BIDDING OPEN
-        </div>
-        <button onclick="resetGame()" class="absolute top-2 right-2 text-[9px] text-red-900 hover:text-red-500">RESET</button>
+        <div id="phase-display" class="px-4 py-2 border border-gray-700 rounded text-gray-500 font-mono">LOADING...</div>
+        <button onclick="window.resetGame()" class="absolute top-2 right-2 text-[10px] text-red-900 hover:text-red-500">RESET</button>
     </header>
 
-    <main class="flex-1 p-8 flex gap-8 z-10 relative">
+    <div id="start-overlay" class="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center">
+        <h1 class="text-6xl text-[#FFD700] font-black mb-8">YEAR OF THE HORSE</h1>
+        <button onclick="window.adminAction('START')" class="px-16 py-6 bg-green-800 border-2 border-green-500 text-white font-imperial font-black text-3xl rounded-lg hover:scale-105 transition shadow-[0_0_50px_green]">
+            START GAME
+        </button>
+    </div>
+
+    <main class="flex-1 p-8 flex gap-8 relative z-10">
         
-        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center">
-            <h1 class="text-6xl gold-text font-black mb-8">YEAR OF THE HORSE</h1>
-            <button onclick="adminAction('START')" class="px-16 py-6 bg-[#800000] border-2 border-[#FFD700] text-[#FFD700] font-black text-3xl rounded hover:scale-105 transition shadow-[0_0_50px_#800000]">
-                BEGIN AUCTION
-            </button>
-        </div>
-
-        <div id="card-grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6 p-4">
+        <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6">
             </div>
 
-        <div class="w-96 bg-[#0f0505]/90 border-l border-[#FFD700]/30 p-0 flex flex-col backdrop-blur-md rounded-l-xl">
-            <div class="p-4 border-b border-[#FFD700]/20 bg-[#1a0505]">
-                <h2 class="text-center text-[#FFD700] tracking-widest font-bold">DYNASTY RANKINGS</h2>
-            </div>
-            <div id="roster" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+        <div class="w-96 bg-[#111] border-l border-gray-800 p-4 flex flex-col">
+            <h2 class="text-center text-[#FFD700] border-b border-gray-800 pb-2 mb-2 font-bold tracking-widest">DYNASTY RANKINGS</h2>
+            <div id="roster" class="flex-1 overflow-y-auto space-y-2 font-mono text-sm pr-2"></div>
         </div>
-
     </main>
 
-    <div class="h-24 bg-black border-t border-[#FFD700]/30 flex justify-center items-center gap-8 z-50 relative">
-        <button onclick="adminAction('LOCK')" id="btn-lock" class="px-10 py-3 bg-red-800 text-white font-bold rounded border border-red-500 hover:bg-red-700 transition hidden shadow-[0_0_20px_red]">
-            STOP BIDDING & REVEAL
-        </button>
-        <button onclick="adminAction('NEXT')" id="btn-next" class="px-10 py-3 bg-[#FFD700] text-black font-bold rounded border border-white hover:bg-white transition hidden shadow-[0_0_20px_gold]">
-            NEXT ROUND
-        </button>
-        <div id="msg-wait" class="hidden text-gray-500 font-mono">CLICK CARDS TO REVEAL THEM</div>
+    <div class="h-24 bg-[#0a0a0a] border-t border-gray-800 flex justify-center items-center gap-8 z-50">
+        <div id="admin-controls" class="flex gap-4">
+            <button onclick="window.adminAction('LOCK')" id="btn-lock" class="bg-red-900 px-8 py-3 rounded border border-red-500 hover:bg-red-800 font-bold text-xl hidden shadow-[0_0_20px_red]">STOP BIDDING</button>
+            <button onclick="window.adminAction('NEXT')" id="btn-next" class="bg-[#FFD700] text-black px-8 py-3 rounded border border-white hover:bg-white font-bold text-xl hidden shadow-[0_0_20px_gold]">NEXT ROUND</button>
+        </div>
+        <div id="msg-hint" class="text-gray-500 animate-pulse hidden">CLICK CARDS TO REVEAL</div>
     </div>
+
+    <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+    <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -114,88 +104,69 @@
 
         // --- 60 CARD DATABASE ---
         const deck = [
-            // WEALTH (Green)
             { name: "Quick Cash", desc: "+$5,000", val: 5000, type: "ADD", category: "WEALTH" },
             { name: "The Wallet", desc: "+$8,000", val: 8000, type: "ADD", category: "WEALTH" },
             { name: "Payday", desc: "+$12,000", val: 12000, type: "ADD", category: "WEALTH" },
             { name: "Tax Refund", desc: "+$10,000", val: 10000, type: "ADD", category: "WEALTH" },
             { name: "Grant", desc: "+$15,000", val: 15000, type: "ADD", category: "WEALTH" },
             { name: "Savings", desc: "+$20,000", val: 20000, type: "ADD", category: "WEALTH" },
-            { name: "Interest", desc: "+20% Total Value", val: 1.2, type: "MULTIPLY", category: "WEALTH" },
-            { name: "Bonus", desc: "+30% Total Value", val: 1.3, type: "MULTIPLY", category: "WEALTH" },
-            { name: "Bull Market", desc: "+50% Total Value", val: 1.5, type: "MULTIPLY", category: "WEALTH" },
-            { name: "IPO", desc: "x2 Total Value", val: 2.0, type: "MULTIPLY", category: "WEALTH" },
+            { name: "Interest", desc: "+20% Total", val: 1.2, type: "MULTIPLY", category: "WEALTH" },
+            { name: "Bonus", desc: "+30% Total", val: 1.3, type: "MULTIPLY", category: "WEALTH" },
+            { name: "Bull Market", desc: "+50% Total", val: 1.5, type: "MULTIPLY", category: "WEALTH" },
+            { name: "IPO", desc: "x2 Total", val: 2.0, type: "MULTIPLY", category: "WEALTH" },
             { name: "All In Bonus", desc: "x3 if All In, else +$5k", val: 3.0, type: "MULTIPLY", category: "WEALTH" },
-            { name: "Golden Ticket", desc: "x5 Total Value", val: 5.0, type: "MULTIPLY", category: "WEALTH" },
-
-            // STEAL (Red)
+            { name: "Golden Ticket", desc: "x5 Total", val: 5.0, type: "MULTIPLY", category: "WEALTH" },
             { name: "Pickpocket", desc: "Steal $5k Random", val: 5000, type: "STEAL_FLAT", category: "STEAL" },
             { name: "Mugger", desc: "Steal $15k Richest", val: 15000, type: "STEAL_FLAT", category: "STEAL" },
             { name: "Taxman", desc: "Steal 25% Richest", val: 0.25, type: "STEAL_PCT", category: "STEAL" },
             { name: "Robin Hood", desc: "Steal 10% All", val: 0.10, type: "STEAL_ALL", category: "STEAL" },
             { name: "Embezzle", desc: "Steal 30% from 2nd", val: 0.30, type: "STEAL_PCT", category: "STEAL" },
-
-            // GAMBLE (Purple)
             { name: "Coin Flip", desc: "+$50k or -$10k", val: 50000, type: "GAMBLE", category: "GAMBLE" },
             { name: "Mystery A", desc: "+$200k or -$50k", val: 200000, type: "GAMBLE", category: "GAMBLE" },
             { name: "Double Down", desc: "50% x2, 50% /2", val: 2.0, type: "GAMBLE", category: "GAMBLE" },
             { name: "High Roller", desc: "Roll Die xCash", val: 6, type: "GAMBLE", category: "GAMBLE" },
-
-            // TRAP (Orange)
             { name: "The Scam", desc: "Lose 50%", val: 0.5, type: "TRAP", category: "TRAP" },
             { name: "Rug Pull", desc: "Lose 25%", val: 0.75, type: "TRAP", category: "TRAP" },
             { name: "Bad Invest", desc: "Pay Bid, Get Nothing", val: 0, type: "TRAP", category: "TRAP" },
             { name: "Audit", desc: "Lose 75%", val: 0.25, type: "TRAP", category: "TRAP" },
-
-            // CHAOS (Black)
             { name: "The Nuke", desc: "Everyone -50%", val: 0.5, type: "CHAOS", category: "CHAOS" },
             { name: "Socialism", desc: "Redistribute All", val: 0, type: "CHAOS", category: "CHAOS" },
             { name: "Shuffle", desc: "Swap All Cash", val: 0, type: "CHAOS", category: "CHAOS" }
         ];
 
         let state = { phase: 'IDLE', round: 1, cards: [] };
-        const sfx = {
-            bgm: document.getElementById('bgm'),
-            flip: document.getElementById('sfx-flip'),
-            win: document.getElementById('sfx-coin'),
-            trap: document.getElementById('sfx-trap'),
-            start: document.getElementById('sfx-start')
-        };
-        sfx.bgm.volume = 0.2;
 
-        // 1. SYNC
+        // 1. SYNC & RENDER
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
             if(!data) return;
             state = data;
-            
-            document.getElementById('round-num').innerText = state.round;
+            document.getElementById('round-display').innerText = state.round;
             document.getElementById('start-overlay').classList.add('hidden');
-            sfx.bgm.play().catch(()=>{});
-
-            const status = document.getElementById('status-badge');
+            
+            const phaseEl = document.getElementById('phase-display');
             const btnLock = document.getElementById('btn-lock');
             const btnNext = document.getElementById('btn-next');
-            const msgWait = document.getElementById('msg-wait');
+            const msgHint = document.getElementById('msg-hint');
 
             if(state.phase === 'BIDDING') {
-                status.innerText = "BIDDING OPEN";
-                status.className = "px-6 py-2 border border-green-500 text-green-500 rounded font-bold animate-pulse tracking-widest";
+                phaseEl.innerText = "BIDDING OPEN";
+                phaseEl.className = "px-4 py-2 border border-green-500 text-green-500 rounded font-bold animate-pulse";
                 btnLock.classList.remove('hidden');
                 btnNext.classList.add('hidden');
-                msgWait.classList.add('hidden');
-                renderGrid(false); // Show backs
-            } 
-            else if (state.phase === 'REVEAL') {
-                status.innerText = "REVEAL PHASE";
-                status.className = "px-6 py-2 border border-yellow-500 text-yellow-500 rounded font-bold tracking-widest";
+                msgHint.classList.add('hidden');
+                renderGrid(false);
+            } else if(state.phase === 'REVEAL') {
+                phaseEl.innerText = "REVEAL PHASE";
+                phaseEl.className = "px-4 py-2 border border-yellow-500 text-yellow-500 rounded font-bold";
                 btnLock.classList.add('hidden');
                 btnNext.classList.remove('hidden');
-                msgWait.classList.remove('hidden');
+                msgHint.classList.remove('hidden');
+                // Don't re-render grid to keep flip state
             }
         });
 
-        // 2. LIVE STATS
+        // 2. LIVE BIDS
         onValue(ref(db, 'roundBids'), (snap) => {
             if(state.phase !== 'BIDDING') return;
             const bids = snap.val() || {};
@@ -215,40 +186,36 @@
             roster.innerHTML = '';
             const teams = snap.val() || {};
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-            
             sorted.forEach((id, idx) => {
                 const t = teams[id];
                 const isFrozen = t.frozen > 0;
-                let rankColor = "text-gray-400";
-                if(idx===0) rankColor = "text-[#FFD700] font-black";
-                if(idx===1) rankColor = "text-gray-300 font-bold";
-                if(idx===2) rankColor = "text-orange-400 font-bold";
-
+                let col = "text-gray-400";
+                if(idx===0) col = "text-[#FFD700] font-bold";
+                if(idx===1) col = "text-gray-300 font-bold";
                 const div = document.createElement('div');
-                div.className = `flex justify-between p-3 ${isFrozen ? 'opacity-50 line-through text-red-500' : rankColor} border-b border-white/5 bg-white/5 rounded`;
+                div.className = `flex justify-between p-2 ${isFrozen ? 'opacity-50 line-through text-red-500' : col} border-b border-white/5 bg-white/5 rounded`;
                 div.innerHTML = `<span>#${idx+1} ${t.name}</span><span>$${t.balance.toLocaleString()}</span>`;
                 roster.appendChild(div);
             });
         });
 
-        // 4. RENDER CARDS
+        // 4. RENDER GRID
         function renderGrid(isReveal) {
-            const grid = document.getElementById('card-grid');
+            const grid = document.getElementById('grid');
             if(grid.childElementCount > 0 && !isReveal) return;
-            
             grid.innerHTML = '';
+            
             state.cards.forEach((card, idx) => {
                 const isRevealed = state.revealed && state.revealed[idx];
                 const div = document.createElement('div');
                 div.className = `card-container ${isRevealed ? 'flipped' : ''}`;
-                div.onclick = () => revealCard(idx);
+                div.onclick = () => window.revealCard(idx);
                 
-                const visColor = card.visualCategory; 
-                
+                const visColor = card.visualCategory;
                 div.innerHTML = `
                     <div class="card-inner">
                         <div class="card-front border-4 border-${visColor} bg-${visColor}">
-                            <div class="text-7xl font-black opacity-30 text-black">${idx+1}</div>
+                            <div class="text-7xl font-black text-black opacity-30">${idx+1}</div>
                             <div class="absolute bottom-4 left-0 w-full text-center">
                                 <div class="text-sm font-bold bg-black/60 mx-4 py-1 rounded text-white" id="count-${idx}">0 Bidders</div>
                                 <div class="text-xs font-mono text-[#FFD700] mt-1" id="pot-${idx}">$0</div>
@@ -257,24 +224,17 @@
                         <div class="card-back border-4 border-${card.actualCategory}">
                             <div class="text-sm text-gray-400 uppercase tracking-widest mb-1">${card.actualCategory}</div>
                             <div class="text-xl font-bold uppercase text-white px-2 leading-tight">${card.name}</div>
-                            <div class="text-3xl font-black gold-text my-2">${getValText(card)}</div>
+                            <div class="text-3xl font-black text-[#FFD700] my-2">${card.type === 'MULTIPLY' ? 'x'+card.val : (card.val > 0 ? '+'+card.val : card.val)}</div>
                             <div id="winner-${idx}" class="absolute bottom-2 left-0 w-full text-center text-xs font-bold text-white bg-black/80 py-1 hidden"></div>
                         </div>
                     </div>
                 `;
                 grid.appendChild(div);
-                if(isRevealed) showWinnerUI(idx);
+                if(isRevealed) document.getElementById(`winner-${idx}`).classList.remove('hidden');
             });
         }
 
-        function getValText(c) {
-            if(c.type === 'MULTIPLY') return `x${c.val}`;
-            if(c.type === 'ADD' && c.val > 0) return `+$${c.val.toLocaleString()}`;
-            if(c.type === 'ADD' && c.val < 0) return `-$${Math.abs(c.val).toLocaleString()}`;
-            return c.type.replace('_', ' ');
-        }
-
-        // 5. REVEAL LOGIC
+        // --- GLOBAL FUNCTIONS (ATTACHED TO WINDOW) ---
         window.revealCard = async (idx) => {
             if(state.phase !== 'REVEAL') return;
             if(state.revealed && state.revealed[idx]) return;
@@ -283,9 +243,9 @@
             const updates = {};
             updates[`gameState/revealed/${idx}`] = true;
             await update(ref(db), updates);
-            sfx.flip.play();
+            document.getElementById('sfx-flip').play();
 
-            // CALC WINNER
+            // Winner Calc
             const bidsSnap = await get(ref(db, 'roundBids'));
             const teamsSnap = await get(ref(db, 'teams'));
             const bids = Object.values(bidsSnap.val() || {}).filter(b => b.cardIdx === idx);
@@ -296,61 +256,45 @@
             let winningBidVal = 0;
             let isSniper = (bids.length === 1);
 
-            // LOGIC: All In priority > High Cash
-            // If All In, virtual bid is 2x actual amount
             bids.forEach(b => {
                 let effectiveBid = b.amount;
-                if(b.isAllIn) effectiveBid = b.amount * 2; 
-                
+                if(b.isAllIn) effectiveBid = b.amount * 2; // All In Priority
                 if(effectiveBid > winningBidVal) {
                     winningBidVal = effectiveBid;
                     winnerId = b.teamId;
                 }
             });
 
-            // Delay result slightly for dramatic effect
             setTimeout(async () => {
                 const winEl = document.getElementById(`winner-${idx}`);
-                
                 if(winnerId && teams[winnerId]) {
                     const t = teams[winnerId];
-                    const actualBid = bids.find(b=>b.teamId===winnerId).amount;
-                    winEl.innerText = `${t.name} (-$${actualBid.toLocaleString()})`;
+                    const bidObj = bids.find(b=>b.teamId===winnerId);
+                    winEl.innerText = `${t.name} (-$${bidObj.amount.toLocaleString()})`;
                     winEl.classList.remove('hidden');
                     
-                    if(card.category === 'TRAP') sfx.trap.play();
-                    else sfx.win.play();
+                    if(card.category === 'TRAP') document.getElementById('sfx-trap').play();
+                    else document.getElementById('sfx-win').play();
 
-                    // MATH
-                    let bal = t.balance - actualBid; // Deduct cost
-                    let mult = bids.find(b=>b.teamId===winnerId).isAllIn ? 3 : 1;
+                    let bal = t.balance - bidObj.amount;
+                    let mult = bidObj.isAllIn ? 3 : 1;
                     
-                    // BASE VALUE for Multipliers: Current Balance + Bid (Investment Return)
-                    let base = bal + actualBid;
+                    // BASE CALCULATION FOR % CARDS
+                    let base = bal + bidObj.amount; // Investment return logic
 
-                    // APPLY EFFECT
                     if(card.type === 'ADD') bal += (card.val * mult);
                     if(card.type === 'MULTIPLY') {
-                        if(card.val > 1) bal = Math.floor(base * (card.val * mult)); // Gain based on investment
-                        else bal = Math.floor(bal * card.val); // Loss based on remaining
+                        if(card.val > 1) bal = Math.floor(base * (card.val * mult));
+                        else bal = Math.floor(bal * card.val);
                     }
-                    if(card.type === 'TRAP') {
-                        if(card.val === 0) { /* Rug Pull */ }
-                        else if(card.val < 1) bal = Math.floor(bal * card.val); 
-                    }
+                    if(card.type === 'TRAP' && card.val < 1 && card.val > 0) bal = Math.floor(bal * card.val);
                     
-                    // SNIPER BONUS
                     if(isSniper) bal += 1000;
 
-                    // GULAG CHECK
                     let frozen = 0;
-                    if(bal <= 0) {
-                        bal = 0;
-                        frozen = 1;
-                    }
+                    if(bal <= 0) { bal = 0; frozen = 1; }
 
                     await update(ref(db, `teams/${winnerId}`), { balance: bal, frozen: frozen });
-
                 } else {
                     winEl.innerText = "NO BIDS";
                     winEl.classList.remove('hidden');
@@ -359,21 +303,13 @@
             }, 600);
         };
 
-        function showWinnerUI(index) {
-            document.getElementById(`card-${index}`).classList.add('flipped');
-            document.getElementById(`winner-${index}`).classList.remove('hidden');
-        }
-
-        // ADMIN
         window.adminAction = async (act) => {
             if(act === 'START') {
-                sfx.start.play();
                 const roundCards = [];
                 for(let i=0; i<6; i++) {
                     const c = deck[Math.floor(Math.random() * deck.length)];
-                    // TROJAN HORSE LOGIC
                     let vis = c.category;
-                    if(Math.random() < 0.2) {
+                    if(Math.random() < 0.2) { // Trojan Horse
                         const cats = ['WEALTH','STEAL','GAMBLE','TRAP','CHAOS'];
                         vis = cats[Math.floor(Math.random()*cats.length)];
                     }
@@ -383,7 +319,6 @@
                 await set(ref(db, 'roundBids'), {});
             }
             if(act === 'LOCK') {
-                sfx.start.play();
                 update(ref(db, 'gameState'), { phase: 'REVEAL' });
             }
             if(act === 'NEXT') {
@@ -391,15 +326,14 @@
                 const tSnap = await get(ref(db, 'teams'));
                 const t = tSnap.val();
                 for(let k in t) {
-                    if(t[k].frozen > 0) {
-                        await update(ref(db, `teams/${k}`), { frozen: 0, balance: 2000 });
-                    }
+                    if(t[k].frozen > 0) await update(ref(db, `teams/${k}`), { frozen: 0, balance: 2000 });
                 }
-                // New Round
                 await update(ref(db, 'gameState'), { phase: 'IDLE', round: state.round + 1 });
+                // Clear grid logic
+                document.getElementById('grid').innerHTML = '';
             }
         };
-        
+
         window.resetGame = () => { if(confirm("Reset?")) set(ref(db), { gameState: null, teams: null }); };
     </script>
 </body>
