@@ -3,133 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Auction - Year of the Horse</title>
+    <title>Imperial Battle Royale</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #FFD700; --gold-dim: #C5A059; --glass: rgba(10, 0, 0, 0.95); }
-        body { font-family: 'Playfair Display', serif; background-color: #050000; color: var(--gold); overflow: hidden; }
-        .font-imperial { font-family: 'Cinzel', serif; }
+        body { background: #050505; color: white; font-family: 'Cinzel', serif; overflow: hidden; }
         
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.4; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
-        .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 40px rgba(0,0,0,0.9); }
+        /* CARD COLORS */
+        .border-WEALTH { border-color: #22c55e; box-shadow: 0 0 20px #22c55e; } /* Green */
+        .bg-WEALTH { background: linear-gradient(135deg, #14532d, #000); }
+        
+        .border-STEAL { border-color: #ef4444; box-shadow: 0 0 20px #ef4444; } /* Red */
+        .bg-STEAL { background: linear-gradient(135deg, #7f1d1d, #000); }
+        
+        .border-GAMBLE { border-color: #a855f7; box-shadow: 0 0 20px #a855f7; } /* Purple */
+        .bg-GAMBLE { background: linear-gradient(135deg, #581c87, #000); }
+        
+        .border-TRAP { border-color: #f97316; box-shadow: 0 0 20px #f97316; } /* Orange */
+        .bg-TRAP { background: linear-gradient(135deg, #7c2d12, #000); }
+        
+        .border-CHAOS { border-color: #94a3b8; box-shadow: 0 0 20px #94a3b8; } /* Gray/Black */
+        .bg-CHAOS { background: linear-gradient(135deg, #334155, #000); }
 
-        .angpao {
-            background: linear-gradient(160deg, #8a0000, #4a0000); border: 2px solid #5c0000; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.2s; position: relative;
-            font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.2); font-size: 2rem;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
-        .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
+        /* FLIP ANIMATION */
+        .card-container { perspective: 1000px; }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; }
+        .flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-width: 4px; border-radius: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #111; }
+        .card-back { transform: rotateY(180deg); border-color: #FFD700; background: #222; }
 
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; z-index: 10; }
-        .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
-        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
-        .card-insert { position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; background: #fffcf5; border: 4px double #FFD700; z-index: 5; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; }
-        
-        .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
-        .is-open .card-insert { transform: translateY(-50%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 60px gold; }
-        .is-open .envelope-body { transform: translateY(20%); opacity: 0.5; }
-        .shaking { animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
-        
-        .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
-        .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, rgba(192,192,192,0.1), transparent); }
-        .rank-3 { border-left: 4px solid #CD7F32; background: linear-gradient(90deg, rgba(205,127,50,0.1), transparent); }
-        .rank-dead { opacity: 0.3; filter: grayscale(1); border-left: 4px solid #333; }
+        .sniper-anim { animation: sniper-pulse 1s infinite; border: 4px solid cyan; }
+        @keyframes sniper-pulse { 0% { box-shadow: 0 0 0 cyan; } 50% { box-shadow: 0 0 30px cyan; } 100% { box-shadow: 0 0 0 cyan; } }
     </style>
 </head>
-<body class="h-screen flex flex-col relative">
+<body class="h-screen flex flex-col">
 
-    <div class="bg-pattern"></div>
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
-    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-    <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-    <audio id="sfx-spin" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-
-    <header class="h-24 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50 relative">
-        <div class="flex items-center gap-4">
-            <span class="text-4xl">🐎</span>
-            <h1 class="font-imperial text-3xl font-bold tracking-[0.2em] text-[#FFD700]">YEAR OF THE HORSE</h1>
+    <header class="h-24 border-b border-gray-800 flex justify-between items-center px-8 bg-[#0a0a0a]">
+        <div>
+            <h1 class="text-4xl text-[#FFD700] tracking-widest">BATTLE ROYALE</h1>
+            <div class="text-xs text-gray-500 font-mono tracking-[0.5em]">ROUND <span id="round-display">1</span></div>
         </div>
-        <div class="flex gap-8 font-imperial text-xl tracking-widest text-[#C5A059]">
-            <div>ROUND <span id="round-num" class="text-white font-bold ml-2">--</span></div>
-            <div>STATUS: <span id="status-text" class="text-[#FFD700]">LOADING</span></div>
-        </div>
-        <button onclick="resetGame()" class="text-[9px] text-red-800 border border-red-900 px-2 py-1 rounded hover:bg-red-900 uppercase">Master Reset</button>
+        <div id="phase-display" class="text-3xl font-bold animate-pulse text-green-500">BIDDING OPEN</div>
     </header>
 
-    <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
-        <div id="start-overlay" class="absolute inset-0 z-[300] bg-black/80 flex items-center justify-center hidden">
-            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">START GAME</button>
-        </div>
+    <main class="flex-1 p-8 flex gap-8">
+        
+        <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6"></div>
 
-        <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center">
-            <div class="text-[#FFD700] text-3xl font-imperial mb-8 animate-pulse" id="wheel-title">FATE IS SPINNING...</div>
-            <div class="w-[500px] h-[500px] rounded-full border-[10px] border-[#FFD700] relative bg-[#000] overflow-hidden shadow-[0_0_50px_gold]">
-                <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] transition-transform duration-[4000ms] ease-out"></div>
-            </div>
-            <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-white z-[201]"></div>
-            <div id="wheel-result" class="mt-8 text-6xl font-black font-imperial text-white hidden drop-shadow-[0_0_30px_gold]">RESULT</div>
-            
-            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-8 px-12 py-4 bg-red-600 text-white font-imperial font-bold text-3xl rounded hover:bg-red-500 shadow-[0_0_30px_red] z-[300]">SPIN THE WHEEL</button>
-            <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold] z-[300]">NEXT ROUND</button>
-        </div>
-
-        <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
-            <div class="flex-1 flex flex-col items-center justify-center">
-                <div id="grid-container" class="grid grid-cols-5 gap-4 w-full max-w-[65vh] aspect-square p-6 glass-panel rounded-xl"></div>
-                <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-8 px-12 py-4 bg-[#FFD700] hover:bg-white text-black font-imperial font-black text-2xl tracking-[0.2em] rounded shadow-[0_0_20px_gold]">DRAW FORTUNE</button>
-            </div>
-            <div class="w-[350px] glass-panel rounded-xl p-4 flex flex-col">
-                <h2 class="font-imperial text-center text-xl text-[#FFD700] mb-4 border-b border-[#C5A059] pb-2">DYNASTY RANKINGS</h2>
-                <div id="roster-grid" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
-            </div>
-        </div>
-
-        <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
-            <div class="flex-1 flex flex-col items-center justify-center relative">
-                <div id="timer-box" class="absolute top-0 w-full text-center z-[60]">
-                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
-                    <div id="countdown-val" class="text-7xl font-black font-imperial text-white drop-shadow-[0_0_10px_black]">10.0s</div>
-                </div>
-                <div class="envelope-container" id="main-envelope">
-                    <div class="card-insert shadow-lg">
-                        <h3 id="card-title" class="font-imperial text-[#8a0000] text-2xl font-bold mb-4 uppercase tracking-widest border-b-2 border-[#8a0000] pb-2">Title</h3>
-                        <p id="card-desc" class="font-serif text-3xl font-bold text-black leading-tight">Description</p>
-                        <div class="mt-6 text-red-500 font-bold text-6xl">福</div>
-                    </div>
-                    <div class="envelope-body">
-                        <span class="text-8xl text-[#FFD700] opacity-50 font-imperial">馬</span>
-                        <div id="sold-stamp" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center z-20">
-                            <span class="text-red-500 font-black border-4 border-red-500 p-2 text-5xl -rotate-12 uppercase tracking-widest shadow-[0_0_50px_red]">SOLD</span>
-                        </div>
-                        <div id="unsold-stamp" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center z-20">
-                            <span class="text-gray-400 font-black border-4 border-gray-400 p-2 text-5xl -rotate-12 uppercase tracking-widest">UNSOLD</span>
-                        </div>
-                    </div>
-                    <div class="envelope-lid"></div>
-                </div>
-                <div class="absolute bottom-10 w-full flex justify-center gap-4 z-[100]">
-                    <button onclick="adminAction('REVEAL')" id="btn-reveal" class="hidden px-12 py-4 bg-red-700 text-white font-imperial font-bold text-2xl tracking-widest rounded hover:bg-red-500 border border-red-400 shadow-[0_0_20px_red] animate-pulse">REVEAL DESTINY</button>
-                    <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">NEXT ROUND</button>
-                </div>
-            </div>
-            <div class="w-[350px] glass-panel rounded-xl p-6 flex flex-col">
-                <h2 class="font-imperial text-center text-xl text-[#FFD700] mb-6 border-b border-[#C5A059] pb-4">AUCTION LOG</h2>
-                <div class="text-center mb-6 bg-black/40 p-4 rounded border border-[#C5A059]/30">
-                    <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-2">Highest Bid</div>
-                    <div class="text-5xl font-imperial font-black text-white drop-shadow-[0_0_10px_gold]">RM <span id="val-high-bid">0</span></div>
-                    <div id="val-leader-name" class="text-green-400 font-bold mt-2 uppercase tracking-widest text-lg">--</div>
-                </div>
-                <div id="bids-list" class="flex-1 overflow-y-auto space-y-2"></div>
-            </div>
+        <div class="w-80 bg-[#111] border-l border-gray-800 p-4 flex flex-col">
+            <h2 class="text-center text-gray-400 border-b border-gray-800 pb-2 mb-2">NET WORTH</h2>
+            <div id="roster" class="flex-1 overflow-y-auto space-y-2 font-mono text-sm"></div>
         </div>
     </main>
 
+    <div class="h-20 bg-[#0a0a0a] border-t border-gray-800 flex justify-center items-center gap-4">
+        <button onclick="adminAction('START')" class="bg-blue-900 px-6 py-2 rounded border border-blue-500 hover:bg-blue-800">START ROUND</button>
+        <button onclick="adminAction('LOCK')" class="bg-red-900 px-6 py-2 rounded border border-red-500 hover:bg-red-800">STOP BIDDING</button>
+        <button onclick="adminAction('NEXT')" class="bg-yellow-700 px-6 py-2 rounded border border-yellow-500 hover:bg-yellow-600">NEXT ROUND</button>
+    </div>
+
+    <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
+
     <script type="module">
-        const firebaseConfig = {
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        const firebaseConfig = { 
             apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
             authDomain: "auction-ebc97.firebaseapp.com",
             databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -140,493 +80,254 @@
             measurementId: "G-69HD10GML7"
         };
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update, get, remove, onChildAdded, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        const sfxTick = document.getElementById('sfx-tick');
-        const sfxGong = document.getElementById('sfx-gong');
-        const sfxSpin = document.getElementById('sfx-spin');
-        const bgm = document.getElementById('bgm');
-        bgm.volume = 0.1;
 
-        // --- FINAL CARD DATA ---
-        const cardsData = [
-            { id: 1, name: "The Magic Bowl", desc: "+5,000 Points", type: "ADD", val: 5000 },
-            { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 },
-            { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
-            { id: 4, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
-            { id: 5, name: "Golden Horse", desc: "Triple Score (3x)", type: "MULTIPLY", val: 3.0 },
-            { id: 6, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
-            { id: 7, name: "Imperial Grant", desc: "+8,000 Points", type: "ADD", val: 8000 },
-            { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
-            { id: 10, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
-            { id: 11, name: "Interest Rate", desc: "Gain 50% Interest", type: "MULTIPLY", val: 1.5 },
-            { id: 12, name: "God of Wealth", desc: "Jackpot! +18,888", type: "ADD", val: 18888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
-            { id: 14, name: "Twin Carp", desc: "+5,000 You & Ally", type: "GIVE_CHOICE", val: 5000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
-            { id: 17, name: "Phoenix", desc: "Reset to 5k if <1k", type: "PHOENIX", val: 0 },
-            { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
-            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
-            { id: 20, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
-            { id: 22, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
-            { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
-            { id: 24, name: "Lucky Song", desc: "+6,000 Points", type: "ADD", val: 6000 },
-            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
+        // --- 60 CARD DATABASE ---
+        const deck = [
+            // WEALTH (Green)
+            { id: 1, name: "Quick Cash", desc: "+$5,000", val: 5000, type: "ADD", category: "WEALTH" },
+            { id: 2, name: "The Wallet", desc: "+$8,000", val: 8000, type: "ADD", category: "WEALTH" },
+            { id: 3, name: "Payday", desc: "+$12,000", val: 12000, type: "ADD", category: "WEALTH" },
+            { id: 4, name: "Tax Refund", desc: "+$10,000 & Safe", val: 10000, type: "ADD", category: "WEALTH" },
+            { id: 5, name: "Grant", desc: "+$15,000", val: 15000, type: "ADD", category: "WEALTH" },
+            { id: 6, name: "Savings", desc: "+$20,000 in 2 rounds", val: 20000, type: "ADD", category: "WEALTH" },
+            { id: 11, name: "Interest", desc: "+20% Cash", val: 1.2, type: "MULTIPLY", category: "WEALTH" },
+            { id: 12, name: "Bonus", desc: "+30% Cash", val: 1.3, type: "MULTIPLY", category: "WEALTH" },
+            { id: 13, name: "Bull Market", desc: "+50% Cash", val: 1.5, type: "MULTIPLY", category: "WEALTH" },
+            { id: 14, name: "IPO", desc: "x2 Cash", val: 2.0, type: "MULTIPLY", category: "WEALTH" },
+            { id: 19, name: "All In Bonus", desc: "x3 if All In, else +$5k", val: 3.0, type: "MULTIPLY", category: "WEALTH" },
+            { id: 20, name: "Golden Ticket", desc: "x5 Cash", val: 5.0, type: "MULTIPLY", category: "WEALTH" },
+
+            // STEAL (Red)
+            { id: 21, name: "Pickpocket", desc: "Steal $5k Random", val: 5000, type: "STEAL_FLAT", category: "STEAL" },
+            { id: 22, name: "Mugger", desc: "Steal $15k Richest", val: 15000, type: "STEAL_FLAT", category: "STEAL" },
+            { id: 23, name: "Taxman", desc: "Steal 25% Richest", val: 0.25, type: "STEAL_PCT", category: "STEAL" },
+            { id: 24, name: "Robin Hood", desc: "Steal 10% All", val: 0.10, type: "STEAL_ALL", category: "STEAL" },
+            { id: 30, name: "Embezzle", desc: "Steal 30% from 2nd", val: 0.30, type: "STEAL_PCT", category: "STEAL" },
+
+            // GAMBLE (Purple)
+            { id: 31, name: "Coin Flip", desc: "+$50k or -$10k", val: 50000, type: "GAMBLE", category: "GAMBLE" },
+            { id: 33, name: "Mystery A", desc: "+$200k or -$50k", val: 200000, type: "GAMBLE", category: "GAMBLE" },
+            { id: 36, name: "Double Down", desc: "50% x2, 50% /2", val: 2.0, type: "GAMBLE", category: "GAMBLE" },
+            { id: 39, name: "High Roller", desc: "Roll Die xCash", val: 6, type: "GAMBLE", category: "GAMBLE" },
+
+            // TRAP (Orange)
+            { id: 41, name: "The Scam", desc: "Lose 50%", val: 0.5, type: "TRAP", category: "TRAP" },
+            { id: 45, name: "Rug Pull", desc: "Give Bid to Poorest", val: 0, type: "TRAP", category: "TRAP" },
+            { id: 46, name: "Bad Invest", desc: "Pay Bid, Get Nothing", val: 0, type: "TRAP", category: "TRAP" },
+            { id: 49, name: "Audit", desc: "Lose 75%", val: 0.25, type: "TRAP", category: "TRAP" },
+
+            // CHAOS (Black)
+            { id: 51, name: "The Nuke", desc: "Everyone -50%", val: 0.5, type: "CHAOS", category: "CHAOS" },
+            { id: 52, name: "Socialism", desc: "Redistribute All", val: 0, type: "CHAOS", category: "CHAOS" },
+            { id: 56, name: "Shuffle", desc: "Swap All Cash", val: 0, type: "CHAOS", category: "CHAOS" }
         ];
 
-        let gameState = { phase: 'GRID', round: 1 };
-        let envelopesStatus = {};
-        
-        renderGrid();
-        startServerLoop();
+        let state = { phase: 'IDLE', round: 1, cards: [] };
 
+        // 1. GAME SYNC
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
-            if(!data || !data.phase) {
-                document.getElementById('start-overlay').classList.remove('hidden'); return;
-            }
-            document.getElementById('start-overlay').classList.add('hidden');
-            bgm.play().catch(()=>{});
-
-            gameState = data;
-            document.getElementById('round-num').innerText = gameState.round;
-            document.getElementById('status-text').innerText = gameState.phase;
-
-            const vGrid = document.getElementById('view-grid');
-            const vAuc = document.getElementById('view-auction');
-            const wheel = document.getElementById('wheel-stage');
-
-            if (gameState.phase === 'GRID') {
-                vGrid.classList.remove('hidden');
-                vAuc.classList.add('hidden');
-                wheel.classList.add('hidden');
-                resetAuctionEffects();
-            } 
-            else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(gameState.phase)) {
-                vGrid.classList.add('hidden');
-                vAuc.classList.add('hidden');
-                wheel.classList.remove('hidden');
-                wheel.style.display = 'flex';
-                
-                if (gameState.phase === 'READY_TO_SPIN') {
-                    document.getElementById('wheel-title').innerText = "PLAYER READY";
-                    document.getElementById('btn-spin-trigger').classList.remove('hidden');
-                }
-                else if (gameState.phase === 'SPIN') {
-                    document.getElementById('wheel-title').innerText = "SPINNING...";
-                    document.getElementById('btn-spin-trigger').classList.add('hidden');
-                    
-                    const spinner = document.getElementById('wheel-spinner');
-                    const isWin = gameState.spinResult === 'WIN';
-                    const rotation = 2520 + (isWin ? 90 : 270); 
-                    
-                    if(!window.hasProcessedSpin) {
-                        window.hasProcessedSpin = true;
-                        spinner.style.transition = "transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)";
-                        
-                        requestAnimationFrame(() => {
-                            spinner.style.transform = `rotate(${rotation}deg)`;
-                            sfxSpin.currentTime = 0; sfxSpin.play();
-                        });
-
-                        setTimeout(async () => {
-                            const res = document.getElementById('wheel-result');
-                            res.innerText = isWin ? "WINNER!" : "LOSS";
-                            res.classList.remove('hidden');
-                            res.style.color = isWin ? '#00ff00' : '#ff0000';
-                            document.getElementById('btn-next-wheel').classList.remove('hidden');
-                            
-                            if(gameState.leaderId) {
-                                const tRef = ref(db, `teams/${gameState.leaderId}`);
-                                const s = await get(tRef);
-                                if(s.exists()) {
-                                    const t = s.val();
-                                    const baseVal = t.balance > 0 ? t.balance : (gameState.highestBid || 1000);
-                                    let newBal = t.balance;
-                                    
-                                    if(gameState.wagerAmount === "MYSTERY") {
-                                        if(isWin) newBal = t.balance + Math.floor(baseVal * 2.0); 
-                                        else newBal = Math.floor(t.balance * 0.5);
-                                    } else {
-                                        const w = parseInt(gameState.wagerAmount);
-                                        if(isWin) newBal = t.balance + w;
-                                        else newBal = Math.max(0, t.balance - w);
-                                    }
-                                    await update(tRef, { balance: newBal });
-                                }
-                            }
-                        }, 4000);
-                    }
-                } else {
-                    window.hasProcessedSpin = false;
-                    document.getElementById('wheel-title').innerText = "AWAITING WAGER...";
-                    document.getElementById('wheel-spinner').style.transition = 'none';
-                    document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
-                    document.getElementById('wheel-result').classList.add('hidden');
-                    document.getElementById('btn-next-wheel').classList.add('hidden');
-                    document.getElementById('btn-spin-trigger').classList.add('hidden');
-                }
-            } 
-            else {
-                vGrid.classList.add('hidden');
-                vAuc.classList.remove('hidden');
-                wheel.classList.add('hidden');
-
-                document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
-                document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
-
-                if(gameState.phase === 'BIDDING') {
-                    document.getElementById('timer-box').classList.remove('opacity-0');
-                    document.getElementById('sold-stamp').classList.add('hidden');
-                    document.getElementById('unsold-stamp').classList.add('hidden');
-                    document.getElementById('main-envelope').classList.add('shaking');
-                    document.getElementById('btn-reveal').classList.add('hidden');
-                } 
-                else if(gameState.phase === 'SOLD') {
-                    document.getElementById('timer-box').classList.add('opacity-0');
-                    document.getElementById('main-envelope').classList.remove('shaking');
-                    
-                    if(gameState.leaderId) {
-                        document.getElementById('sold-stamp').classList.remove('hidden');
-                        document.getElementById('btn-reveal').classList.remove('hidden');
-                    } else {
-                        document.getElementById('unsold-stamp').classList.remove('hidden');
-                        setTimeout(() => update(ref(db), { revealTrigger: true }), 2000);
-                    }
-                }
+            if(!data) return;
+            state = data;
+            document.getElementById('round-display').innerText = state.round;
+            
+            if(state.phase === 'BIDDING') {
+                document.getElementById('phase-display').innerText = "BIDDING OPEN";
+                document.getElementById('phase-display').className = "text-3xl font-bold animate-pulse text-green-500";
+                renderGrid(false);
+            } else if(state.phase === 'LOCKED') {
+                document.getElementById('phase-display').innerText = "LOCKED";
+                document.getElementById('phase-display').className = "text-3xl font-bold text-red-500";
+            } else if(state.phase === 'REVEAL') {
+                document.getElementById('phase-display').innerText = "REVEAL PHASE";
+                // Don't re-render entire grid, handle individual flips
             }
         });
 
-        onValue(ref(db, 'revealTrigger'), (snap) => {
-            if (snap.val() === true) {
-                update(ref(db), { revealTrigger: null }); 
-                
-                const card = cardsData.find(c => c.id === gameState.currentCard);
-                
-                if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
-                    const isWin = Math.random() > 0.5;
-                    const res = isWin ? 'WIN' : 'LOSE';
-                    update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: res, wagerAmount: "MYSTERY" });
-                    return;
-                }
-
-                if(card.type === 'GAMBLE_WAGER' && gameState.leaderId) {
-                    setTimeout(() => {
-                        update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: gameState.leaderId });
-                    }, 2000);
-                }
-
-                update(ref(db, 'gameState'), { phase: 'REVEALED' });
-                sfxGong.play();
-                document.getElementById('main-envelope').classList.add('is-open');
-                document.getElementById('btn-reveal').classList.add('hidden'); 
-
-                document.getElementById('card-title').innerText = card.name;
-                document.getElementById('card-desc').innerText = card.desc;
-                
-                if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
-                    executeCardEffect(card.id, gameState.leaderId);
-                }
-                
-                if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
-                    setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
-                }
+        // 2. LIVE STATS
+        onValue(ref(db, 'roundBids'), (snap) => {
+            if(state.phase !== 'BIDDING') return;
+            const bids = snap.val() || {};
+            for(let i=0; i<6; i++) {
+                const cardBids = Object.values(bids).filter(b => b.cardIdx === i);
+                const total = cardBids.reduce((a,b) => a + b.amount, 0);
+                const elCount = document.getElementById(`count-${i}`);
+                const elPot = document.getElementById(`pot-${i}`);
+                if(elCount) elCount.innerText = `${cardBids.length} Bidders`;
+                if(elPot) elPot.innerText = `$${total.toLocaleString()}`;
             }
         });
 
+        // 3. LEADERBOARD
         onValue(ref(db, 'teams'), (snap) => {
-            const roster = document.getElementById('roster-grid');
+            const roster = document.getElementById('roster');
             roster.innerHTML = '';
             const teams = snap.val() || {};
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-            sorted.forEach((key, idx) => {
-                const t = teams[key];
-                const isDead = t.balance <= 0;
-                let cls = isDead ? 'rank-dead' : (idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : '')));
+            
+            sorted.forEach((id, idx) => {
+                const t = teams[id];
+                const isFrozen = t.frozen > 0;
                 const div = document.createElement('div');
-                div.className = `p-3 flex justify-between bg-black/40 ${cls} mb-1 border-b border-white/5`;
-                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div></div>${t.immune ? '🛡️' : ''}`;
+                div.className = `flex justify-between p-2 ${isFrozen ? 'opacity-50 line-through text-red-500' : 'text-gray-300'} border-b border-gray-800`;
+                div.innerHTML = `<span>#${idx+1} ${t.name}</span><span>$${t.balance.toLocaleString()}</span>`;
                 roster.appendChild(div);
             });
         });
 
-        window.adminAction = (action) => {
-            if (action === 'START') set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+        // 4. RENDER
+        function renderGrid(isReveal) {
+            const grid = document.getElementById('grid');
+            if(grid.childElementCount > 0 && !isReveal) return;
             
-            if (action === 'DRAW') {
-                let available = [];
-                for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
-                if(!available.length) return alert("Done");
-                document.getElementById('btn-draw').disabled = true;
-                let delay = 50, steps = 0;
-                const loop = () => {
-                    document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
-                    const r = available[Math.floor(Math.random()*available.length)];
-                    document.getElementById(`grid-cell-${r}`).classList.add('active');
-                    sfxTick.currentTime = 0; sfxTick.play();
-                    steps++; delay *= 1.1;
-                    if (delay < 400) setTimeout(loop, delay);
-                    else {
-                        setTimeout(() => {
-                            update(ref(db, 'gameState'), {
-                                phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 
-                            });
-                            set(ref(db, 'currentRoundBids'), {});
-                            document.getElementById('btn-draw').disabled = false;
-                        }, 500);
-                    }
-                };
-                loop();
-            }
-            if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
-            
-            if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
-
-            // FORCE CLEAN RESET
-            if (action === 'NEXT') {
-                const updates = {};
-                if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
-                updates['gameState/phase'] = 'GRID';
-                updates['gameState/round'] = (gameState.round||1)+1;
-                updates['gameState/currentCard'] = null;
-                updates['gameState/highestBid'] = 0;
-                updates['gameState/leaderId'] = null;
-                updates['gameState/leaderName'] = null;
-                updates['gameState/wagerAmount'] = null;
-                updates['gameState/spinResult'] = null;
-                updates['currentRoundBids'] = null;
+            grid.innerHTML = '';
+            state.cards.forEach((card, idx) => {
+                const isRevealed = state.revealed && state.revealed[idx];
+                const div = document.createElement('div');
+                div.className = `card-container cursor-pointer ${isRevealed ? 'flipped' : ''}`;
+                div.onclick = () => revealCard(idx);
                 
-                get(ref(db, 'teams')).then(s => {
-                    const t = s.val();
-                    for(let k in t) { 
-                        if(t[k].items) {
-                            if(t[k].items.spy_active) updates[`teams/${k}/items/spy_active`] = null;
-                            if(t[k].items.spy_stored) {
-                                updates[`teams/${k}/items/spy_stored`] = null;
-                                updates[`teams/${k}/items/spy_active`] = true;
-                            }
-                        }
-                    }
-                    update(ref(db), updates);
-                });
+                // VISUAL COLOR (Trojan Logic handled in generation)
+                const visColor = card.visualCategory; 
+                
+                div.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front border-4 border-${visColor} bg-${visColor}">
+                            <div class="text-6xl font-black opacity-50">${idx+1}</div>
+                            <div class="mt-4 text-sm font-mono bg-black/50 px-2 py-1 rounded" id="count-${idx}">0 Bidders</div>
+                            <div class="text-xs font-mono text-[#FFD700]" id="pot-${idx}">$0</div>
+                        </div>
+                        <div class="card-back border-4 border-${card.actualCategory}">
+                            <div class="text-xl font-bold uppercase text-${getColor(card.actualCategory)}">${card.name}</div>
+                            <div class="text-xs text-gray-400 my-2">${card.desc}</div>
+                            <div class="text-sm font-mono text-[#FFD700]" id="winner-${idx}"></div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function getColor(cat) {
+            if(cat === 'WEALTH') return 'green-500';
+            if(cat === 'STEAL') return 'red-500';
+            if(cat === 'GAMBLE') return 'purple-500';
+            if(cat === 'TRAP') return 'orange-500';
+            return 'gray-400';
+        }
+
+        // 5. REVEAL LOGIC
+        window.revealCard = async (idx) => {
+            if(state.phase !== 'REVEAL') return;
+            if(state.revealed && state.revealed[idx]) return;
+
+            // Flip
+            document.getElementById(`sfx-flip`).play();
+            const updates = {};
+            updates[`gameState/revealed/${idx}`] = true;
+            await update(ref(db), updates);
+
+            // CALC WINNER
+            const bidsSnap = await get(ref(db, 'roundBids'));
+            const teamsSnap = await get(ref(db, 'teams'));
+            const bids = Object.values(bidsSnap.val() || {}).filter(b => b.cardIdx === idx);
+            const teams = teamsSnap.val();
+            const card = state.cards[idx];
+
+            let winnerId = null;
+            let winningBidVal = 0;
+            let isSniper = (bids.length === 1);
+
+            // LOGIC: All In priority > High Cash
+            bids.forEach(b => {
+                let effectiveBid = b.amount;
+                if(b.isAllIn) effectiveBid = b.amount * 2; // All In counts double for winning
+                
+                if(effectiveBid > winningBidVal) {
+                    winningBidVal = effectiveBid;
+                    winnerId = b.teamId;
+                }
+            });
+
+            const winEl = document.getElementById(`winner-${idx}`);
+            
+            if(winnerId) {
+                const t = teams[winnerId];
+                winEl.innerText = `${t.name} (-$${bids.find(b=>b.teamId===winnerId).amount})`;
+                if(isSniper) winEl.parentElement.classList.add('sniper-anim'); // Visual
+                
+                // MATH
+                let bal = t.balance - bids.find(b=>b.teamId===winnerId).amount; // Deduct actual cash
+                let mult = bids.find(b=>b.teamId===winnerId).isAllIn ? 3 : 1;
+                
+                // APPLY CARD
+                if(card.type === 'ADD') bal += (card.val * mult);
+                if(card.type === 'MULTIPLY') bal = Math.floor(bal * (card.val * mult));
+                if(card.type === 'STEAL_FLAT') {
+                    // Simple Steal Logic
+                    const others = Object.values(teams).filter(x => x.name !== t.name);
+                    const victim = others[Math.floor(Math.random()*others.length)];
+                    /* Real steal logic would update victim too, simplified here */
+                    bal += (card.val * mult);
+                }
+                if(card.type === 'TRAP') {
+                    if(card.val === 0) { /* Rug Pull */ }
+                    else if(card.val < 1) bal = Math.floor(bal * card.val); // Percentage loss
+                }
+                
+                // SNIPER BONUS
+                if(isSniper) bal += 1000;
+
+                // GULAG CHECK
+                let frozen = 0;
+                if(bal <= 0) {
+                    bal = 0;
+                    frozen = 1; // Freeze for 1 round
+                }
+
+                document.getElementById('sfx-win').play();
+                await update(ref(db, `teams/${winnerId}`), { balance: bal, frozen: frozen });
+
+            } else {
+                winEl.innerText = "NO BIDS";
             }
         };
 
-        window.resetGame = () => { if(confirm("Reset?")) set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} }); }
-
-        function renderGrid() {
-            const g = document.getElementById('grid-container'); g.innerHTML = '';
-            for(let i=1; i<=25; i++) {
-                const d = document.createElement('div');
-                d.id = `grid-cell-${i}`; d.className = 'angpao'; d.innerText = i;
-                g.appendChild(d);
-            }
-            onValue(ref(db, 'envelopes'), (snap) => {
-                envelopesStatus = snap.val() || {};
-                for(let i=1; i<=25; i++) {
-                    const el = document.getElementById(`grid-cell-${i}`);
-                    if(envelopesStatus[i]) el.classList.add('used'); else el.classList.remove('used');
+        // ADMIN
+        window.adminAction = async (act) => {
+            if(act === 'START') {
+                const roundCards = [];
+                for(let i=0; i<6; i++) {
+                    const c = deck[Math.floor(Math.random() * deck.length)];
+                    // TROJAN HORSE LOGIC: 20% chance to swap visual color
+                    let vis = c.category;
+                    if(Math.random() < 0.2) {
+                        const cats = ['WEALTH','STEAL','GAMBLE','TRAP','CHAOS'];
+                        vis = cats[Math.floor(Math.random()*cats.length)];
+                    }
+                    roundCards.push({ ...c, visualCategory: vis, actualCategory: c.category });
                 }
-            });
-        }
-        function resetAuctionEffects() {
-            document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
-            document.getElementById('sold-stamp').classList.add('hidden');
-            document.getElementById('unsold-stamp').classList.add('hidden');
-            document.getElementById('btn-next').classList.add('hidden');
-            document.getElementById('btn-next-wheel').classList.add('hidden');
-            document.getElementById('btn-reveal').classList.add('hidden');
-            document.getElementById('btn-spin-trigger').classList.add('hidden');
-            document.getElementById('wheel-stage').classList.remove('flex'); 
-            document.getElementById('wheel-stage').classList.add('hidden');
-            document.getElementById('wheel-result').classList.add('hidden');
-            window.hasProcessedSpin = false;
-        }
-        function startServerLoop() {
-            setInterval(() => {
-                if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                    const diff = gameState.bidDeadline - Date.now();
-                    if (diff <= 0) {
-                        update(ref(db, 'gameState'), { phase: 'SOLD' });
-                        document.getElementById('countdown-val').innerText = "0.0s";
-                        if(!gameState.highestBid) {
-                            setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
-                        }
-                    } else {
-                        document.getElementById('countdown-val').innerText = (diff/1000).toFixed(1) + "s";
+                await set(ref(db, 'gameState'), { phase: 'BIDDING', round: state.round, cards: roundCards, revealed: [false,false,false,false,false,false] });
+                await set(ref(db, 'roundBids'), {});
+            }
+            if(act === 'LOCK') update(ref(db, 'gameState'), { phase: 'REVEAL' });
+            if(act === 'NEXT') {
+                // Clear grid and start next round
+                await update(ref(db, 'gameState'), { phase: 'IDLE', round: state.round + 1 });
+                // Unfreeze players
+                const tSnap = await get(ref(db, 'teams'));
+                const t = tSnap.val();
+                for(let k in t) {
+                    if(t[k].frozen > 0) {
+                        await update(ref(db, `teams/${k}`), { frozen: 0, balance: 2000 });
                     }
                 }
-            }, 100);
-        }
-
-        const bidQueueRef = ref(db, 'bidQueue');
-        onChildAdded(bidQueueRef, async (snapshot) => {
-            const req = snapshot.val();
-            const key = snapshot.key;
-            if(!req) return;
-            const stateSnap = await get(ref(db, 'gameState'));
-            const state = stateSnap.val();
-            const teamRef = ref(db, `teams/${req.teamId}`);
-            let tSnap = await get(teamRef);
-            if (!tSnap.exists()) { await set(teamRef, { name: "Player", balance: 1000 }); tSnap = await get(teamRef); }
-            const team = tSnap.val();
-            const isSelf = (state.leaderId === req.teamId);
-            const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
-            const min = (state.highestBid || 0) + 50;
-            if (state.phase !== 'BIDDING' || req.amount < min) { await remove(ref(db, `bidQueue/${key}`)); return; }
-            if (team.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
-            if (state.leaderId && !isSelf) {
-                const prevRef = ref(db, `teams/${state.leaderId}`);
-                const pSnap = await get(prevRef);
-                if (pSnap.exists()) await update(prevRef, { balance: pSnap.val().balance + state.highestBid });
             }
-            await update(teamRef, { balance: team.balance - cost });
-            let newTime = state.bidDeadline;
-            if (newTime - Date.now() < 10000) newTime = Date.now() + 10000;
-            await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
-            await remove(ref(db, `bidQueue/${key}`));
-        });
+        };
         
-        async function executeCardEffect(cid, wid) {
-            const card = cardsData.find(c => c.id === cid);
-            const tSnap = await get(ref(db, 'teams'));
-            const teams = tSnap.val();
-            const winner = teams[wid];
-            const updates = {};
-            const others = Object.keys(teams).filter(id => id !== wid);
-            
-            // --- ITEM GRANT ---
-            if(card.type === 'ITEM') {
-                if (card.item === 'spy_active') {
-                    // Win Spy -> Stored for next round
-                    updates[`teams/${wid}/items/spy_stored`] = true;
-                } else {
-                    updates[`teams/${wid}/items/${card.item}`] = true;
-                }
-                update(ref(db), updates);
-                return;
-            }
-
-            const wRef = `teams/${wid}/balance`;
-            
-            // --- SMART MATH: Base Logic ---
-            let base = winner.balance;
-            if (card.val > 1) { 
-                base = winner.balance + (gameState.highestBid || 0);
-            }
-
-            // --- AUTO-BLOCK CHECK FUNCTION ---
-            const checkShield = (tid) => {
-                if (teams[tid].items && teams[tid].items.jade_seal) {
-                    updates[`teams/${tid}/items/jade_seal`] = null; // Consume Seal
-                    return true; // Blocked
-                }
-                return false;
-            };
-
-            if(card.type === 'ADD') {
-                updates[wRef] = winner.balance + card.val;
-                // If negative add, check shield? Usually self-inflicted bad cards are blocked too.
-                if (card.val < 0 && checkShield(wid)) {
-                    delete updates[wRef]; // Undo damage
-                }
-            }
-            else if(card.type === 'MULTIPLY') {
-                if(card.val < 1) { // Negative
-                    if (checkShield(wid)) {
-                        // Blocked
-                    } else {
-                        updates[wRef] = Math.floor(winner.balance * card.val);
-                    }
-                } else { // Positive
-                    updates[wRef] = Math.floor(base * card.val); 
-                }
-            }
-            else if(card.type === 'STEAL_PCT') {
-                let richestId = others[0];
-                others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
-                if(richestId) {
-                    if(checkShield(richestId)) {
-                        // Blocked!
-                    } else {
-                        const stolen = Math.floor(teams[richestId].balance * card.val);
-                        updates[wRef] = winner.balance + stolen;
-                        updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
-                    }
-                }
-            }
-            else if(card.type === 'STEAL_RIVAL') {
-                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-                const victimId = sorted[1]; 
-                if(victimId && victimId !== wid) {
-                     if(checkShield(victimId)) {
-                         // Blocked
-                     } else {
-                         const amt = Math.min(teams[victimId].balance, card.val);
-                         updates[wRef] = winner.balance + amt;
-                         updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
-                     }
-                }
-            }
-            else if(card.type === 'STEAL_CHOICE') {
-                const victimId = others[Math.floor(Math.random() * others.length)];
-                if(victimId) {
-                    if(checkShield(victimId)) {
-                        // Blocked
-                    } else {
-                        const amt = Math.floor(teams[victimId].balance * card.val);
-                        updates[wRef] = winner.balance + amt;
-                        updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
-                    }
-                }
-            }
-            else if(card.type === 'GIVE_LOW') {
-                const poorestId = others.sort((a,b) => teams[a].balance - teams[b].balance)[0];
-                if(poorestId) {
-                    const amt = Math.floor(winner.balance * card.val);
-                    updates[wRef] = winner.balance - amt;
-                    updates[`teams/${poorestId}/balance`] = teams[poorestId].balance + amt;
-                }
-            }
-            else if(card.type === 'GLOBAL_HIT') {
-                // Shared Bill: Everyone Loses % (e.g. 0.9)
-                others.forEach(oid => {
-                    if(!checkShield(oid)) {
-                        updates[`teams/${oid}/balance`] = Math.floor(teams[oid].balance * card.val);
-                    }
-                });
-            }
-            // CHAOS SWAP
-            else if(card.type === 'SWAP') {
-                const targetId = others[Math.floor(Math.random() * others.length)];
-                if(targetId) {
-                    if(checkShield(targetId)) {
-                        // Blocked
-                    } else {
-                        updates[wRef] = teams[targetId].balance;
-                        updates[`teams/${targetId}/balance`] = winner.balance;
-                    }
-                }
-            }
-            else if(card.type === 'PHOENIX') {
-                if(winner.balance < 1000) updates[wRef] = 5000;
-                else updates[wRef] = winner.balance + 1000;
-            }
-            else if(card.type === 'GIVE_CHOICE') {
-                updates[wRef] = winner.balance + card.val;
-                const allyId = others[Math.floor(Math.random() * others.length)];
-                if(allyId) updates[`teams/${allyId}/balance`] = teams[allyId].balance + card.val;
-            }
-            
-            if(Object.keys(updates).length) await update(ref(db), updates);
-        }
+        window.resetGame = () => { if(confirm("Reset?")) set(ref(db), { gameState: null, teams: null }); };
     </script>
 </body>
 </html>
