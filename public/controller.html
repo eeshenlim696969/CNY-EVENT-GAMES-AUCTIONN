@@ -7,22 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { background: #050505; color: white; font-family: 'Cinzel', serif; touch-action: manipulation; }
+        body { background: #050000; color: white; font-family: 'Cinzel', serif; touch-action: manipulation; }
         
-        .btn-card { height: 75px; border-radius: 12px; font-weight: 900; font-size: 24px; border: 2px solid #333; transition: all 0.15s; background: #222; }
-        .btn-card.selected { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: scale(1.05); }
+        .btn-card { height: 75px; border-radius: 12px; font-weight: 900; font-size: 24px; border: 2px solid #333; transition: all 0.15s; background: #1a1a1a; }
+        .btn-card.selected { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.5); transform: scale(1.05); color: black; }
         
-        .bg-WEALTH { border-color: #22c55e; color: #22c55e; }
-        .bg-STEAL { border-color: #ef4444; color: #ef4444; }
-        .bg-GAMBLE { border-color: #a855f7; color: #a855f7; }
-        .bg-TRAP { border-color: #f97316; color: #f97316; }
-        .bg-CHAOS { border-color: #94a3b8; color: #94a3b8; }
+        /* COLORS matching Projector */
+        .c-WEALTH { border-color: #22c55e; color: #22c55e; }
+        .selected.c-WEALTH { background: #22c55e; }
         
-        .btn-card.selected.bg-WEALTH { background: #22c55e; color: black; }
-        .btn-card.selected.bg-STEAL { background: #ef4444; color: black; }
-        .btn-card.selected.bg-GAMBLE { background: #a855f7; color: black; }
-        .btn-card.selected.bg-TRAP { background: #f97316; color: black; }
-        .btn-card.selected.bg-CHAOS { background: #94a3b8; color: black; }
+        .c-STEAL { border-color: #ef4444; color: #ef4444; }
+        .selected.c-STEAL { background: #ef4444; }
+        
+        .c-GAMBLE { border-color: #a855f7; color: #a855f7; }
+        .selected.c-GAMBLE { background: #a855f7; }
+        
+        .c-TRAP { border-color: #f97316; color: #f97316; }
+        .selected.c-TRAP { background: #f97316; }
+        
+        .c-CHAOS { border-color: #94a3b8; color: #94a3b8; }
+        .selected.c-CHAOS { background: #94a3b8; }
     </style>
 </head>
 <body class="h-[100dvh] flex flex-col p-4 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
@@ -30,54 +34,53 @@
     <div id="login" class="fixed inset-0 z-50 bg-black flex flex-col justify-center p-8">
         <h1 class="text-4xl text-center font-black mb-8 text-[#FFD700]">IMPERIAL<br>COURT</h1>
         <input id="name" class="bg-[#1a1a1a] border border-[#444] p-4 text-center text-xl rounded mb-4 text-white uppercase" placeholder="ENTER NAME">
-        <button onclick="window.login()" class="bg-[#FFD700] text-black font-black py-4 rounded text-xl shadow-[0_0_20px_gold]">JOIN GAME</button>
+        <button onclick="window.login()" class="bg-[#800000] text-[#FFD700] border border-[#FFD700] py-4 rounded font-bold text-xl shadow-lg">JOIN GAME</button>
     </div>
 
     <div id="game" class="hidden flex-col h-full">
-        
         <div class="flex justify-between items-end border-b border-gray-800 pb-2 mb-4">
             <div>
-                <div class="text-[10px] text-gray-500 tracking-widest">COMMANDER</div>
-                <div id="p-name" class="font-bold text-lg text-white leading-none">--</div>
+                <div class="text-[10px] text-gray-500 tracking-widest">BIDDER</div>
+                <div id="p-name" class="font-bold text-lg text-white">--</div>
             </div>
             <div class="text-right">
-                <div class="text-[10px] text-gray-500 tracking-widest">TREASURY</div>
-                <div class="font-black text-2xl text-[#FFD700] leading-none">$<span id="bal">--</span></div>
+                <div class="text-[10px] text-gray-500 tracking-widest">FUNDS</div>
+                <div class="font-black text-2xl text-[#FFD700]">$<span id="bal">--</span></div>
             </div>
         </div>
 
         <div id="view-bid" class="flex-1 flex flex-col hidden">
-            <p class="text-center text-gray-500 mb-2 text-xs uppercase tracking-[0.2em]">Select Envelope</p>
+            <p class="text-center text-gray-500 mb-2 text-[10px] tracking-[0.2em] uppercase">Select Target</p>
             <div class="grid grid-cols-2 gap-4 mb-6" id="btn-grid"></div>
 
             <div class="bg-[#111] p-4 rounded-xl border border-gray-800 mb-4">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-bold text-gray-500 tracking-widest">BID AMOUNT</span>
-                    <span id="allin-tag" class="text-xs bg-red-600 px-2 py-0.5 rounded font-bold hidden">ALL IN ACTIVE</span>
+                    <span class="text-xs font-bold text-gray-500 tracking-widest">AMOUNT</span>
+                    <span id="all-in-tag" class="text-xs bg-red-600 px-2 py-0.5 rounded font-bold hidden">ALL IN</span>
                 </div>
-                <input type="number" id="amt" class="w-full bg-black border border-gray-700 p-4 text-3xl text-center rounded text-white font-mono" placeholder="0">
+                <input type="number" id="amt" class="w-full bg-black border border-gray-600 p-4 text-3xl text-center rounded text-white font-mono" placeholder="0">
                 
                 <div class="flex items-center gap-3 mt-4 p-3 bg-red-900/10 rounded border border-red-900/30 cursor-pointer" onclick="document.getElementById('allin').click()">
                     <input type="checkbox" id="allin" class="w-6 h-6 accent-red-600" onchange="window.toggleAllIn()">
-                    <label for="allin" class="font-bold text-red-500 text-sm">GO ALL IN (x3 Rewards)</label>
+                    <label for="allin" class="font-bold text-red-500 text-sm">GO ALL IN (x3 Power)</label>
                 </div>
             </div>
 
-            <button onclick="window.submitBid()" id="btn-submit" class="bg-blue-600 text-white font-black py-5 rounded-xl text-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] transition transform active:scale-95">
+            <button onclick="window.submitBid()" id="btn-submit" class="bg-blue-600 text-white font-black py-5 rounded-xl text-xl shadow-[0_0_20px_rgba(37,99,235,0.3)]">
                 PLACE BID
             </button>
         </div>
 
         <div id="view-wait" class="flex-1 flex flex-col justify-center items-center text-center hidden">
-            <div class="text-6xl mb-4 animate-bounce">🔒</div>
+            <div class="text-6xl mb-4 animate-pulse">🔒</div>
             <h2 class="text-2xl font-bold">LOCKED IN</h2>
-            <p class="text-gray-500 mt-2">Eyes on the Screen...</p>
+            <p class="text-gray-500 mt-2">Watch the Screen...</p>
         </div>
 
         <div id="view-frozen" class="flex-1 flex flex-col justify-center items-center text-center hidden bg-red-900/20 rounded-xl border-2 border-red-900">
             <div class="text-7xl mb-4">🧊</div>
             <h2 class="text-3xl font-black text-red-500">BANKRUPT</h2>
-            <p class="text-gray-400 mt-2 px-8">You are frozen for 1 round.</p>
+            <p class="text-gray-400 mt-2 px-8">Frozen for 1 Round.</p>
         </div>
     </div>
 
@@ -115,20 +118,17 @@
                 balance = t.balance;
                 document.getElementById('p-name').innerText = t.name;
                 document.getElementById('bal').innerText = balance.toLocaleString();
-                
                 if(t.frozen > 0) showView('view-frozen');
-                else if(document.getElementById('view-frozen').classList.contains('flex')) showView('view-wait'); 
+                else if(document.getElementById('view-frozen').classList.contains('flex')) showView('view-wait');
             });
 
             onValue(ref(db, 'gameState'), snap => {
                 const st = snap.val();
-                if(!st) return;
-                
                 if(st.phase === 'BIDDING') {
                     const grid = document.getElementById('btn-grid');
                     grid.innerHTML = '';
                     st.cards.forEach((c, i) => {
-                        grid.innerHTML += `<button onclick="window.sel(${i})" id="btn-${i}" class="btn-card bg-${c.visualCategory}">${i+1}</button>`;
+                        grid.innerHTML += `<button onclick="window.sel(${i})" id="btn-${i}" class="btn-card c-${c.visualCategory}">${i+1}</button>`;
                     });
                     
                     if(document.getElementById('view-frozen').classList.contains('hidden')) {
@@ -137,7 +137,6 @@
                         btn.disabled = false;
                         btn.innerText = "PLACE BID";
                         btn.classList.remove('opacity-50');
-                        // Reset Selection
                         selectedIdx = -1;
                     }
                 } else {
@@ -156,23 +155,19 @@
             const is = document.getElementById('allin').checked;
             const inp = document.getElementById('amt');
             if(is) { 
-                inp.value = balance; 
-                inp.disabled = true; 
-                document.getElementById('all-in-tag').classList.remove('hidden');
+                inp.value = balance; inp.disabled = true; document.getElementById('all-in-tag').classList.remove('hidden'); 
             } else { 
-                inp.disabled = false; 
-                document.getElementById('all-in-tag').classList.add('hidden');
+                inp.disabled = false; document.getElementById('all-in-tag').classList.add('hidden'); 
             }
         }
 
         window.submitBid = async () => {
-            if(selectedIdx === -1) return alert("SELECT A CARD FIRST!");
+            if(selectedIdx === -1) return alert("Select an Envelope!");
             const val = parseInt(document.getElementById('amt').value);
-            if(isNaN(val) || val <= 0) return alert("ENTER BID AMOUNT!");
-            if(val > balance) return alert("NOT ENOUGH MONEY!");
+            if(isNaN(val) || val <= 0) return alert("Enter Amount!");
+            if(val > balance) return alert("Insufficient Funds!");
             
             const isAll = document.getElementById('allin').checked;
-            
             const btn = document.getElementById('btn-submit');
             btn.innerText = "LOCKED IN";
             btn.disabled = true;
