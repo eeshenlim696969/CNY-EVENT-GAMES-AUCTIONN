@@ -152,9 +152,9 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.1;
 
-        // --- FINAL BALANCED CARD DATA (All Negatives are %) ---
+        // --- FINAL CARD DATA ---
         const cardsData = [
-            { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
+            { id: 1, name: "The Magic Bowl", desc: "+5,000 Points", type: "ADD", val: 5000 },
             { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 },
             { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
             { id: 4, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
@@ -169,12 +169,12 @@
             { id: 13, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
             { id: 14, name: "Twin Carp", desc: "+5,000 You & Ally", type: "GIVE_CHOICE", val: 5000 },
             { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" }, // Stored as 'spy_active'
+            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
             { id: 17, name: "Phoenix", desc: "Reset to 5k if <1k", type: "PHOENIX", val: 0 },
             { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
-            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, // Multiplier for Global
+            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
             { id: 20, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Win 100% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 21, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
             { id: 22, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
             { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
             { id: 24, name: "Lucky Song", desc: "+6,000 Points", type: "ADD", val: 6000 },
@@ -230,6 +230,7 @@
                     if(!window.hasProcessedSpin) {
                         window.hasProcessedSpin = true;
                         spinner.style.transition = "transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)";
+                        
                         requestAnimationFrame(() => {
                             spinner.style.transform = `rotate(${rotation}deg)`;
                             sfxSpin.currentTime = 0; sfxSpin.play();
@@ -242,7 +243,6 @@
                             res.style.color = isWin ? '#00ff00' : '#ff0000';
                             document.getElementById('btn-next-wheel').classList.remove('hidden');
                             
-                            // CALCULATE MATH HERE
                             if(gameState.leaderId) {
                                 const tRef = ref(db, `teams/${gameState.leaderId}`);
                                 const s = await get(tRef);
@@ -252,8 +252,8 @@
                                     let newBal = t.balance;
                                     
                                     if(gameState.wagerAmount === "MYSTERY") {
-                                        if(isWin) newBal = t.balance + baseVal; // +100%
-                                        else newBal = Math.max(0, t.balance - Math.floor(t.balance * 0.5));
+                                        if(isWin) newBal = t.balance + Math.floor(baseVal * 2.0); 
+                                        else newBal = Math.floor(t.balance * 0.5);
                                     } else {
                                         const w = parseInt(gameState.wagerAmount);
                                         if(isWin) newBal = t.balance + w;
@@ -304,7 +304,6 @@
             }
         });
 
-        // REVEAL LOGIC
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
@@ -353,9 +352,7 @@
                 let cls = isDead ? 'rank-dead' : (idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : '')));
                 const div = document.createElement('div');
                 div.className = `p-3 flex justify-between bg-black/40 ${cls} mb-1 border-b border-white/5`;
-                // Show Jade Seal Icon if protected
-                const icon = t.items && t.items.jade_seal ? '🛡️' : (idx===0 ? '👑' : '');
-                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div></div><div>${icon}</div>`;
+                div.innerHTML = `<div><div class="font-bold text-white">${t.name}</div><div class="text-xs ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div></div>${t.immune ? '🛡️' : ''}`;
                 roster.appendChild(div);
             });
         });
@@ -392,6 +389,7 @@
             
             if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
 
+            // FORCE CLEAN RESET
             if (action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -408,11 +406,6 @@
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
                     for(let k in t) { 
-                        // SPY LOGIC: Move spy_active to trash, but keep new spy items?
-                        // Simple: Spy is one-time use per round.
-                        // If they had 'spy_active', delete it.
-                        // If they have 'spy_stored' (just won it), move to 'spy_active'.
-                        
                         if(t[k].items) {
                             if(t[k].items.spy_active) updates[`teams/${k}/items/spy_active`] = null;
                             if(t[k].items.spy_stored) {
