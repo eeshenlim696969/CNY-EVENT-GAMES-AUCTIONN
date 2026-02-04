@@ -14,7 +14,6 @@
         .btn-card:active { transform: scale(0.95); }
         .btn-card.selected { border-color: white; box-shadow: 0 0 15px white; transform: scale(1.05); }
         
-        /* MATCHING COLORS */
         .bg-WEALTH { background: #15803d; }
         .bg-STEAL { background: #b91c1c; }
         .bg-GAMBLE { background: #7e22ce; }
@@ -27,7 +26,7 @@
     <div id="login" class="fixed inset-0 z-50 bg-black flex flex-col justify-center p-8">
         <h1 class="font-imp text-4xl text-center mb-6 text-[#FFD700]">IMPERIAL<br>COURT</h1>
         <input id="name" class="bg-gray-900 border border-gray-700 p-4 text-center text-xl rounded mb-4 text-white" placeholder="Enter Dynasty Name">
-        <button onclick="login()" class="bg-[#800000] text-[#FFD700] border border-[#FFD700] py-4 rounded font-bold text-xl">JOIN EMPIRE</button>
+        <button onclick="window.login()" class="bg-[#800000] text-[#FFD700] border border-[#FFD700] py-4 rounded font-bold text-xl">JOIN EMPIRE</button>
     </div>
 
     <div id="game" class="hidden flex-col h-full">
@@ -45,8 +44,7 @@
 
         <div id="view-bid" class="flex-1 flex flex-col hidden">
             <p class="text-center text-gray-400 mb-2 text-xs uppercase tracking-widest">Select Envelope</p>
-            <div class="grid grid-cols-2 gap-3 mb-6" id="btn-grid">
-                </div>
+            <div class="grid grid-cols-2 gap-3 mb-6" id="btn-grid"></div>
 
             <div class="bg-[#111] p-4 rounded border border-gray-800 mb-4">
                 <div class="flex justify-between items-center mb-4">
@@ -57,12 +55,12 @@
                 <input type="number" id="amt" class="w-full bg-black border border-gray-700 p-4 text-2xl text-center rounded text-white font-mono" placeholder="0">
                 
                 <div class="flex items-center gap-3 mt-4 p-3 bg-red-900/20 rounded border border-red-900/50">
-                    <input type="checkbox" id="allin" class="w-6 h-6 accent-red-600" onchange="toggleAllIn()">
+                    <input type="checkbox" id="allin" class="w-6 h-6 accent-red-600" onchange="window.toggleAllIn()">
                     <label for="allin" class="font-bold text-red-500">GO ALL IN (x3 Rewards)</label>
                 </div>
             </div>
 
-            <button onclick="submitBid()" id="btn-submit" class="bg-[#FFD700] text-black py-4 rounded font-black text-xl shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+            <button onclick="window.submitBid()" id="btn-submit" class="bg-[#FFD700] text-black py-4 rounded font-black text-xl shadow-[0_0_20px_rgba(255,215,0,0.3)]">
                 PLACE BID
             </button>
         </div>
@@ -96,11 +94,8 @@
             const n = document.getElementById('name').value.trim();
             if(!n) return;
             const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
-            
-            // Duplicate Check
             const s = await get(ref(db, `teams/${id}`));
             if(s.exists()) { alert("NAME TAKEN!"); return; }
-            
             await set(ref(db, `teams/${id}`), { name: n, balance: 2000, frozen: 0 });
             localStorage.setItem('id', id); myId = id;
             init();
@@ -111,28 +106,22 @@
             document.getElementById('game').classList.remove('hidden');
             document.getElementById('game').classList.add('flex');
 
-            // My Data
             onValue(ref(db, `teams/${myId}`), snap => {
                 const t = snap.val();
-                if(!t) return;
                 balance = t.balance;
                 document.getElementById('p-name').innerText = t.name;
                 document.getElementById('bal').innerText = balance.toLocaleString();
-                
-                // Frozen Check
                 if(t.frozen > 0) showView('view-frozen');
-                else if(document.getElementById('view-frozen').classList.contains('flex')) showView('view-wait'); // Unfreeze logic
+                else if(document.getElementById('view-frozen').classList.contains('flex')) showView('view-wait'); 
             });
 
-            // Game State
             onValue(ref(db, 'gameState'), snap => {
                 const st = snap.val();
                 if(st.phase === 'BIDDING') {
-                    // Render Buttons
                     const grid = document.getElementById('btn-grid');
                     grid.innerHTML = '';
                     st.cards.forEach((c, i) => {
-                        grid.innerHTML += `<button onclick="sel(${i})" id="btn-${i}" class="btn-card bg-${c.visualCategory}">${i+1}</button>`;
+                        grid.innerHTML += `<button onclick="window.sel(${i})" id="btn-${i}" class="btn-card bg-${c.visualCategory}">${i+1}</button>`;
                     });
                     
                     if(document.getElementById('view-frozen').classList.contains('hidden')) {
@@ -142,9 +131,7 @@
                         document.getElementById('btn-submit').classList.remove('opacity-50');
                     }
                 } else {
-                    if(document.getElementById('view-frozen').classList.contains('hidden')) {
-                        showView('view-wait');
-                    }
+                    if(document.getElementById('view-frozen').classList.contains('hidden')) showView('view-wait');
                 }
             });
         }
@@ -158,14 +145,8 @@
         window.toggleAllIn = () => {
             const is = document.getElementById('allin').checked;
             const inp = document.getElementById('amt');
-            if(is) { 
-                inp.value = balance; 
-                inp.disabled = true; 
-                document.getElementById('all-in-badge').classList.remove('hidden');
-            } else { 
-                inp.disabled = false; 
-                document.getElementById('all-in-badge').classList.add('hidden');
-            }
+            if(is) { inp.value = balance; inp.disabled = true; document.getElementById('all-in-badge').classList.remove('hidden'); }
+            else { inp.disabled = false; document.getElementById('all-in-badge').classList.add('hidden'); }
         }
 
         window.submitBid = async () => {
@@ -175,18 +156,11 @@
             if(val > balance) return alert("Insufficient funds!");
             
             const isAll = document.getElementById('allin').checked;
-            
             document.getElementById('btn-submit').innerText = "BID SUBMITTED";
             document.getElementById('btn-submit').disabled = true;
             document.getElementById('btn-submit').classList.add('opacity-50');
 
-            await push(ref(db, 'roundBids'), {
-                teamId: myId,
-                cardIdx: selectedIdx,
-                amount: val,
-                isAllIn: isAll
-            });
-            
+            await push(ref(db, 'roundBids'), { teamId: myId, cardIdx: selectedIdx, amount: val, isAllIn: isAll });
             showView('view-wait');
         }
 
