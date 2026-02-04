@@ -8,132 +8,133 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <style>
-        :root { --gold: #FFD700; }
+        :root { --gold: #FFD700; --red: #2a0a0a; }
         body { 
-            background-color: #2a0a0a;
+            background-color: var(--red);
             background-image: url("https://www.transparenttextures.com/patterns/black-scales.png");
             color: #fff; font-family: 'Cinzel', serif; overflow: hidden;
         }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         .gold-text { 
-            background: linear-gradient(to bottom, #FFD700, #B8860B); 
+            background: linear-gradient(to bottom, #FFD700, #FDB931); 
             -webkit-background-clip: text; color: transparent; 
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        /* 3D CARD ENGINE */
-        .card-scene { perspective: 1500px; width: 100%; height: 100%; cursor: pointer; z-index: 10; }
+        /* 3D CARD */
+        .card-scene { perspective: 1500px; width: 100%; height: 100%; cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        .card-scene:hover { transform: translateY(-5px); }
+        
         .card-obj { 
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d; 
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
-        
-        /* The Flip Class */
         .card-obj.flipped { transform: rotateY(180deg); }
 
         .card-face {
             position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center;
             background: #1a1a1a; border: 3px solid var(--gold);
         }
 
-        /* FRONT (Red Envelope) - Initially Visible */
-        .card-front {
-            background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
-            /* No rotation needed, this is the default state */
-        }
-
-        /* BACK (Result) - Initially Hidden (Rotated 180) */
-        .card-back {
-            transform: rotateY(180deg);
-            background: #000;
-        }
+        .card-front { background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%); } /* Red Envelope */
+        .card-back { transform: rotateY(180deg); background: #000; } /* Result */
 
         /* THEMES */
-        .theme-WEALTH { border-color: #10b981; box-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
-        .theme-STEAL { border-color: #ef4444; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3); }
-        .theme-GAMBLE { border-color: #a855f7; box-shadow: 0 0 30px rgba(168, 85, 247, 0.3); }
-        .theme-TRAP { border-color: #f97316; box-shadow: 0 0 30px rgba(249, 115, 22, 0.3); }
-        .theme-CHAOS { border-color: #94a3b8; box-shadow: 0 0 30px rgba(148, 163, 184, 0.3); }
+        .theme-WEALTH { border-color: #10b981; box-shadow: 0 0 25px rgba(16, 185, 129, 0.4); }
+        .theme-STEAL { border-color: #ef4444; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); }
+        .theme-GAMBLE { border-color: #a855f7; box-shadow: 0 0 25px rgba(168, 85, 247, 0.4); }
+        .theme-TRAP { border-color: #f97316; box-shadow: 0 0 25px rgba(249, 115, 22, 0.4); }
+        .theme-CHAOS { border-color: #94a3b8; box-shadow: 0 0 25px rgba(148, 163, 184, 0.4); }
 
-        /* MODAL */
+        /* MODAL FIX */
         #focus-modal { transition: opacity 0.3s; pointer-events: none; opacity: 0; }
         #focus-modal.active { pointer-events: auto; opacity: 1; }
+        /* Adjusted scale to fit screen better */
         #focus-card { transition: transform 0.8s; transform: scale(0.5) rotateY(0deg); }
-        #focus-modal.active #focus-card { transform: scale(1) rotateY(180deg); }
+        #focus-modal.active #focus-card { transform: scale(0.85) rotateY(180deg); } 
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col">
 
     <div id="click-wall" class="fixed inset-0 z-[999] bg-black/95 flex flex-col items-center justify-center cursor-pointer" onclick="initAudio()">
-        <div class="text-7xl mb-6">🔊</div>
-        <div class="text-4xl font-bold gold-text animate-pulse">CLICK TO START ENGINE</div>
+        <div class="text-7xl mb-6 animate-bounce">🔊</div>
+        <div class="text-4xl font-bold gold-text">CLICK TO INITIALIZE</div>
     </div>
 
     <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
     <audio id="sfx-start" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
+    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2555/2555-preview.mp3"></audio>
 
-    <header class="h-28 flex justify-between items-center px-12 border-b-2 border-[#FFD700] bg-[#1a0505]/95 z-40 relative shadow-2xl">
-        <div class="flex items-center gap-6">
-            <span class="text-6xl drop-shadow-[0_0_15px_gold]">👑</span>
+    <header class="h-24 flex justify-between items-center px-10 border-b-2 border-[#FFD700] bg-[#1a0505]/95 z-40 relative shadow-2xl">
+        <div class="flex items-center gap-4">
+            <span class="text-5xl drop-shadow-[0_0_15px_gold]">🏮</span>
             <div>
-                <h1 class="text-5xl font-black gold-text tracking-widest">IMPERIAL COURT</h1>
-                <div class="text-sm text-[#FFD700]/70 tracking-[0.4em] uppercase font-bold">High Stakes Auction</div>
+                <h1 class="text-4xl font-black gold-text tracking-widest">IMPERIAL COURT</h1>
+                <div class="text-xs text-[#FFD700]/70 tracking-[0.4em] uppercase font-bold">High Stakes Auction</div>
             </div>
         </div>
         <div class="text-center">
-            <div class="text-xs text-[#FFD700]/70 tracking-[0.5em] uppercase mb-1">Current Round</div>
-            <div id="round-disp" class="text-6xl font-black text-white drop-shadow-md font-chinese">LOBBY</div>
+            <div class="text-xs text-[#FFD700]/70 tracking-[0.5em] uppercase mb-1">Round</div>
+            <div id="round-disp" class="text-5xl font-black text-white drop-shadow-md font-chinese">LOBBY</div>
         </div>
-        <button onclick="window.fullReset()" class="px-4 py-2 border-2 border-red-800 text-red-500 hover:bg-red-900/50 rounded-lg font-bold text-sm">HARD RESET</button>
+        <button onclick="window.fullReset()" class="px-4 py-2 border-2 border-red-800 text-red-500 hover:bg-red-900/50 rounded-lg font-bold text-xs">RESET</button>
     </header>
 
-    <div class="flex-1 p-10 flex gap-10 z-10 relative overflow-hidden">
+    <div class="flex-1 p-8 flex gap-8 z-10 relative overflow-hidden">
         
         <div id="lobby-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md">
-            <h1 class="text-8xl gold-text font-black mb-8 drop-shadow-2xl font-chinese">THE GATES ARE OPEN</h1>
-            <div id="player-count" class="text-4xl text-[#FFD700] mb-16 tracking-widest border-b-4 border-[#FFD700] pb-4 font-bold">0 NOBLES READY</div>
-            <button onclick="window.startGame()" class="px-20 py-8 bg-gradient-to-b from-[#FFD700] to-[#B8860B] text-black font-black text-5xl rounded-xl shadow-[0_0_60px_gold] hover:scale-105 transition cursor-pointer pointer-events-auto">BEGIN AUCTION</button>
+            <h1 class="text-8xl gold-text font-black mb-8 font-chinese drop-shadow-2xl">OPEN THE GATES</h1>
+            <div id="player-count" class="text-3xl text-[#FFD700] mb-12 tracking-widest border-b-4 border-[#FFD700] pb-4 font-bold">0 PLAYERS</div>
+            <button onclick="window.startGame()" class="px-16 py-6 bg-gradient-to-b from-[#FFD700] to-[#B8860B] text-black font-black text-4xl rounded-xl shadow-[0_0_50px_gold] hover:scale-105 transition pointer-events-auto cursor-pointer">BEGIN</button>
         </div>
 
-        <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-8 perspective-[2000px]"></div>
+        <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6 perspective-[2000px]"></div>
 
-        <div class="w-[450px] bg-[#1a0505]/95 border-2 border-[#FFD700] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-6 border-b-2 border-[#FFD700] bg-gradient-to-b from-[#2a0a0a] to-[#1a0505]">
-                <h2 class="text-center gold-text tracking-[0.2em] font-black text-2xl">DYNASTY RANKINGS</h2>
+        <div class="w-[400px] bg-[#1a0505]/95 border-2 border-[#FFD700] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b-2 border-[#FFD700] bg-gradient-to-b from-[#2a0a0a] to-[#1a0505]">
+                <h2 class="text-center gold-text tracking-[0.2em] font-black text-xl">RANKINGS</h2>
             </div>
             <div id="roster" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
         </div>
     </div>
 
-    <div class="h-32 bg-[#1a0505]/95 border-t-2 border-[#FFD700] flex justify-center items-center gap-12 z-40 relative shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        <div id="status-text" class="absolute left-12 text-4xl font-black text-gray-500 tracking-widest font-chinese">--</div>
-        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-16 py-5 bg-red-800 text-white font-black text-3xl rounded-xl shadow-[0_0_40px_red] hover:scale-105 transition border-4 border-red-600">STOP BIDDING</button>
-        <button onclick="window.nextRound()" id="btn-next" class="hidden px-16 py-5 bg-[#FFD700] text-black font-black text-3xl rounded-xl shadow-[0_0_40px_gold] hover:scale-105 transition border-4 border-white">NEXT ROUND</button>
-        <div id="msg-hint" class="hidden text-[#FFD700]/80 text-2xl animate-pulse tracking-widest font-bold">CLICK CARDS TO REVEAL</div>
+    <div class="h-28 bg-[#1a0505]/95 border-t-2 border-[#FFD700] flex justify-center items-center gap-12 z-40 relative shadow-2xl">
+        <div id="timer-container" class="absolute left-10 hidden">
+            <div class="text-xs text-gray-400 tracking-widest mb-1">TIME REMAINING</div>
+            <div id="timer-val" class="text-5xl font-black text-white font-mono">20</div>
+        </div>
+
+        <div id="status-text" class="text-4xl font-black text-gray-500 tracking-widest font-chinese">--</div>
+        
+        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-12 py-4 bg-red-800 text-white font-black text-2xl rounded-xl shadow-[0_0_30px_red] hover:scale-105 transition border-4 border-red-600">STOP BIDDING</button>
+        
+        <button onclick="window.nextRound()" id="btn-next" class="hidden px-12 py-4 bg-[#FFD700] text-black font-black text-2xl rounded-xl shadow-[0_0_30px_gold] hover:scale-105 transition border-4 border-white">NEXT ROUND</button>
+        
+        <div id="msg-hint" class="hidden text-[#FFD700]/80 text-xl animate-pulse tracking-widest font-bold">CLICK CARD TO REVEAL</div>
     </div>
 
     <div id="focus-modal" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-lg opacity-0 pointer-events-none transition-opacity duration-500">
-        <div class="relative w-[550px] h-[800px] perspective-[2000px]">
+        <div class="relative w-[500px] h-[700px] perspective-[2000px]">
             <div id="focus-card" class="w-full h-full relative transform-style-3d shadow-2xl transition-transform duration-700">
                 <div id="f-front" class="absolute inset-0 backface-hidden rounded-3xl border-4 border-[#FFD700] bg-gradient-to-br from-[#7f1d1d] to-[#450a0a] flex items-center justify-center">
-                    <div class="text-[200px] opacity-20">?</div>
+                    <div class="text-[150px] opacity-20 select-none">?</div>
                 </div>
-                <div id="f-back" class="absolute inset-0 backface-hidden rounded-3xl border-4 bg-[#0a0a0a] flex flex-col items-center justify-center p-10 text-center" style="transform: rotateY(180deg);">
-                    <div id="f-cat" class="text-lg font-bold uppercase tracking-[0.4em] text-gray-400 mb-8">CATEGORY</div>
-                    <div id="f-title" class="text-6xl font-black text-white leading-tight mb-6 font-chinese">Title</div>
-                    <div id="f-val" class="text-9xl font-black gold-text mb-10 drop-shadow-xl">+$$$</div>
-                    <div class="w-full h-1 bg-[#FFD700]/30 mb-10"></div>
-                    <div class="text-sm text-[#FFD700]/70 uppercase tracking-widest mb-3 font-bold">WINNING BIDDER</div>
-                    <div id="f-winner" class="text-5xl font-black text-white">NAME</div>
-                    <div id="f-cost" class="text-red-500 font-mono text-3xl mt-3 font-bold">-$0</div>
+                <div id="f-back" class="absolute inset-0 backface-hidden rounded-3xl border-4 bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center" style="transform: rotateY(180deg);">
+                    <div id="f-cat" class="text-sm font-bold uppercase tracking-[0.4em] text-gray-400 mb-6">CATEGORY</div>
+                    <div id="f-title" class="text-5xl font-black text-white leading-tight mb-4 font-chinese">Title</div>
+                    <div id="f-val" class="text-7xl font-black gold-text mb-8 drop-shadow-xl">+$$$</div>
+                    <div class="w-full h-1 bg-[#FFD700]/30 mb-8"></div>
+                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">WINNER</div>
+                    <div id="f-winner" class="text-4xl font-bold text-white">NAME</div>
+                    <div id="f-cost" class="text-red-500 font-mono text-2xl mt-2 font-bold">-$0</div>
                 </div>
             </div>
         </div>
-        <button onclick="window.closeFocus()" class="absolute bottom-12 px-16 py-4 border-2 border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl tracking-widest cursor-pointer pointer-events-auto font-bold text-xl transition-all">CLOSE VIEW</button>
+        <button onclick="window.closeFocus()" class="absolute bottom-8 px-12 py-3 border-2 border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl tracking-widest cursor-pointer pointer-events-auto font-bold text-xl transition-all">CLOSE</button>
     </div>
 
     <script type="module">
@@ -144,30 +145,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const sfx = { flip: document.getElementById('sfx-flip'), win: document.getElementById('sfx-win'), trap: document.getElementById('sfx-trap'), start: document.getElementById('sfx-start') };
+        const sfx = { flip: document.getElementById('sfx-flip'), win: document.getElementById('sfx-win'), trap: document.getElementById('sfx-trap'), start: document.getElementById('sfx-start'), tick: document.getElementById('sfx-tick') };
         window.initAudio = () => { document.getElementById('click-wall').remove(); sfx.start.play().catch(e => console.log("Audio waiting...")); };
 
+        // --- IMPROVED CARD DATA ---
         const deck = [
             { name: "Magic Bowl", val: 8000, type: "ADD", cat: "WEALTH" },
             { name: "Tax Refund", val: 12000, type: "ADD", cat: "WEALTH" },
             { name: "Gold Mine", val: 20000, type: "ADD", cat: "WEALTH" },
-            { name: "Interest", val: 1.5, type: "MULTIPLY", cat: "WEALTH" },
-            { name: "Bull Run", val: 2.0, type: "MULTIPLY", cat: "WEALTH" },
+            { name: "Interest", val: 0.50, type: "MULTIPLY", cat: "WEALTH" }, // +50% Profit
+            { name: "Bull Run", val: 1.00, type: "MULTIPLY", cat: "WEALTH" }, // +100% Profit (Double)
             { name: "Jackpot", val: 50000, type: "ADD", cat: "WEALTH" },
             { name: "Pickpocket", val: 5000, type: "STEAL_FLAT", cat: "STEAL" },
             { name: "Mugger", val: 15000, type: "STEAL_FLAT", cat: "STEAL" },
             { name: "Taxman", val: 0.30, type: "STEAL_PCT", cat: "STEAL" },
-            { name: "Embezzle", val: 0.40, type: "STEAL_PCT", cat: "STEAL" },
             { name: "Coin Flip", val: 50000, type: "GAMBLE", cat: "GAMBLE" },
             { name: "High Roller", val: 3.0, type: "GAMBLE", cat: "GAMBLE" },
             { name: "Scam", val: 0.5, type: "TRAP", cat: "TRAP" },
             { name: "Rug Pull", val: 0.25, type: "TRAP", cat: "TRAP" },
-            { name: "Audit", val: 0, type: "TRAP", cat: "TRAP" },
             { name: "The Nuke", val: 0.5, type: "CHAOS", cat: "CHAOS" },
             { name: "Socialism", val: 0, type: "CHAOS", cat: "CHAOS" }
         ];
 
         let state = { phase: 'LOBBY', round: 0, cards: [] };
+        let timerInterval;
 
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
@@ -176,10 +177,7 @@
             
             const lobby = document.getElementById('lobby-view');
             const status = document.getElementById('status-text');
-            const btnLock = document.getElementById('btn-lock');
-            const btnNext = document.getElementById('btn-next');
-            const msgHint = document.getElementById('msg-hint');
-
+            
             if (state.phase === 'LOBBY') {
                 lobby.classList.remove('hidden');
                 document.getElementById('grid').innerHTML = '';
@@ -188,19 +186,29 @@
             else if (state.phase === 'BIDDING') {
                 lobby.classList.add('hidden');
                 document.getElementById('round-disp').innerText = state.round;
-                status.innerText = "BIDDING OPEN";
-                status.className = "absolute left-12 text-4xl font-black text-green-500 tracking-widest animate-pulse font-chinese";
-                btnLock.classList.remove('hidden');
-                btnNext.classList.add('hidden');
-                msgHint.classList.add('hidden');
-                renderGrid(false);
+                status.classList.add('hidden'); // Hide status text, show timer
+                
+                document.getElementById('btn-lock').classList.remove('hidden');
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('msg-hint').classList.add('hidden');
+                document.getElementById('timer-container').classList.remove('hidden');
+                
+                startTimer(20);
+                
+                // Force Redraw if empty
+                const grid = document.getElementById('grid');
+                if(grid.childElementCount === 0) renderGrid(false);
             }
             else if (state.phase === 'REVEAL') {
+                clearInterval(timerInterval);
+                document.getElementById('timer-container').classList.add('hidden');
+                status.classList.remove('hidden');
                 status.innerText = "REVEAL PHASE";
                 status.className = "absolute left-12 text-4xl font-black text-[#FFD700] tracking-widest font-chinese";
-                btnLock.classList.add('hidden');
-                btnNext.classList.remove('hidden');
-                msgHint.classList.remove('hidden');
+                
+                document.getElementById('btn-lock').classList.add('hidden');
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('msg-hint').classList.remove('hidden');
             }
         });
 
@@ -227,12 +235,8 @@
                 let col = "text-gray-400";
                 if(idx===0) col = "text-[#FFD700] font-black";
                 if(idx===1) col = "text-gray-300 font-bold";
-                
-                let freezeText = "";
-                if(t.frozen > 0) freezeText = ` (FROZEN: ${t.frozen})`;
-
                 div.className = `flex justify-between p-3 border-b border-white/10 ${t.frozen > 0 ? 'opacity-50 line-through text-red-500' : col} text-lg`;
-                div.innerHTML = `<span>#${idx+1} ${t.name}${freezeText}</span><span class="font-mono">$${t.balance.toLocaleString()}</span>`;
+                div.innerHTML = `<span>#${idx+1} ${t.name}</span><span class="font-mono">$${t.balance.toLocaleString()}</span>`;
                 roster.appendChild(div);
             });
         });
@@ -241,7 +245,6 @@
             const grid = document.getElementById('grid');
             if(grid.childElementCount > 0 && !isReveal) return;
             grid.innerHTML = '';
-            
             if(!state.cards) return;
 
             state.cards.forEach((card, idx) => {
@@ -270,6 +273,23 @@
             });
         }
 
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            let t = seconds;
+            const el = document.getElementById('timer-val');
+            el.innerText = t;
+            timerInterval = setInterval(() => {
+                t--;
+                el.innerText = t;
+                if(t <= 5 && t > 0) sfx.tick.play();
+                if(t <= 0) {
+                    clearInterval(timerInterval);
+                    window.closeBidding(); // Auto close
+                }
+            }, 1000);
+        }
+
+        // --- GLOBAL FUNCTIONS ---
         window.startGame = async () => {
             sfx.start.play();
             const cards = generateCards();
@@ -278,7 +298,7 @@
         };
 
         window.fullReset = async () => {
-            if(confirm("HARD RESET SYSTEM? This deletes all data.")) {
+            if(confirm("HARD RESET SYSTEM?")) {
                 await set(ref(db), { gameState: { phase: 'LOBBY', round: 0 }, teams: {}, roundBids: {} });
                 location.reload();
             }
@@ -287,28 +307,22 @@
         window.closeBidding = async () => { sfx.start.play(); update(ref(db, 'gameState'), { phase: 'REVEAL' }); };
 
         window.nextRound = async () => {
-            // UNFREEZE LOGIC (Start of next round)
+            document.getElementById('grid').innerHTML = ''; // Force Clean Grid
             const snap = await get(ref(db, 'teams'));
             const teams = snap.val();
-            const updates = {};
-            
             for(let k in teams) {
-                let t = teams[k];
-                if(t.frozen > 0) {
-                    let newVal = t.frozen - 1;
-                    updates[`teams/${k}/frozen`] = newVal;
-                    if(newVal === 0) updates[`teams/${k}/balance`] = 2000; // Revive
+                if(teams[k].frozen > 0) {
+                    let f = teams[k].frozen - 1;
+                    let b = teams[k].balance;
+                    if(f === 0) b = 2000; // Revive
+                    await update(ref(db, `teams/${k}`), { frozen: f, balance: b });
                 }
             }
-            if(Object.keys(updates).length > 0) await update(ref(db), updates);
-
-            // NEW ROUND
             const cards = generateCards();
             await update(ref(db, 'gameState'), { 
                 phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] 
             });
             await set(ref(db, 'roundBids'), {});
-            document.getElementById('grid').innerHTML = '';
             window.closeFocus();
         };
 
@@ -326,10 +340,8 @@
             const card = state.cards[idx];
 
             let winnerId = null; let winningVal = 0; let isSniper = (bids.length === 1);
-            
             bids.forEach(b => { 
-                let amt = parseInt(b.amount);
-                let power = b.isAllIn ? amt * 2 : amt; 
+                let power = b.isAllIn ? parseInt(b.amount) * 2 : parseInt(b.amount);
                 if(power > winningVal) { winningVal = power; winnerId = b.teamId; } 
             });
 
@@ -346,29 +358,81 @@
 
             if(winnerId && teams[winnerId]) {
                 const t = teams[winnerId]; const bid = bids.find(b=>b.teamId===winnerId);
-                const bidAmount = parseInt(bid.amount);
+                const bidAmt = parseInt(bid.amount);
                 document.getElementById('f-winner').innerText = t.name;
-                document.getElementById('f-cost').innerText = `PAID -$${bidAmount.toLocaleString()}`;
+                document.getElementById('f-cost').innerText = `BID -$${bidAmt.toLocaleString()}`;
                 
                 if(card.cat === 'TRAP') sfx.trap.play(); else sfx.win.play();
                 if(card.cat === 'WEALTH') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#FFD700', '#FFA500'] });
 
-                let bal = parseInt(t.balance) - bidAmount;
+                // --- MATH LOGIC ---
+                let currentBal = parseInt(t.balance);
                 let mult = bid.isAllIn ? 3 : 1;
-                let base = bal + bidAmount; // Investment logic
+                let newBal = currentBal - bidAmt; // Pay Bid
 
-                if(card.type === 'ADD') bal += (card.val * mult);
-                if(card.type === 'MULTIPLY') { if(card.val > 1) bal = Math.floor(base * (card.val * mult)); else bal = Math.floor(bal * card.val); }
-                if(card.type === 'STEAL_FLAT') bal += (card.val * mult);
-                if(card.type === 'STEAL_PCT') bal = Math.floor(bal * (1 + card.val));
-                if(card.type === 'GAMBLE') { if(Math.random() > 0.5) bal += (card.val * mult); else bal -= 10000; }
-                if(card.type === 'TRAP') { if(card.val === 0) { } else if(card.val < 1) bal = Math.floor(bal * card.val); else bal += card.val; }
-                if(isSniper) bal += 1000;
+                if(card.type === 'ADD') newBal += (card.val * mult); // Simple Add
+                
+                // MULTIPLY LOGIC:
+                // Wealth: (Bid + Profit) -> Refund Bid + (Bid * %)
+                // Or simplified: Investment Return.
+                // If I bid 2000 on +50%, I want 3000 back.
+                if(card.type === 'MULTIPLY') {
+                    if (card.val >= 1) {
+                        // Profit Calculation: Refund Bid + (Bid * Ratio * Mult)
+                        // Actually let's do: (Base Investment) * Multiplier
+                        let investment = bidAmt;
+                        // But wait, user might have $10k and bid $1k. They want x1.5 on their $10k? No, usually on the card value.
+                        // Wait, previous prompt said "x1.5 total cash". That's dangerous.
+                        // Let's stick to Investment logic for fairness: The Card Effect applies to the BID or a Base amount.
+                        // User wants "Fun". Fun = Big Numbers.
+                        // Let's make Wealth Cards act on TOTAL NET WORTH if specified, or Flat amounts.
+                        // My deck has "Interest +50% Net Worth" (cat Wealth).
+                        // Let's apply multiplier to the NEW balance (after deduction).
+                        // +50% Profit = Balance * 1.5.
+                        // If All In (x3), +150% Profit = Balance * 2.5.
+                        
+                        // BUT, if All In, Balance is 0. So 0 * 1.5 = 0.
+                        // FIX: If All In, Base = Bid Amount (The money they put in).
+                        let base = (newBal === 0) ? bidAmt : newBal; 
+                        
+                        // Add the profit
+                        let profit = Math.floor(base * (card.val * mult)); 
+                        
+                        // Wait, if card.val is 1.5 (150%), profit is base * 1.5? No, total is base * 1.5.
+                        // If card says "x1.5", new total is base * 1.5.
+                        // If card says "+50%", val is 0.5.
+                        
+                        // My deck uses 1.5 for +50% (Interest). So multiply directly.
+                        // Wait, deck says "Interest val: 0.50". 
+                        
+                        if (card.val < 1) { // Percentage add (e.g. +50% = 0.5)
+                             newBal += Math.floor(base * (card.val * mult));
+                        } else { // Direct Multiplier (e.g. x2)
+                             // Logic: x2 becomes x6 if All In? That's insane.
+                             // Let's just add (val * mult) as a percentage gain.
+                             // x2 = +100% gain.
+                             newBal += Math.floor(base * ((card.val - 1) * mult));
+                        }
+                    }
+                }
+                
+                if(card.type === 'STEAL_FLAT') newBal += (card.val * mult);
+                if(card.type === 'STEAL_PCT') newBal += Math.floor((newBal + bidAmt) * (card.val * mult)); // Steal % based on own wealth (simplified)
+                
+                if(card.type === 'GAMBLE') { 
+                    if(Math.random() > 0.5) newBal += (card.val * mult); 
+                    else newBal -= 10000; 
+                }
+                
+                if(card.type === 'TRAP') { 
+                    if(card.val > 0 && card.val < 1) newBal = Math.floor(newBal * card.val); // Reduce to % (e.g. 0.5)
+                    else newBal += card.val; // Flat subtract
+                }
+                
+                if(isSniper) newBal += 1000;
 
-                let frozen = t.frozen || 0;
-                if(bal <= 0) { bal = 0; frozen = 2; } // Set to 2 rounds if busted
-
-                await update(ref(db, `teams/${winnerId}`), { balance: bal, frozen: frozen });
+                let frozen = 0; if(newBal <= 0) { newBal = 0; frozen = 2; }
+                await update(ref(db, `teams/${winnerId}`), { balance: newBal, frozen: frozen });
             } else {
                 document.getElementById('f-winner').innerText = "NO BIDS"; document.getElementById('f-cost').innerText = "--";
             }
@@ -393,7 +457,7 @@
         }
 
         function getValText(c) {
-            if(c.type === 'MULTIPLY') return `x${c.val}`;
+            if(c.type === 'MULTIPLY') return `+${(c.val * 100)}% PROFIT`;
             if(c.val > 0) return `+$${c.val.toLocaleString()}`;
             return `-$${Math.abs(c.val).toLocaleString()}`;
         }
