@@ -13,40 +13,16 @@
             color: #ffedc2; font-family: 'Cinzel', serif; touch-action: manipulation; 
         }
         
-        /* RED PACKET BUTTONS */
         .btn-card { 
-            height: 90px; 
-            border-radius: 12px; 
-            font-weight: 900; 
-            font-size: 24px; 
+            height: 90px; border-radius: 12px; font-weight: 900; font-size: 24px; 
             border: 2px solid #5c1c1c; 
             background: linear-gradient(135deg, #7f1d1d, #450a0a);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: all 0.2s; position: relative; overflow: hidden;
         }
-        
-        .btn-card::after {
-            content: '🧧';
-            position: absolute; right: 10px; bottom: 5px; opacity: 0.2; font-size: 30px;
-        }
-
-        .btn-card.selected { 
-            border-color: #FFD700; 
-            box-shadow: 0 0 20px #FFD700; 
-            transform: scale(1.02); 
-            background: linear-gradient(135deg, #991b1b, #7f1d1d);
-        }
-        
-        /* CATEGORY INDICATORS */
+        .btn-card::after { content: '🧧'; position: absolute; right: 10px; bottom: 5px; opacity: 0.2; font-size: 30px; }
+        .btn-card.selected { border-color: #FFD700; box-shadow: 0 0 20px #FFD700; transform: scale(1.02); background: linear-gradient(135deg, #991b1b, #7f1d1d); }
         .dot { width: 12px; height: 12px; border-radius: 50%; position: absolute; top: 10px; left: 10px; box-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        .bg-WEALTH { background: #10b981; }
-        .bg-STEAL { background: #ef4444; }
-        .bg-GAMBLE { background: #a855f7; }
-        .bg-TRAP { background: #f97316; }
-        .bg-CHAOS { background: #94a3b8; }
-        
+        .bg-WEALTH { background: #10b981; } .bg-STEAL { background: #ef4444; } .bg-GAMBLE { background: #a855f7; } .bg-TRAP { background: #f97316; } .bg-CHAOS { background: #94a3b8; }
         .gold-text { color: #FFD700; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
     </style>
 </head>
@@ -60,40 +36,27 @@
     </div>
 
     <div id="game" class="hidden flex-col h-full">
-        
         <div class="flex justify-between items-end border-b border-[#FFD700]/30 pb-3 mb-4">
-            <div>
-                <div class="text-[10px] text-red-400 tracking-widest uppercase">Bidder</div>
-                <div id="p-name" class="font-bold text-lg text-white leading-none">--</div>
-            </div>
-            <div class="text-right">
-                <div class="text-[10px] text-red-400 tracking-widest uppercase">Treasury</div>
-                <div class="font-black text-3xl gold-text leading-none">$<span id="bal">--</span></div>
-            </div>
+            <div><div class="text-[10px] text-red-400 tracking-widest uppercase">Bidder</div><div id="p-name" class="font-bold text-lg text-white leading-none">--</div></div>
+            <div class="text-right"><div class="text-[10px] text-red-400 tracking-widest uppercase">Treasury</div><div class="font-black text-3xl gold-text leading-none">$<span id="bal">--</span></div></div>
         </div>
 
         <div id="view-bid" class="flex-1 flex flex-col hidden">
             <p class="text-center text-red-400 mb-2 text-[10px] tracking-[0.3em] uppercase">Select Envelope</p>
+            <div class="grid grid-cols-2 gap-3 mb-6" id="btn-grid"></div>
             
-            <div class="grid grid-cols-2 gap-3 mb-6" id="btn-grid">
-                </div>
-
             <div class="bg-[#1a0505] p-4 rounded-xl border border-[#FFD700]/30 mb-4 shadow-lg relative">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-xs font-bold text-red-400 tracking-widest">BID AMOUNT</span>
                     <span id="all-in-tag" class="text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold hidden animate-pulse">ALL IN ACTIVE</span>
                 </div>
                 <input type="number" id="amt" class="w-full bg-[#0f0303] border border-red-900/50 p-4 text-3xl text-center rounded text-[#FFD700] font-mono focus:border-[#FFD700] outline-none" placeholder="0">
-                
                 <div class="flex items-center gap-3 mt-4 p-3 bg-red-900/10 rounded border border-red-900/30 cursor-pointer active:bg-red-900/20" onclick="document.getElementById('allin').click()">
                     <input type="checkbox" id="allin" class="w-6 h-6 accent-red-600" onchange="window.toggleAllIn()">
                     <label for="allin" class="font-bold text-red-400 text-sm">GO ALL IN (x3 Power)</label>
                 </div>
             </div>
-
-            <button onclick="window.submitBid()" id="btn-submit" class="bg-[#FFD700] text-red-900 font-black py-5 rounded-xl text-xl shadow-[0_0_20px_rgba(255,215,0,0.4)] transition transform active:scale-95 border-b-4 border-[#b8860b]">
-                SEAL BID
-            </button>
+            <button onclick="window.submitBid()" id="btn-submit" class="bg-[#FFD700] text-red-900 font-black py-5 rounded-xl text-xl shadow-[0_0_20px_rgba(255,215,0,0.4)] transition transform active:scale-95 border-b-4 border-[#b8860b]">SEAL BID</button>
         </div>
 
         <div id="view-wait" class="flex-1 flex flex-col justify-center items-center text-center hidden">
@@ -152,24 +115,25 @@
                 if(!st) return;
                 
                 if(st.phase === 'BIDDING') {
+                    // Render
                     const grid = document.getElementById('btn-grid');
                     grid.innerHTML = '';
                     st.cards.forEach((c, i) => {
-                        grid.innerHTML += `
-                            <button onclick="window.sel(${i})" id="btn-${i}" class="btn-card relative">
-                                <div class="dot bg-${c.visualCategory}"></div>
-                                ${i+1}
-                            </button>`;
+                        grid.innerHTML += `<button onclick="window.sel(${i})" id="btn-${i}" class="btn-card relative"><div class="dot bg-${c.visualCategory}"></div>${i+1}</button>`;
                     });
                     
                     if(document.getElementById('view-frozen').classList.contains('hidden')) {
                         showView('view-bid');
+                        // RESET STATE FOR NEW ROUND
                         const btn = document.getElementById('btn-submit');
                         btn.disabled = false;
                         btn.innerText = "SEAL BID";
                         btn.classList.remove('opacity-50');
                         selectedIdx = -1;
                         document.getElementById('amt').value = '';
+                        document.getElementById('amt').disabled = false;
+                        document.getElementById('allin').checked = false;
+                        document.getElementById('all-in-tag').classList.add('hidden');
                     }
                 } else {
                     if(document.getElementById('view-frozen').classList.contains('hidden')) showView('view-wait');
@@ -186,11 +150,8 @@
         window.toggleAllIn = () => {
             const is = document.getElementById('allin').checked;
             const inp = document.getElementById('amt');
-            if(is) { 
-                inp.value = balance; inp.disabled = true; document.getElementById('all-in-tag').classList.remove('hidden'); 
-            } else { 
-                inp.disabled = false; document.getElementById('all-in-tag').classList.add('hidden'); 
-            }
+            if(is) { inp.value = balance; inp.disabled = true; document.getElementById('all-in-tag').classList.remove('hidden'); } 
+            else { inp.disabled = false; document.getElementById('all-in-tag').classList.add('hidden'); }
         }
 
         window.submitBid = async () => {
@@ -200,7 +161,6 @@
             if(val > balance) return alert("NOT ENOUGH FUNDS!");
             
             const isAll = document.getElementById('allin').checked;
-            
             const btn = document.getElementById('btn-submit');
             btn.innerText = "BID SEALED";
             btn.disabled = true;
