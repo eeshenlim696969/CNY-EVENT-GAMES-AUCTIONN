@@ -14,7 +14,6 @@
         .bg-pattern { position: absolute; inset: 0; opacity: 0.4; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); z-index: 0; }
         .glass-panel { background: var(--glass); border: 1px solid var(--gold-dim); box-shadow: 0 0 40px rgba(0,0,0,0.9); }
 
-        /* GRID */
         .angpao {
             background: linear-gradient(160deg, #8a0000, #4a0000); border: 2px solid #5c0000; border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.2s; position: relative;
@@ -24,7 +23,6 @@
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        /* ENVELOPE */
         .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
@@ -36,14 +34,12 @@
             transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; 
         }
         
-        /* ANIMATIONS */
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-50%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 60px gold; }
         .is-open .envelope-body { transform: translateY(20%); opacity: 0.5; }
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
         
-        /* LEADERBOARD */
         .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); }
         .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, rgba(192,192,192,0.1), transparent); }
         .rank-3 { border-left: 4px solid #CD7F32; background: linear-gradient(90deg, rgba(205,127,50,0.1), transparent); }
@@ -53,7 +49,6 @@
 <body class="h-screen flex flex-col relative">
 
     <div class="bg-pattern"></div>
-    
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
@@ -72,11 +67,8 @@
     </header>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
-        
         <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
-            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">
-                START GAME
-            </button>
+            <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">START GAME</button>
         </div>
 
         <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center">
@@ -86,9 +78,7 @@
             </div>
             <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-white z-[201]"></div>
             <div id="wheel-result" class="mt-8 text-5xl font-black font-imperial text-white hidden">RESULT</div>
-            <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold] z-[300]">
-                NEXT ROUND
-            </button>
+            <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold] z-[300]">NEXT ROUND</button>
         </div>
 
         <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
@@ -166,7 +156,6 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.1;
 
-        // FIXED CARDS: Cards 21 & 25 use Wheel logic
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
             { id: 2, name: "Market Crash", desc: "Lose 10% of Wealth", type: "MULTIPLY", val: 0.9 },
@@ -230,10 +219,8 @@
                 wheel.style.display = 'flex';
                 
                 if(gameState.phase === 'SPIN') {
-                    // SERVER SIDE SPIN VISUAL
                     const spinner = document.getElementById('wheel-spinner');
                     const isWin = gameState.spinResult === 'WIN';
-                    // SPIN LOGIC: Green (90deg), Red (270deg)
                     const rotation = 1800 + (isWin ? 90 : 270); 
                     
                     if(!window.hasProcessedSpin) {
@@ -243,36 +230,34 @@
                             sfxSpin.play();
                         }, 100);
 
-                        // DISPLAY RESULT & CALCULATE BALANCE AFTER 4s
+                        // --- MATH IS DONE HERE AFTER 4 SECONDS ---
                         setTimeout(async () => {
                             const res = document.getElementById('wheel-result');
                             res.innerText = isWin ? "WINNER!" : "LOSS";
                             res.classList.remove('hidden');
                             res.style.color = isWin ? '#00ff00' : '#ff0000';
-                            document.getElementById('btn-next-wheel').classList.remove('hidden'); // Use wheel-specific next button
+                            document.getElementById('btn-next-wheel').classList.remove('hidden');
                             
-                            // --- CRITICAL: MATH IS DONE HERE, NOT ON PHONE ---
-                            // Only run math if I am the "host" (admin) to prevent double writes from multiple screens?
-                            // Actually, Firebase handles concurrent writes okay, but let's be safe.
-                            // We can just trigger the update.
-                            
-                            const tRef = ref(db, `teams/${gameState.leaderId}`);
-                            const s = await get(tRef);
-                            const t = s.val();
-                            
-                            let newBal = t.balance;
-                            if(gameState.wagerAmount === "MYSTERY") {
-                                // Mystery Box logic (+20% or -20%)
-                                if(isWin) newBal = Math.floor(t.balance * 1.2);
-                                else newBal = Math.floor(t.balance * 0.8);
-                            } else {
-                                // High Roller Logic (Add Wager or Subtract Wager)
-                                const w = parseInt(gameState.wagerAmount);
-                                if(isWin) newBal = t.balance + w;
-                                else newBal = t.balance - w;
+                            // CALCULATE & UPDATE DB HERE
+                            if(gameState.leaderId) {
+                                const tRef = ref(db, `teams/${gameState.leaderId}`);
+                                const s = await get(tRef);
+                                if(s.exists()) {
+                                    const t = s.val();
+                                    let newBal = t.balance;
+                                    
+                                    if(gameState.wagerAmount === "MYSTERY") {
+                                        if(isWin) newBal = Math.floor(t.balance * 1.2);
+                                        else newBal = Math.floor(t.balance * 0.8);
+                                    } else {
+                                        const w = parseInt(gameState.wagerAmount);
+                                        if(isWin) newBal = t.balance + w;
+                                        else newBal = t.balance - w;
+                                    }
+                                    // SAFELY UPDATE
+                                    await update(tRef, { balance: newBal });
+                                }
                             }
-                            await update(tRef, { balance: newBal });
-
                         }, 4000);
                     }
                 } else {
@@ -317,9 +302,8 @@
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
                 
-                // IF GAMBLE AUTO (Mystery Box) -> TRIGGER SPIN IMMEDIATELY
+                // IF GAMBLE AUTO (Mystery Box)
                 const card = cardsData.find(c => c.id === gameState.currentCard);
-                
                 if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
                     const isWin = Math.random() > 0.5;
                     const res = isWin ? 'WIN' : 'LOSE';
@@ -327,14 +311,13 @@
                     return;
                 }
 
-                // IF HIGH ROLLER -> WAGER PHASE
+                // IF HIGH ROLLER
                 if(card.type === 'GAMBLE_WAGER' && gameState.leaderId) {
                     setTimeout(() => {
                         update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: gameState.leaderId });
                     }, 2000);
                 }
 
-                // NORMAL REVEAL
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
@@ -515,17 +498,14 @@
             const teams = tSnap.val();
             const winner = teams[wid];
             const updates = {};
-            
             if(card.type === 'ITEM') {
                 updates[`teams/${wid}/items/${card.item}`] = true;
                 update(ref(db), updates);
                 return;
             }
-
             const wRef = `teams/${wid}/balance`;
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             else if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(winner.balance * card.val);
-            
             if(Object.keys(updates).length) await update(ref(db), updates);
         }
     </script>
