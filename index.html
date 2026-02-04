@@ -23,7 +23,7 @@
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #111; border-color: #333; opacity: 0.2; filter: grayscale(1); }
 
-        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; }
+        .envelope-container { perspective: 1000px; width: 320px; height: 450px; position: relative; margin-top: 80px; z-index: 10; }
         .envelope-body { width: 100%; height: 100%; background: #900; border: 4px solid #FFD700; border-radius: 10px; position: absolute; top: 0; left: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transition: transform 1s ease-in-out; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: #700; clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1s; border-top: 4px solid #FFD700; }
         .card-insert { position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; background: #fffcf5; border: 4px double #FFD700; z-index: 5; color: black; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; }
@@ -61,17 +61,21 @@
     </header>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
-        <div id="start-overlay" class="absolute inset-0 z-50 bg-black/80 flex items-center justify-center hidden">
+        
+        <div id="start-overlay" class="absolute inset-0 z-[60] bg-black/80 flex items-center justify-center hidden">
             <button onclick="adminAction('START')" class="px-16 py-6 bg-green-700 hover:bg-green-600 text-white font-imperial font-black text-4xl tracking-[0.2em] rounded-lg shadow-[0_0_40px_green] animate-pulse">START GAME</button>
         </div>
 
         <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center">
-            <div class="text-[#FFD700] text-3xl font-imperial mb-8 animate-pulse" id="wheel-title">FATE IS SPINNING...</div>
+            <div class="text-[#FFD700] text-3xl font-imperial mb-8 animate-pulse" id="wheel-title">AWAITING SPIN...</div>
             <div class="w-[500px] h-[500px] rounded-full border-[10px] border-[#FFD700] relative bg-[#000] overflow-hidden shadow-[0_0_50px_gold]">
                 <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] transition-transform duration-[4000ms] ease-out"></div>
             </div>
             <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[40px] border-t-white z-[201]"></div>
             <div id="wheel-result" class="mt-8 text-5xl font-black font-imperial text-white hidden">RESULT</div>
+            
+            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-8 px-12 py-4 bg-red-600 text-white font-imperial font-bold text-3xl rounded hover:bg-red-500 shadow-[0_0_30px_red] z-[300]">SPIN THE WHEEL</button>
+            
             <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-8 px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold] z-[300]">NEXT ROUND</button>
         </div>
 
@@ -88,7 +92,7 @@
 
         <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
-                <div id="timer-box" class="absolute top-0 w-full text-center z-50">
+                <div id="timer-box" class="absolute top-0 w-full text-center z-[60]">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.3em]">Time Remaining</p>
                     <div id="countdown-val" class="text-7xl font-black font-imperial text-white drop-shadow-[0_0_10px_black]">10.0s</div>
                 </div>
@@ -109,7 +113,7 @@
                     </div>
                     <div class="envelope-lid"></div>
                 </div>
-                <div class="mt-12 h-16 flex items-center justify-center w-full absolute bottom-10 z-[100]">
+                <div class="absolute bottom-10 w-full flex justify-center gap-4 z-[100]">
                     <button onclick="adminAction('REVEAL')" id="btn-reveal" class="hidden px-12 py-4 bg-red-700 text-white font-imperial font-bold text-2xl tracking-widest rounded hover:bg-red-500 border border-red-400 shadow-[0_0_20px_red] animate-pulse">REVEAL DESTINY</button>
                     <button onclick="adminAction('NEXT')" id="btn-next" class="hidden px-10 py-3 bg-[#FFD700] text-black font-imperial font-bold tracking-widest rounded hover:bg-white shadow-[0_0_20px_gold]">NEXT ROUND</button>
                 </div>
@@ -150,29 +154,30 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.1;
 
+        // --- NEW HIGH STAKES CARD POOL ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 2, name: "Market Crash", desc: "Lose 10% of Wealth", type: "MULTIPLY", val: 0.9 },
-            { id: 3, name: "Tax Collector", desc: "Steal 15% from Richest", type: "STEAL_PCT", val: 0.15 },
-            { id: 4, name: "The Duel", desc: "Steal 10% from 2nd Place", type: "STEAL_RIVAL", val: 0.1 },
-            { id: 5, name: "Golden Horse", desc: "Multiply Score by 1.5x", type: "MULTIPLY", val: 1.5 },
-            { id: 6, name: "Bandits", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
+            { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 },
+            { id: 3, name: "Tax Collector", desc: "Steal 20% from Richest", type: "STEAL_PCT", val: 0.20 },
+            { id: 4, name: "The Duel", desc: "Steal 2,000 from 2nd Place", type: "STEAL_RIVAL", val: 2000 },
+            { id: 5, name: "Golden Horse", desc: "Double Score (2x)", type: "MULTIPLY", val: 2.0 },
+            { id: 6, name: "Bandits", desc: "Lose 500 Points", type: "ADD", val: -500 },
             { id: 7, name: "Imperial Grant", desc: "+5,000 Points", type: "ADD", val: 5000 },
             { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 5% from Random", type: "STEAL_CHOICE", val: 0.05 },
-            { id: 10, name: "Broken Vase", desc: "Lose 8% Points", type: "MULTIPLY", val: 0.92 },
+            { id: 9, name: "Robin Hood", desc: "Steal 1,000 from Random", type: "STEAL_CHOICE", val: 1000 },
+            { id: 10, name: "Broken Vase", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
             { id: 11, name: "Interest Rate", desc: "Gain 50% Interest", type: "MULTIPLY", val: 1.5 },
             { id: 12, name: "God of Wealth", desc: "Jackpot! +8,888", type: "ADD", val: 8888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
-            { id: 14, name: "Twin Carp", desc: "+2,000 You & Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 30% Balance", type: "MULTIPLY", val: 0.7 },
+            { id: 13, name: "Bad Omen", desc: "Lose 30% Points", type: "MULTIPLY", val: 0.70 },
+            { id: 14, name: "Twin Carp", desc: "+3,000 You & Ally", type: "GIVE_CHOICE", val: 3000 },
+            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
             { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy" },
             { id: 17, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
-            { id: 18, name: "False Friend", desc: "Donate 10% to Poorest", type: "GIVE_LOW", val: 0.1 },
-            { id: 19, name: "Shared Bill", desc: "Everyone pays 200", type: "GLOBAL_HIT", val: -200 },
+            { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
+            { id: 19, name: "Shared Bill", desc: "Everyone pays 500", type: "GLOBAL_HIT", val: -500 },
             { id: 20, name: "Jade Seal", desc: "Item: Immunity Button", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Win 20% OR Lose 20%", type: "GAMBLE_AUTO", val: 0 }, 
-            { id: 22, name: "Bad Luck", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
+            { id: 21, name: "Mystery Box", desc: "Win 50% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 22, name: "Bad Luck", desc: "Lose 500 Points", type: "ADD", val: -500 },
             { id: 23, name: "The Swap", desc: "Swap Score (If lower)", type: "SWAP", val: 0 },
             { id: 24, name: "Lucky Song", desc: "+2,000 Points", type: "ADD", val: 2000 },
             { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
@@ -206,13 +211,21 @@
                 wheel.classList.add('hidden');
                 resetAuctionEffects();
             } 
-            else if (gameState.phase === 'WAGER' || gameState.phase === 'SPIN') {
+            else if (gameState.phase === 'WAGER' || gameState.phase === 'READY_TO_SPIN' || gameState.phase === 'SPIN') {
                 vGrid.classList.add('hidden');
                 vAuc.classList.add('hidden');
                 wheel.classList.remove('hidden');
                 wheel.style.display = 'flex';
                 
-                if(gameState.phase === 'SPIN') {
+                // --- MANUAL TRIGGER LOGIC ---
+                if (gameState.phase === 'READY_TO_SPIN') {
+                    document.getElementById('wheel-title').innerText = "PLAYER READY";
+                    document.getElementById('btn-spin-trigger').classList.remove('hidden'); // SHOW ADMIN BUTTON
+                }
+                else if (gameState.phase === 'SPIN') {
+                    document.getElementById('wheel-title').innerText = "SPINNING...";
+                    document.getElementById('btn-spin-trigger').classList.add('hidden'); // Hide Admin Button
+                    
                     const spinner = document.getElementById('wheel-spinner');
                     const isWin = gameState.spinResult === 'WIN';
                     const rotation = 1800 + (isWin ? 90 : 270); 
@@ -224,6 +237,7 @@
                             sfxSpin.play();
                         }, 100);
 
+                        // MATH happens AFTER 4s animation
                         setTimeout(async () => {
                             const res = document.getElementById('wheel-result');
                             res.innerText = isWin ? "WINNER!" : "LOSS";
@@ -236,13 +250,18 @@
                                 const s = await get(tRef);
                                 if(s.exists()) {
                                     const t = s.val();
+                                    
+                                    // *** ALL IN PROTECTION LOGIC ***
+                                    // If balance 0, Base = Bid Amount.
                                     const baseVal = t.balance > 0 ? t.balance : (gameState.highestBid || 1000);
                                     let newBal = t.balance;
                                     
                                     if(gameState.wagerAmount === "MYSTERY") {
-                                        if(isWin) newBal = t.balance + Math.floor(baseVal * 0.2);
-                                        else newBal = Math.max(0, t.balance - Math.floor(baseVal * 0.2));
+                                        // Auto Gamble: Win 50% / Lose 50%
+                                        if(isWin) newBal = t.balance + Math.floor(baseVal * 0.5);
+                                        else newBal = Math.max(0, t.balance - Math.floor(t.balance * 0.5)); // Only lose what you HAVE
                                     } else {
+                                        // High Roller
                                         const w = parseInt(gameState.wagerAmount);
                                         if(isWin) newBal = t.balance + w;
                                         else newBal = Math.max(0, t.balance - w);
@@ -253,11 +272,13 @@
                         }, 4000);
                     }
                 } else {
+                    // WAGER Phase
                     window.hasProcessedSpin = false;
-                    document.getElementById('wager-display').innerText = "WAITING FOR INPUT...";
+                    document.getElementById('wheel-title').innerText = "AWAITING WAGER...";
                     document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
                     document.getElementById('wheel-result').classList.add('hidden');
                     document.getElementById('btn-next-wheel').classList.add('hidden');
+                    document.getElementById('btn-spin-trigger').classList.add('hidden');
                 }
             } 
             else {
@@ -296,19 +317,23 @@
                 
                 const card = cardsData.find(c => c.id === gameState.currentCard);
                 
+                // 1. AUTO GAMBLE (Mystery Box) -> Skip straight to READY_TO_SPIN for Admin
                 if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
                     const isWin = Math.random() > 0.5;
                     const res = isWin ? 'WIN' : 'LOSE';
-                    update(ref(db, 'gameState'), { phase: 'SPIN', spinResult: res, wagerAmount: "MYSTERY" });
+                    // We set wagerAmount to MYSTERY flag
+                    update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: res, wagerAmount: "MYSTERY" });
                     return;
                 }
 
+                // 2. MANUAL GAMBLE (High Roller) -> Wait for Input
                 if(card.type === 'GAMBLE_WAGER' && gameState.leaderId) {
                     setTimeout(() => {
                         update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: gameState.leaderId });
                     }, 2000);
                 }
 
+                // 3. NORMAL REVEAL
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
@@ -354,15 +379,12 @@
         });
 
         window.adminAction = (action) => {
-            if (action === 'START') {
-                 set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
-            }
+            if (action === 'START') set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
             if (action === 'DRAW') {
                 let available = [];
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
                 if(!available.length) return alert("Done");
                 document.getElementById('btn-draw').disabled = true;
-                
                 let delay = 50, steps = 0;
                 const loop = () => {
                     document.querySelectorAll('.angpao').forEach(c => c.classList.remove('active'));
@@ -383,9 +405,11 @@
                 };
                 loop();
             }
-            if (action === 'REVEAL') {
-                update(ref(db), { revealTrigger: true });
-            }
+            if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
+            
+            // ADMIN TRIGGER SPIN MANUALLY
+            if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
+
             if (action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -398,7 +422,6 @@
                 updates['gameState/wagerAmount'] = null;
                 updates['gameState/spinResult'] = null;
                 updates['currentRoundBids'] = null;
-                
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
                     for(let k in t) { updates[`teams/${k}/immune`] = null; }
@@ -431,6 +454,7 @@
             document.getElementById('btn-next').classList.add('hidden');
             document.getElementById('btn-next-wheel').classList.add('hidden');
             document.getElementById('btn-reveal').classList.add('hidden');
+            document.getElementById('btn-spin-trigger').classList.add('hidden');
             document.getElementById('wheel-stage').classList.remove('flex'); 
             document.getElementById('wheel-stage').classList.add('hidden');
             document.getElementById('wheel-result').classList.add('hidden');
@@ -498,8 +522,12 @@
             }
 
             const wRef = `teams/${wid}/balance`;
+            
+            // --- SMART MATH: Base Logic ---
+            // If Positive Effect: Base = (Balance + Bid Amount). Rewards All In.
+            // If Negative Effect: Base = (Balance). If All In (0), Lose 0.
             let base = winner.balance;
-            if (card.val > 1) { // Positive Multiplier
+            if (card.val > 1) { 
                 base = winner.balance + (gameState.highestBid || 0);
             }
 
@@ -507,38 +535,32 @@
                 updates[wRef] = winner.balance + card.val;
             }
             else if(card.type === 'MULTIPLY') {
-                if(card.val < 1) { // Negative (Loss)
-                    updates[wRef] = Math.floor(winner.balance * card.val);
-                } else { // Positive (Gain)
-                    updates[wRef] = Math.floor(base * card.val); 
-                }
+                // If negative multiplier (e.g. 0.8), logic above uses Balance.
+                // If positive multiplier (e.g. 1.5), logic above uses (Balance + Bid).
+                updates[wRef] = Math.floor(base * card.val);
             }
             else if(card.type === 'STEAL_PCT') {
                 let richestId = others[0];
                 others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
-                if(richestId) {
-                    if(!teams[richestId].immune) {
-                        const stolen = Math.floor(teams[richestId].balance * card.val);
-                        updates[wRef] = winner.balance + stolen;
-                        updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
-                    }
+                if(richestId && !teams[richestId].immune) {
+                    const stolen = Math.floor(teams[richestId].balance * card.val);
+                    updates[wRef] = winner.balance + stolen;
+                    updates[`teams/${richestId}/balance`] = teams[richestId].balance - stolen;
                 }
             }
             else if(card.type === 'STEAL_RIVAL') {
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-                const victimId = sorted[1]; // 2nd place
-                if(victimId && victimId !== wid) {
-                     if(!teams[victimId].immune) {
-                         const amt = card.val;
-                         updates[wRef] = winner.balance + amt;
-                         updates[`teams/${victimId}/balance`] = Math.max(0, teams[victimId].balance - amt);
-                     }
+                const victimId = sorted[1]; 
+                if(victimId && victimId !== wid && !teams[victimId].immune) {
+                     const amt = card.val;
+                     updates[wRef] = winner.balance + amt;
+                     updates[`teams/${victimId}/balance`] = Math.max(0, teams[victimId].balance - amt);
                 }
             }
             else if(card.type === 'STEAL_CHOICE') {
                 const victimId = others[Math.floor(Math.random() * others.length)];
                 if(victimId && !teams[victimId].immune) {
-                    const amt = Math.floor(teams[victimId].balance * card.val);
+                    const amt = Math.min(teams[victimId].balance, card.val);
                     updates[wRef] = winner.balance + amt;
                     updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
                 }
@@ -553,18 +575,14 @@
             }
             else if(card.type === 'GLOBAL_HIT') {
                 others.forEach(oid => {
-                    if(!teams[oid].immune) {
-                        updates[`teams/${oid}/balance`] = Math.max(0, teams[oid].balance + card.val);
-                    }
+                    if(!teams[oid].immune) updates[`teams/${oid}/balance`] = Math.max(0, teams[oid].balance + card.val);
                 });
             }
             else if(card.type === 'SWAP') {
                 const targetId = others[Math.floor(Math.random() * others.length)];
-                if(targetId && !teams[targetId].immune) {
-                    if(teams[targetId].balance > winner.balance) {
-                        updates[wRef] = teams[targetId].balance;
-                        updates[`teams/${targetId}/balance`] = winner.balance;
-                    }
+                if(targetId && !teams[targetId].immune && teams[targetId].balance > winner.balance) {
+                    updates[wRef] = teams[targetId].balance;
+                    updates[`teams/${targetId}/balance`] = winner.balance;
                 }
             }
             else if(card.type === 'PHOENIX') {
