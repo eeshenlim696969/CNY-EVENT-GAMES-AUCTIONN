@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMPERIAL BATTLE ROYALE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <style>
         body { 
@@ -43,6 +43,12 @@
 </head>
 <body class="h-screen w-screen flex flex-col">
 
+    <div id="click-wall" class="fixed inset-0 z-[999] bg-black/95 flex flex-col items-center justify-center cursor-pointer" onclick="initAudio()">
+        <div class="text-6xl mb-6">🔊</div>
+        <div class="text-4xl font-bold gold-text animate-pulse">CLICK TO START ENGINE</div>
+        <div class="text-gray-500 mt-4 text-sm font-mono">REQUIRED FOR AUDIO & SYNC</div>
+    </div>
+
     <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
     <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
@@ -60,7 +66,7 @@
             <div class="text-[10px] text-gray-500 tracking-[0.5em]">ROUND</div>
             <div id="round-disp" class="text-5xl font-black text-white drop-shadow-md">LOBBY</div>
         </div>
-        <button onclick="window.fullReset()" class="text-xs text-red-800 hover:text-red-500 border border-red-900 px-3 py-1 rounded">RESET SYSTEM</button>
+        <button onclick="window.fullReset()" class="text-xs text-red-800 hover:text-red-500 border border-red-900 px-3 py-1 rounded">HARD RESET</button>
     </header>
 
     <div class="flex-1 p-8 flex gap-8 z-10 relative">
@@ -129,6 +135,11 @@
             start: document.getElementById('sfx-start') 
         };
 
+        window.initAudio = () => {
+            document.getElementById('click-wall').remove();
+            sfx.start.play().catch(e => console.log("Audio waiting..."));
+        };
+
         // --- DECK ---
         const deck = [
             { name: "Magic Bowl", val: 8000, type: "ADD", cat: "WEALTH" },
@@ -159,7 +170,6 @@
             state = data;
             
             const lobby = document.getElementById('lobby-view');
-            const grid = document.getElementById('grid');
             const status = document.getElementById('status-text');
             const btnLock = document.getElementById('btn-lock');
             const btnNext = document.getElementById('btn-next');
@@ -167,7 +177,7 @@
 
             if (state.phase === 'LOBBY') {
                 lobby.classList.remove('hidden');
-                grid.innerHTML = '';
+                document.getElementById('grid').innerHTML = ''; // Clear grid
                 document.getElementById('round-disp').innerText = "LOBBY";
             } 
             else if (state.phase === 'BIDDING') {
@@ -226,9 +236,12 @@
 
         function renderGrid(isReveal) {
             const grid = document.getElementById('grid');
+            // Force redraw only if empty to prevent jitter, but allow refresh
             if(grid.childElementCount > 0 && !isReveal) return;
-            grid.innerHTML = '';
             
+            grid.innerHTML = '';
+            if(!state.cards) return; // Safety
+
             state.cards.forEach((card, idx) => {
                 const isRevealed = state.revealed && state.revealed[idx];
                 const div = document.createElement('div');
@@ -248,27 +261,28 @@
                     </div>
                 `;
                 grid.appendChild(div);
+                // If already revealed (e.g. reload), keep it flipped
                 if(isRevealed) div.querySelector('.card-obj').classList.add('flipped');
             });
         }
 
         // --- GLOBAL FUNCTIONS ---
         window.startGame = async () => {
-            document.getElementById('sfx-start').play();
+            sfx.start.play();
             const cards = generateCards();
             await set(ref(db, 'gameState'), { phase: 'BIDDING', round: 1, cards: cards, revealed: [false,false,false,false,false,false] });
             await set(ref(db, 'roundBids'), {});
         };
 
         window.fullReset = async () => {
-            if(confirm("HARD RESET?")) {
+            if(confirm("HARD RESET? This deletes all players.")) {
                 await set(ref(db), { gameState: { phase: 'LOBBY', round: 0 }, teams: {}, roundBids: {} });
                 location.reload();
             }
         };
 
         window.closeBidding = async () => {
-            document.getElementById('sfx-start').play();
+            sfx.start.play();
             update(ref(db, 'gameState'), { phase: 'REVEAL' });
         };
 
@@ -284,7 +298,7 @@
                 phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] 
             });
             await set(ref(db, 'roundBids'), {});
-            document.getElementById('grid').innerHTML = ''; 
+            document.getElementById('grid').innerHTML = ''; // Force clear visuals
             window.closeFocus();
         };
 
@@ -295,7 +309,7 @@
             const updates = {};
             updates[`gameState/revealed/${idx}`] = true;
             await update(ref(db), updates);
-            document.getElementById('sfx-flip').play();
+            sfx.flip.play();
 
             const bidsSnap = await get(ref(db, 'roundBids'));
             const teamsSnap = await get(ref(db, 'teams'));
@@ -331,7 +345,7 @@
                 document.getElementById('f-winner').innerText = t.name;
                 document.getElementById('f-cost').innerText = `PAID -$${bid.amount.toLocaleString()}`;
                 
-                if(card.cat === 'TRAP') document.getElementById('sfx-trap').play(); else document.getElementById('sfx-win').play();
+                if(card.cat === 'TRAP') sfx.trap.play(); else sfx.win.play();
                 if(card.cat === 'WEALTH') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
                 let bal = t.balance - bid.amount;
@@ -366,6 +380,7 @@
 
             modal.classList.add('active');
             const cardObj = document.getElementById('focus-card');
+            // Animate Flip
             cardObj.style.transform = 'rotateY(0deg) scale(0.5)';
             setTimeout(() => { cardObj.style.transform = 'rotateY(180deg) scale(1)'; }, 100);
         };
