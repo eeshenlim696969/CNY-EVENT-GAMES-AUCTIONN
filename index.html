@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Auction - Year of the Horse</title>
+    <title>Imperial Auction - Host</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
@@ -14,21 +14,27 @@
         
         .bg-pattern { position: absolute; inset: 0; opacity: 0.15; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); z-index: 0; pointer-events: none; }
         
+        /* Lantern Animation */
         .lantern { position: absolute; width: 40px; height: 50px; background: radial-gradient(circle, #ff0000 0%, #500000 100%); border-radius: 10px; border-top: 2px solid #333; border-bottom: 2px solid gold; box-shadow: 0 0 20px rgba(255, 100, 0, 0.5); animation: rise 15s linear infinite; z-index: 1; opacity: 0.6; }
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
 
         .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 10px 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid #555; transition: all 0.3s; }
+        
+        /* Log Styles */
+        .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
+        
         .crown-icon { font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); animation: pulseCrown 1s infinite alternate; }
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
 
+        /* Roster */
         .roster-item { padding: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; }
         .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5)); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
         .roster-item.richest { border: 1px solid #00ff00; background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5)); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
         .roster-item.blocked { border: 1px solid #ff0000; opacity: 0.7; }
         
-        /* SWAP ANIMATION STYLES */
+        /* Swap Animations */
         .roster-item.swap-target { background: #FFD700 !important; color: black !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #FFD700; }
         .roster-item.swap-source { background: #ff0000 !important; color: white !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #ff0000; }
 
@@ -82,23 +88,21 @@
     <div id="debug-modal" class="absolute inset-0 z-[400] bg-black/80 flex items-center justify-center hidden backdrop-blur-md">
         <div class="glass-panel p-8 w-[600px] rounded-xl flex flex-col gap-4">
             <h2 class="text-2xl font-imperial text-white border-b border-gray-600 pb-2">ADMIN CONTROLS</h2>
-            
             <div class="flex gap-4 items-center">
                 <span class="text-gray-400 w-32">Force Card:</span>
                 <select id="debug-card-select" class="flex-1 bg-black border border-gray-600 p-2 text-white">
-                    <option value="25">25: High Roller (Test Wheel)</option>
-                    <option value="23">23: Chaos Swap (Test Swap)</option>
-                    <option value="8">8: Blockade (Test Ban)</option>
+                    <option value="25">25: High Roller</option>
+                    <option value="23">23: Chaos Swap</option>
+                    <option value="15">15: Nian Monster</option>
+                    <option value="8">8: Blockade</option>
                 </select>
                 <button onclick="debugForceCard()" class="btn-admin text-sm py-2">Set Current</button>
             </div>
-
             <div class="flex gap-4 items-center border-t border-gray-700 pt-4">
                 <button onclick="adminAction('DEBUG_WHEEL')" class="btn-admin text-sm py-2 bg-blue-900">Force Wheel View</button>
                 <button onclick="adminAction('NEXT')" class="btn-admin text-sm py-2 bg-yellow-900">Force Next Round</button>
                 <button onclick="debugMoney()" class="btn-admin text-sm py-2 bg-green-900">+5000 All</button>
             </div>
-            
             <button onclick="document.getElementById('debug-modal').classList.add('hidden')" class="mt-4 bg-gray-700 text-white py-2 rounded hover:bg-gray-600">CLOSE</button>
         </div>
     </div>
@@ -188,7 +192,6 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.2;
 
-        // --- BALANCED CARD DATA ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+2,000 Points", type: "ADD", val: 2000 },
             { id: 2, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
@@ -231,7 +234,6 @@
         }
         spawnLanterns();
 
-        // --- DEBUG FUNCTIONS ---
         window.debugForceCard = async () => {
              const cid = parseInt(document.getElementById('debug-card-select').value);
              await update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: cid, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 60000 });
@@ -374,25 +376,18 @@
                 document.getElementById('card-title').innerText = card.name;
                 document.getElementById('card-desc').innerText = card.desc;
                 if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') executeCardEffect(card.id, gameState.leaderId);
-                if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 4000); // Wait for swap anim
+                if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 4000); 
             }
         });
 
-        // --- MINIGAME LISTENER ---
         const minigameRef = ref(db, 'minigameWins');
         onChildAdded(minigameRef, async (snapshot) => {
-            const data = snapshot.val();
-            const key = snapshot.key;
-            if(!data) return;
-            const tRef = ref(db, `teams/${data.teamId}`);
-            const s = await get(tRef);
+            const data = snapshot.val(); const key = snapshot.key; if(!data) return;
+            const tRef = ref(db, `teams/${data.teamId}`); const s = await get(tRef);
             if(s.exists()) {
                 const team = s.val();
                 await update(tRef, { balance: team.balance + data.amount });
-                
-                // Show Small Toast Log
-                const logDiv = document.createElement('div');
-                logDiv.className = "log-entry";
+                const logDiv = document.createElement('div'); logDiv.className = "log-entry";
                 logDiv.innerHTML = `<span class="text-xs text-gray-400">Labor</span> <span class="text-white">${team.name} +${data.amount}</span>`;
                 document.getElementById('bids-list').prepend(logDiv);
             }
@@ -401,7 +396,6 @@
 
         onValue(ref(db, 'teams'), (snap) => {
             const roster = document.getElementById('roster-grid');
-            // Don't redraw if swap animation is happening (simple check via class existence)
             if(document.querySelector('.swap-target')) return;
             
             roster.innerHTML = '';
@@ -418,7 +412,7 @@
                 if (t.blockedRound === (gameState.round || 0)) cls += ' blocked';
 
                 const div = document.createElement('div');
-                div.id = `roster-${key}`; // Assign ID for swap animation
+                div.id = `roster-${key}`;
                 div.className = cls;
                 div.innerHTML = `
                     <div>
@@ -448,7 +442,7 @@
                     else {
                         setTimeout(() => {
                             document.getElementById('bids-list').innerHTML = '';
-                            update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 30000 }); // 30 Seconds
+                            update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 30000 });
                             set(ref(db, 'currentRoundBids'), {});
                             document.getElementById('btn-draw').disabled = false;
                         }, 500);
@@ -543,16 +537,13 @@
             await remove(ref(db, `bidQueue/${key}`));
         });
         
-        // --- VISUAL SWAP ANIMATION ---
         async function animateSwap(sourceId, targetId) {
             const roster = document.getElementById('roster-grid');
             const items = Array.from(roster.children);
             if(items.length < 2) return;
 
-            // Roulette Effect
             let delay = 50;
             let loops = 15; 
-            
             for(let i=0; i<loops; i++) {
                 items.forEach(el => el.classList.remove('swap-target'));
                 const randEl = items[Math.floor(Math.random() * items.length)];
@@ -561,18 +552,22 @@
                 await new Promise(r => setTimeout(r, delay));
                 delay += 20;
             }
-            
             items.forEach(el => el.classList.remove('swap-target'));
             
-            // Highlight Actual Target
             const targetEl = document.getElementById(`roster-${targetId}`);
             if(targetEl) targetEl.classList.add('swap-target');
-            
             const sourceEl = document.getElementById(`roster-${sourceId}`);
             if(sourceEl) sourceEl.classList.add('swap-source');
             
             sfxGong.play();
             await new Promise(r => setTimeout(r, 2000));
+        }
+
+        function logPity(name) {
+            const logDiv = document.createElement('div'); 
+            logDiv.className = "log-entry pity-log";
+            logDiv.innerHTML = `<span class="text-white font-bold">Imperial Mercy</span><span class="text-white text-sm">Grant for ${name}</span>`;
+            document.getElementById('bids-list').prepend(logDiv);
         }
 
         async function executeCardEffect(cid, wid) {
@@ -600,13 +595,22 @@
             let base = winner.balance;
             if (card.val > 1) base = winner.balance + (gameState.highestBid || 0);
 
+            // --- IMPERIAL PITY LOGIC ---
+            const applyPity = (tid, bal) => {
+                if (bal < 500) { 
+                    logPity(teams[tid].name);
+                    return 800; // Pity Grant Amount
+                }
+                return bal;
+            };
+
             if(card.type === 'ADD') {
                 updates[wRef] = winner.balance + card.val;
                 if (card.val < 1 && checkShield(wid)) delete updates[wRef];
             }
             else if(card.type === 'MULTIPLY') {
                 let newVal = Math.floor(card.val < 1 ? winner.balance * card.val : base * card.val);
-                if(card.val < 1 && checkShield(wid)) {} else updates[wRef] = newVal;
+                if(card.val < 1 && checkShield(wid)) {} else updates[wRef] = applyPity(wid, newVal);
             }
             else if(card.type === 'STEAL_PCT') {
                 let richestId = others[0];
@@ -614,44 +618,54 @@
                 if(richestId && !checkShield(richestId)) {
                     const stolen = Math.floor(teams[richestId].balance * card.val);
                     updates[wRef] = winner.balance + stolen;
-                    updates[`teams/${richestId}/balance`] = Math.max(0, teams[richestId].balance - stolen);
+                    const victimNew = Math.max(0, teams[richestId].balance - stolen);
+                    updates[`teams/${richestId}/balance`] = applyPity(richestId, victimNew);
                 }
             }
             else if(card.type === 'SWAP') {
                 const targetId = others[Math.floor(Math.random() * others.length)];
                 if(targetId) {
-                    await animateSwap(wid, targetId); // Visuals first
+                    await animateSwap(wid, targetId);
                     if(!checkShield(targetId)) {
-                        updates[wRef] = teams[targetId].balance;
-                        updates[`teams/${targetId}/balance`] = winner.balance;
+                        // Apply pity to BOTH if needed
+                        let newWinnerBal = teams[targetId].balance;
+                        let newVictimBal = winner.balance;
+                        
+                        updates[wRef] = applyPity(wid, newWinnerBal);
+                        updates[`teams/${targetId}/balance`] = applyPity(targetId, newVictimBal);
                     }
                 }
             }
-            // ... (Other cards remain same) ...
             else if(card.type === 'STEAL_RIVAL') {
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
                 const victimId = sorted[1]; 
                 if(victimId && victimId !== wid && !checkShield(victimId)) {
                      const amt = Math.floor(Math.min(teams[victimId].balance, teams[victimId].balance * 0.2));
-                     updates[wRef] = winner.balance + amt; updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
+                     updates[wRef] = winner.balance + amt; 
+                     updates[`teams/${victimId}/balance`] = applyPity(victimId, teams[victimId].balance - amt);
                 }
             }
             else if(card.type === 'STEAL_CHOICE') {
                 const victimId = others[Math.floor(Math.random() * others.length)];
                 if(victimId && !checkShield(victimId)) {
                     const amt = Math.floor(teams[victimId].balance * card.val);
-                    updates[wRef] = winner.balance + amt; updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
+                    updates[wRef] = winner.balance + amt; 
+                    updates[`teams/${victimId}/balance`] = applyPity(victimId, teams[victimId].balance - amt);
                 }
             }
             else if(card.type === 'GIVE_LOW') {
                 const poorestId = others.sort((a,b) => teams[a].balance - teams[b].balance)[0];
                 if(poorestId) {
                     const amt = Math.floor(winner.balance * card.val);
-                    updates[wRef] = winner.balance - amt; updates[`teams/${poorestId}/balance`] = teams[poorestId].balance + amt;
+                    updates[wRef] = applyPity(wid, winner.balance - amt); 
+                    updates[`teams/${poorestId}/balance`] = teams[poorestId].balance + amt;
                 }
             }
             else if(card.type === 'GLOBAL_HIT') {
-                others.forEach(oid => { if(!checkShield(oid)) updates[`teams/${oid}/balance`] = Math.floor(teams[oid].balance * card.val); });
+                others.forEach(oid => { if(!checkShield(oid)) {
+                    let nb = Math.floor(teams[oid].balance * card.val);
+                    updates[`teams/${oid}/balance`] = applyPity(oid, nb);
+                }});
             }
             else if(card.type === 'PHOENIX') {
                 if(winner.balance < 1000) updates[wRef] = 3000;
