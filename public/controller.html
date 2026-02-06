@@ -5,132 +5,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Imperial Controller</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         body { 
             font-family: 'Playfair Display', serif; 
-            background: radial-gradient(circle at center, #4a0000 0%, #1a0000 100%);
+            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
             color: #FFD700; 
             touch-action: manipulation; 
-        }
-        .bg-pattern {
-            position: absolute; inset: 0; opacity: 0.15; pointer-events: none;
-            background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png');
+            overflow: hidden;
         }
         .font-imp { font-family: 'Cinzel', serif; }
+        
+        /* Glass Panel */
         .glass-panel { 
             background: rgba(20, 0, 0, 0.85); 
-            backdrop-filter: blur(8px); 
+            backdrop-filter: blur(12px); 
             border: 1px solid rgba(255, 215, 0, 0.3); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); 
         }
+
+        /* Gold Button */
         .btn-gold { 
-            background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%); 
-            color: #1a0000; 
+            background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); 
+            color: #2a0000; 
             border: 1px solid #fff; 
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); 
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); 
             font-weight: 900; 
             text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
-        .btn-gold:active { transform: scale(0.96); box-shadow: 0 0 5px rgba(255, 215, 0, 0.4); }
-        .btn-gold:disabled { opacity: 0.6; filter: grayscale(1); transform: none; }
-        
-        .profile-header { background: linear-gradient(180deg, #2a0000 0%, #000000 100%); border-bottom: 2px solid #C5A059; }
-        
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
-        .animate-danger { animation: pulse-red 2s infinite; }
+        .btn-gold:active { transform: scale(0.96); }
+        .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; }
+
+        /* Quick Bid Buttons */
+        .btn-quick {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2);
+            color: #C5A059; font-weight: bold; transition: all 0.2s;
+        }
+        .btn-quick:active { background: #FFD700; color: black; }
+
+        /* WINNING STATE */
+        .winning-glow {
+            box-shadow: inset 0 0 50px #FFD700;
+            border: 2px solid #FFD700;
+        }
+
+        /* Particles */
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, #ffaa00 0%, rgba(255,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp { 0% { transform: translateY(100vh) scale(0.5); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
     </style>
 </head>
-<body class="h-[100dvh] flex flex-col overflow-hidden relative">
-    <div class="bg-pattern"></div>
+<body class="h-[100dvh] flex flex-col relative transition-all duration-500" id="main-body">
 
-    <div id="login" class="absolute inset-0 z-50 bg-[#1a0000] flex flex-col items-center justify-center p-8">
-        <div class="mb-8 text-6xl">🐎</div>
-        <h1 class="font-imp text-4xl mb-2 text-[#FFD700] text-center tracking-widest">IMPERIAL<br>COURT</h1>
-        <p class="text-[#C5A059] mb-8 text-sm uppercase tracking-[0.3em]">Enter your Dynasty Name</p>
-        <input id="inp-name" class="w-full glass-panel p-4 text-center rounded text-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#FFD700]" placeholder="e.g. The Jade Dragon">
-        <button onclick="login()" class="mt-6 btn-gold w-full py-4 text-xl rounded tracking-widest">Enter The Realm</button>
-    </div>
+    <div id="particles" class="absolute inset-0 pointer-events-none z-0"></div>
 
-    <div id="view-bankrupt" class="hidden absolute inset-0 z-40 bg-black flex flex-col items-center justify-center text-center p-8">
-        <div class="text-8xl mb-6 grayscale">☠️</div>
-        <h1 class="font-imp text-4xl text-red-600 mb-2 tracking-widest">DYNASTY FALLEN</h1>
-        <p class="text-gray-400 font-serif italic">Your treasury has been depleted.</p>
+    <div id="login" class="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-8">
+        <div class="mb-6 text-6xl animate-bounce">🐎</div>
+        <h1 class="font-imp text-5xl mb-2 text-[#FFD700] text-center tracking-widest drop-shadow-lg">IMPERIAL<br>COURT</h1>
+        <p class="text-[#C5A059] mb-8 text-sm uppercase tracking-[0.4em]">Establish Your Dynasty</p>
+        <input id="inp-name" class="w-full glass-panel p-5 text-center rounded-lg text-2xl text-white placeholder-gray-600 focus:outline-none focus:border-[#FFD700]" placeholder="Enter Name">
+        <button onclick="login()" class="mt-6 btn-gold w-full py-5 text-xl rounded-lg shadow-[0_0_30px_#B8860B]">ENTER</button>
     </div>
 
     <div id="app" class="hidden flex-col h-full relative z-10">
-        <div class="h-20 flex justify-between items-center px-4 profile-header shrink-0 shadow-lg z-20">
+        
+        <div class="h-20 flex justify-between items-center px-5 bg-gradient-to-b from-black to-transparent z-20">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-black border-2 border-[#C5A059] flex items-center justify-center text-2xl relative overflow-hidden">
-                    <span id="rank-icon">⚔️</span>
-                    <div id="seal-indicator" class="hidden absolute inset-0 bg-green-900/80 flex items-center justify-center text-xs border-2 border-green-400">🛡️</div>
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-full bg-black border-2 border-[#C5A059] flex items-center justify-center text-2xl" id="avatar-box">
+                        <span id="rank-icon">⚔️</span>
+                    </div>
+                    <div id="seal-indicator" class="hidden absolute -bottom-1 -right-1 bg-green-700 text-[10px] w-5 h-5 flex items-center justify-center rounded-full border border-white">🛡️</div>
                 </div>
                 <div class="flex flex-col">
-                    <span id="name-display" class="font-bold text-white text-lg leading-none truncate max-w-[120px]">Player</span>
+                    <span id="name-display" class="font-bold text-white text-lg leading-none truncate max-w-[140px]">Player</span>
                     <span id="rank-display" class="text-[10px] text-[#C5A059] uppercase tracking-widest mt-1">Soldier</span>
                 </div>
             </div>
             <div class="text-right">
-                <div class="text-[9px] text-[#C5A059] uppercase tracking-widest">Treasury</div>
-                <div class="font-imp font-bold text-2xl text-white text-shadow">RM <span id="balance" class="text-[#FFD700]">--</span></div>
+                <div class="text-[10px] text-[#C5A059] uppercase tracking-widest mb-1">Treasury</div>
+                <div class="font-imp font-bold text-2xl text-white drop-shadow-md">RM <span id="balance" class="text-[#FFD700]">--</span></div>
             </div>
+        </div>
+
+        <div id="winning-banner" class="hidden bg-green-800/90 text-center py-2 border-y border-green-500 shadow-[0_0_20px_green] z-20">
+            <span class="text-white font-imp font-bold tracking-widest animate-pulse">YOU ARE THE HIGHEST BIDDER</span>
         </div>
 
         <div id="spy-banner" class="hidden bg-red-900/90 border-y border-red-500 p-3 text-center shadow-lg backdrop-blur-sm z-20">
-            <div class="flex items-center justify-center gap-2 animate-pulse">
-                <span class="text-xl">👁️</span>
-                <span class="text-white text-xs font-bold uppercase tracking-widest">Spy Report:</span>
+            <div class="flex items-center justify-center gap-2">
+                <span class="text-white text-xs font-bold uppercase tracking-widest">🕵️ SPY REPORT:</span>
             </div>
-            <span id="spy-text" class="text-[#FFD700] font-bold text-lg font-imp block mt-1">--</span>
+            <span id="spy-text" class="text-[#FFD700] font-bold text-lg font-imp block mt-1 drop-shadow-md">--</span>
         </div>
 
-        <div class="flex-1 p-4 flex flex-col justify-center relative w-full max-w-lg mx-auto">
+        <div class="flex-1 p-5 flex flex-col justify-center w-full max-w-lg mx-auto relative">
             
             <div id="view-bidding" class="hidden flex-col gap-4 w-full">
-                <div class="glass-panel p-6 rounded-lg text-center border-t-4 border-t-[#FFD700]">
-                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em] mb-2">Current Highest Bid</p>
-                    <div class="text-5xl font-imp font-black text-white drop-shadow-md">RM <span id="high-bid">0</span></div>
+                <div class="glass-panel p-6 rounded-xl text-center border-t-4 border-t-[#FFD700]">
+                    <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em] mb-2">Current High Bid</p>
+                    <div class="text-6xl font-imp font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">RM <span id="high-bid">0</span></div>
                 </div>
 
                 <div class="grid grid-cols-4 gap-2 my-2">
-                    <button onclick="quick(0.1)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition font-bold">+10%</button>
-                    <button onclick="quick(0.25)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition font-bold">+25%</button>
-                    <button onclick="quick(0.5)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition font-bold">+50%</button>
-                    <button onclick="quick(1)" class="glass-panel py-3 rounded text-xs text-red-400 border border-red-900 hover:bg-red-900 hover:text-white transition font-bold">ALL IN</button>
+                    <button onclick="quick(0.1)" class="btn-quick py-4 rounded-lg text-xs">+10%</button>
+                    <button onclick="quick(0.25)" class="btn-quick py-4 rounded-lg text-xs">+25%</button>
+                    <button onclick="quick(0.5)" class="btn-quick py-4 rounded-lg text-xs">+50%</button>
+                    <button onclick="quick(1)" class="btn-quick py-4 rounded-lg text-xs text-red-400 border-red-900 bg-red-900/20">ALL</button>
                 </div>
 
                 <div class="relative group">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5A059] font-imp text-xl">RM</span>
-                    <input type="number" id="bid-val" class="w-full glass-panel p-5 pl-14 text-4xl font-bold rounded text-white text-center focus:outline-none focus:border-[#FFD700] transition-colors" placeholder="0">
+                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-[#C5A059] font-imp text-xl">RM</span>
+                    <input type="number" id="bid-val" class="w-full glass-panel p-6 pl-16 text-4xl font-bold rounded-xl text-white text-center focus:outline-none focus:border-[#FFD700] transition-colors shadow-inner" placeholder="0">
                 </div>
 
-                <button onclick="submit()" id="btn-bid" class="btn-gold py-5 text-2xl rounded shadow-lg tracking-widest mt-2 relative overflow-hidden group">
-                    <span class="relative z-10">OFFER TRIBUTE</span>
-                    <div class="absolute inset-0 bg-white/30 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                <button onclick="submit()" id="btn-bid" class="btn-gold py-6 text-2xl rounded-xl shadow-lg tracking-widest mt-2 relative overflow-hidden group">
+                    OFFER TRIBUTE
                 </button>
                 <div id="feedback" class="text-center text-red-400 h-6 text-sm font-bold tracking-wide mt-2 font-sans"></div>
             </div>
 
-            <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-8 rounded-xl border border-[#FFD700]">
+            <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-8 rounded-xl border-2 border-[#FFD700] shadow-[0_0_50px_rgba(255,215,0,0.3)]">
                 <div class="text-center">
                     <div class="text-7xl mb-4 animate-bounce">🎲</div>
                     <h2 class="text-3xl font-imp text-[#FFD700] mb-2">HIGH ROLLER</h2>
-                    <p class="text-sm text-gray-300 font-serif italic">Risk it all for double glory?</p>
+                    <p class="text-gray-300 font-serif italic">Double your fortune or lose it all?</p>
                 </div>
-                <input type="number" id="wager-val" class="w-full glass-panel p-4 text-3xl font-bold rounded text-center text-white border-b-2 border-[#FFD700]" placeholder="Enter Amount">
-                <button onclick="submitWager()" class="btn-gold w-full py-4 text-xl rounded animate-danger">LOCK IN FATE</button>
+                <input type="number" id="wager-val" class="w-full glass-panel p-4 text-3xl font-bold rounded text-center text-white border-b-2 border-[#FFD700]" placeholder="Wager Amount">
+                <button onclick="submitWager()" class="btn-gold w-full py-4 text-xl rounded">LOCK IN FATE</button>
             </div>
 
-            <div id="view-idle" class="hidden text-center opacity-80 flex flex-col items-center">
-                <div class="w-24 h-24 border-4 border-[#C5A059] border-t-[#FFD700] rounded-full animate-spin mb-6"></div>
-                <h2 class="font-imp text-2xl text-white tracking-widest" id="idle-msg">AWAITING EMPEROR...</h2>
+            <div id="view-idle" class="hidden text-center flex flex-col items-center justify-center h-full opacity-80">
+                <div class="w-24 h-24 border-4 border-[#C5A059] border-t-[#FFD700] rounded-full animate-spin mb-8 shadow-[0_0_30px_gold]"></div>
+                <h2 class="font-imp text-2xl text-white tracking-widest" id="idle-msg">AWAITING EMPEROR</h2>
+            </div>
+
+            <div id="view-bankrupt" class="hidden flex-col items-center justify-center text-center h-full">
+                <div class="text-8xl mb-6 grayscale opacity-50">☠️</div>
+                <h1 class="font-imp text-3xl text-red-600 mb-2 tracking-widest">ELIMINATED</h1>
+                <p class="text-gray-500 font-serif italic">Your dynasty has fallen.</p>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, set, update, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getDatabase, ref, onValue, get, set, push, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
@@ -146,9 +173,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
-        let isSpinning = false; 
 
-        // UPDATED CARD LIST MAP
+        // Card Names Map
         const cardNames = {
             1: "Magic Bowl (+5k)", 2: "Market Crash (-20%)", 3: "Tax (Steal 30%)",
             4: "Duel (Steal 20%)", 5: "Golden Horse (x3)", 6: "Bandits (-10%)",
@@ -160,6 +186,23 @@
             23: "Chaos Swap", 24: "Lucky Song (+6k)", 25: "High Roller (Gamble)"
         };
 
+        // PARTICLES SYSTEM
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for(let i=0; i<20; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 6 + 2;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
         if(myId) init();
 
         window.login = async () => {
@@ -168,7 +211,7 @@
             const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
             const r = ref(db, `teams/${id}`);
             const s = await get(r);
-            if(s.exists()) { alert("DYNASTY NAME TAKEN! Choose another."); return; }
+            if(s.exists()) { alert("Name Taken!"); return; }
             await set(r, { name: n, balance: 1000 });
             localStorage.setItem('id', id); localStorage.setItem('name', n);
             myId = id; myName = n;
@@ -187,9 +230,8 @@
                 balance = t.balance;
                 document.getElementById('balance').innerText = balance.toLocaleString();
                 
-                // Show Shield
-                const hasSeal = t.items && t.items.jade_seal;
-                if(hasSeal) document.getElementById('seal-indicator').classList.remove('hidden');
+                // Shield Logic
+                if(t.items && t.items.jade_seal) document.getElementById('seal-indicator').classList.remove('hidden');
                 else document.getElementById('seal-indicator').classList.add('hidden');
                 
                 window.hasSpy = t.items && t.items.spy_active;
@@ -202,7 +244,19 @@
                 highBid = st.highestBid || 0;
                 document.getElementById('high-bid').innerText = highBid.toLocaleString();
                 
-                if(st.leaderId === myId) myCurrentBid = highBid; else myCurrentBid = 0;
+                // Winning State Logic
+                const body = document.getElementById('main-body');
+                const winBanner = document.getElementById('winning-banner');
+                if(st.leaderId === myId && st.phase === 'BIDDING') {
+                    body.classList.add('winning-glow');
+                    winBanner.classList.remove('hidden');
+                    myCurrentBid = highBid;
+                } else {
+                    body.classList.remove('winning-glow');
+                    winBanner.classList.add('hidden');
+                    if(st.leaderId !== myId) myCurrentBid = 0;
+                }
+                
                 updateView(st);
             });
             
@@ -219,63 +273,55 @@
         }
 
         function checkAlive() {
-            if(balance <= 0 && !isSpinning) {
+            if(balance <= 0) {
+                document.getElementById('view-bidding').classList.add('hidden');
+                document.getElementById('view-wager').classList.add('hidden');
+                document.getElementById('view-idle').classList.add('hidden');
                 document.getElementById('view-bankrupt').classList.remove('hidden');
                 document.getElementById('view-bankrupt').classList.add('flex');
             } else {
                 document.getElementById('view-bankrupt').classList.add('hidden');
+                document.getElementById('view-bankrupt').classList.remove('flex');
             }
         }
 
         function updateView(st) {
+            // Hide all first
             ['view-bidding', 'view-wager', 'view-idle'].forEach(i => {
                 const el = document.getElementById(i);
-                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+                el.classList.add('hidden'); el.classList.remove('flex');
             });
             document.getElementById('spy-banner').classList.add('hidden');
 
+            // Show active
+            if(balance <= 0) { checkAlive(); return; }
+
             if (st.phase === 'BIDDING') {
-                isSpinning = false;
                 document.getElementById('view-bidding').classList.remove('hidden');
                 document.getElementById('view-bidding').classList.add('flex');
                 document.getElementById('bid-val').placeholder = `Min: ${highBid+50}`;
-                
-                // SPY LOGIC
                 if(window.hasSpy && st.currentCard) {
                     document.getElementById('spy-banner').classList.remove('hidden');
-                    const cName = cardNames[st.currentCard] || `Mystery Card #${st.currentCard}`;
-                    document.getElementById('spy-text').innerText = cName;
+                    document.getElementById('spy-text').innerText = cardNames[st.currentCard] || "???";
                 }
-
             } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
-                isSpinning = true;
                 document.getElementById('view-wager').classList.remove('hidden');
                 document.getElementById('view-wager').classList.add('flex');
-
-            } else if (st.phase === 'READY_TO_SPIN' || st.phase === 'SPIN') {
-                isSpinning = true;
-                document.getElementById('view-idle').classList.remove('hidden');
-                document.getElementById('idle-msg').innerText = "WATCH THE MAIN SCREEN...";
-
             } else {
-                isSpinning = false;
                 document.getElementById('view-idle').classList.remove('hidden');
-                if(st.phase === 'SOLD') {
-                    document.getElementById('idle-msg').innerText = (st.leaderId === myId) ? "BID WON - AWAITING DESTINY" : "BID ENDED";
-                } else if (st.phase === 'REVEALED') {
-                    document.getElementById('idle-msg').innerText = "DESTINY REVEALED";
-                } else {
-                    document.getElementById('idle-msg').innerText = "PREPARING NEXT ROUND...";
-                }
+                document.getElementById('view-idle').classList.add('flex');
+                if(st.phase === 'SOLD') document.getElementById('idle-msg').innerText = (st.leaderId === myId) ? "BID WON!" : "BID ENDED";
+                else if (st.phase === 'REVEALED') document.getElementById('idle-msg').innerText = "DESTINY REVEALED";
+                else if (st.phase === 'SPIN') document.getElementById('idle-msg').innerText = "WATCH THE WHEEL";
+                else document.getElementById('idle-msg').innerText = "AWAITING EMPEROR";
             }
-            checkAlive();
         }
 
         window.quick = (p) => {
             const v = Math.floor(balance * p) + myCurrentBid;
             document.getElementById('bid-val').value = v;
         };
-        
+
         window.submit = async () => {
             const v = parseInt(document.getElementById('bid-val').value);
             if(isNaN(v)) return;
@@ -284,21 +330,17 @@
             if(v < highBid + 50) return feedback("Bid Too Low");
             
             const b = document.getElementById('btn-bid');
-            b.disabled = true; 
+            b.disabled = true; b.innerText = "SENDING...";
             
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
-            setTimeout(() => { b.disabled = false; }, 1000);
+            setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
         };
-        
+
         window.submitWager = async () => {
              const v = parseInt(document.getElementById('wager-val').value);
              if(!v || v > balance) return alert("Invalid Wager");
-             
-             // Pre-determine result client-side to keep it simple, strictly verified on Host end visual
-             const isWin = Math.random() > 0.5;
-             const result = isWin ? 'WIN' : 'LOSE';
-             
-             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: result, wagerAmount: v });
+             const isWin = Math.random() > 0.5; // Client prediction
+             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: v });
         };
 
         function feedback(t) { 
