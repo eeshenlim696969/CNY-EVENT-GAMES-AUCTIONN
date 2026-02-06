@@ -48,14 +48,17 @@
         .log-entry {
             display: flex; justify-content: space-between; align-items: center;
             background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
-            padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555;
+            padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid #555;
             transition: all 0.3s;
         }
         .log-entry.latest {
-            border-left: 3px solid #FFD700;
-            background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent);
-            transform: scale(1.02);
+            border-left: 4px solid #FFD700;
+            background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4));
+            transform: scale(1.03);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
+        .crown-icon { font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); animation: pulseCrown 1s infinite alternate; }
+        @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
 
         /* --- REDESIGNED ROSTER --- */
         .roster-item {
@@ -67,6 +70,11 @@
             border: 2px solid #FFD700;
             background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5));
             box-shadow: 0 0 15px rgba(255,215,0,0.3);
+        }
+        .roster-item.richest {
+            border: 1px solid #00ff00;
+            background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5));
+            box-shadow: 0 0 10px rgba(0,255,0,0.2);
         }
 
         /* --- WHEEL & CARDS --- */
@@ -84,10 +92,12 @@
         .envelope-container { perspective: 1200px; width: 360px; height: 500px; position: relative; margin-top: 50px; z-index: 10; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 1s; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
+        /* Adjusted Top Position */
         .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 24px; border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
         
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
-        .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        /* Lowered Card Reveal Position */
+        .is-open .card-insert { transform: translateY(-45%) scale(1.1); z-index: 100 !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
         .is-open .envelope-body { transform: translateY(40%); opacity: 0; }
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
@@ -270,7 +280,6 @@
                 vGrid.classList.remove('hidden');
                 vAuc.classList.add('hidden');
                 wheel.classList.add('hidden');
-                // HARD FORCE HIDE WHEEL
                 wheel.style.display = 'none';
                 
                 resetAuctionEffects();
@@ -356,7 +365,6 @@
                     document.getElementById('unsold-stamp').classList.add('hidden');
                     document.getElementById('main-envelope').classList.add('shaking');
                     document.getElementById('btn-reveal').classList.add('hidden');
-                    // Reset Auction Log visually only if needed, but keeping history is better
                 } 
                 else if(gameState.phase === 'SOLD') {
                     document.getElementById('timer-box').classList.add('opacity-0');
@@ -400,11 +408,16 @@
             roster.innerHTML = '';
             const teams = snap.val() || {};
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            
+            // Highlight Richest Logic
+            const maxBalance = sorted.length > 0 ? teams[sorted[0]].balance : 0;
+
             sorted.forEach((key, idx) => {
                 const t = teams[key];
                 const isDead = t.balance <= 0;
                 let cls = isDead ? 'rank-dead' : 'roster-item';
                 if (gameState.leaderId === key) cls += ' leader';
+                if (!isDead && t.balance === maxBalance && maxBalance > 0) cls += ' richest'; // Richest Glow
                 
                 const div = document.createElement('div');
                 div.className = cls;
@@ -448,7 +461,6 @@
             if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
             if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
             if (action === 'NEXT') {
-                // HARD FORCE UI RESET BEFORE DB UPDATE
                 document.getElementById('wheel-stage').style.display = 'none';
                 document.getElementById('wheel-stage').classList.add('hidden');
                 
@@ -543,11 +555,16 @@
             if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // NEW AUCTION LOG LOGIC
+            // NEW AUCTION LOG with Crown
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             const logDiv = document.createElement('div');
             logDiv.className = "log-entry latest";
-            logDiv.innerHTML = `<span class="text-white font-bold">${team.name}</span><span class="text-[#FFD700] font-mono">RM ${req.amount.toLocaleString()}</span>`;
+            logDiv.innerHTML = `
+                <div class="flex items-center">
+                    <span class="crown-icon">👑</span>
+                    <span class="text-white font-bold">${team.name}</span>
+                </div>
+                <span class="text-[#FFD700] font-mono font-bold">RM ${req.amount.toLocaleString()}</span>`;
             document.getElementById('bids-list').prepend(logDiv);
             
             await remove(ref(db, `bidQueue/${key}`));
