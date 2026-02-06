@@ -7,13 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Playfair Display', serif; 
-            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
-            color: #FFD700; 
-            touch-action: manipulation; 
-            overflow: hidden;
-        }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; touch-action: manipulation; overflow: hidden; }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
         .btn-gold { background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); color: #2a0000; border: 1px solid #fff; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -61,6 +55,7 @@
         </div>
 
         <div class="flex-1 p-5 flex flex-col justify-center w-full max-w-lg mx-auto relative">
+            
             <div id="view-bidding" class="hidden flex-col gap-4 w-full">
                 <div class="glass-panel p-6 rounded-xl text-center border-t-4 border-t-[#FFD700]">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em] mb-2">Current High Bid</p>
@@ -91,6 +86,12 @@
                 <h2 class="font-imp text-2xl text-white tracking-widest" id="idle-msg">AWAITING EMPEROR</h2>
             </div>
 
+            <div id="view-blocked" class="hidden flex-col items-center justify-center text-center h-full">
+                <div class="text-8xl mb-6">⛓️</div>
+                <h1 class="font-imp text-3xl text-red-500 mb-2 tracking-widest">IMPERIAL DECREE</h1>
+                <p class="text-gray-400 font-serif italic">You are blocked from bidding this round.</p>
+            </div>
+
             <div id="view-bankrupt" class="hidden flex-col items-center justify-center text-center h-full">
                 <div class="text-8xl mb-6 grayscale opacity-50">☠️</div>
                 <h1 class="font-imp text-3xl text-red-600 mb-2 tracking-widest">ELIMINATED</h1>
@@ -107,6 +108,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
+        let myBlockedRound = 0;
 
         const cardDataMap = {
             1: { name: "The Magic Bowl", desc: "+5,000 Points" }, 2: { name: "Market Crash", desc: "Lose 20% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" },
@@ -158,6 +160,7 @@
                 const t = snap.val();
                 if(!t) return;
                 balance = t.balance;
+                myBlockedRound = t.blockedRound || 0; // Track blocked round
                 document.getElementById('balance').innerText = balance.toLocaleString();
                 if(t.items && t.items.jade_seal) document.getElementById('seal-indicator').classList.remove('hidden');
                 else document.getElementById('seal-indicator').classList.add('hidden');
@@ -197,18 +200,27 @@
         }
 
         function updateView(st) {
+            // Check Bankrupt
             if(balance <= 0 && st.phase === 'GRID') {
-                document.getElementById('view-bidding').classList.add('hidden');
-                document.getElementById('view-wager').classList.add('hidden');
-                document.getElementById('view-idle').classList.add('hidden');
+                ['view-bidding', 'view-wager', 'view-idle', 'view-blocked'].forEach(i => document.getElementById(i).classList.add('hidden'));
                 document.getElementById('view-bankrupt').classList.remove('hidden');
                 document.getElementById('view-bankrupt').classList.add('flex');
                 return;
             } else {
                 document.getElementById('view-bankrupt').classList.add('hidden');
-                document.getElementById('view-bankrupt').classList.remove('flex');
             }
 
+            // Check Blocked
+            if(st.phase === 'BIDDING' && myBlockedRound === st.round) {
+                ['view-bidding', 'view-wager', 'view-idle', 'view-bankrupt'].forEach(i => document.getElementById(i).classList.add('hidden'));
+                document.getElementById('view-blocked').classList.remove('hidden');
+                document.getElementById('view-blocked').classList.add('flex');
+                return;
+            } else {
+                document.getElementById('view-blocked').classList.add('hidden');
+            }
+
+            // Normal Views
             ['view-bidding', 'view-wager', 'view-idle'].forEach(i => { document.getElementById(i).classList.add('hidden'); document.getElementById(i).classList.remove('flex'); });
             document.getElementById('spy-banner').classList.add('hidden');
 
