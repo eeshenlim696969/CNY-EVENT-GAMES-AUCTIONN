@@ -17,105 +17,90 @@
         .font-imperial { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* Background Pattern */
+        /* Background & Particles */
         .bg-pattern { 
             position: absolute; inset: 0; opacity: 0.15; 
             background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); 
             z-index: 0; pointer-events: none;
         }
-        
+        .lantern {
+            position: absolute;
+            width: 40px; height: 50px;
+            background: radial-gradient(circle, #ff0000 0%, #500000 100%);
+            border-radius: 10px;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid gold;
+            box-shadow: 0 0 20px rgba(255, 100, 0, 0.5);
+            animation: rise 10s linear infinite;
+            z-index: 1; opacity: 0.6;
+        }
+        @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+
+        /* UI Elements */
         .glass-panel { 
-            background: rgba(10, 0, 0, 0.9); 
+            background: rgba(10, 0, 0, 0.85); 
             border: 1px solid var(--gold-dim); 
             box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
 
-        /* --- THE ENVELOPE / CARD STYLES --- */
+        /* --- REDESIGNED AUCTION LOG --- */
+        .log-entry {
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+            padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555;
+            transition: all 0.3s;
+        }
+        .log-entry.latest {
+            border-left: 3px solid #FFD700;
+            background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent);
+            transform: scale(1.02);
+        }
+
+        /* --- REDESIGNED ROSTER --- */
+        .roster-item {
+            padding: 10px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .roster-item.leader {
+            border: 2px solid #FFD700;
+            background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5));
+            box-shadow: 0 0 15px rgba(255,215,0,0.3);
+        }
+
+        /* --- WHEEL & CARDS --- */
         .angpao {
             background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); 
-            border: 2px solid #600; 
-            border-radius: 8px;
+            border: 2px solid #600; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
             transition: all 0.2s; position: relative;
             font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 2rem;
             display: flex; align-items: center; justify-content: center;
         }
-        .angpao::after {
-            content: "福"; position: absolute; font-family: 'Ma Shan Zheng'; 
-            opacity: 0.1; font-size: 3rem; color: gold;
-        }
-        .angpao.active { 
-            background: #FFD700; box-shadow: 0 0 40px #FFD700; 
-            transform: scale(1.15); z-index: 50; border-color: #fff; color: #000; opacity: 1; 
-        }
-        .angpao.used { 
-            background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); 
-            color: #333;
-        }
+        .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
+        .angpao.used { background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); }
 
-        .envelope-container { 
-            perspective: 1200px; width: 360px; height: 500px; 
-            position: relative; margin-top: 50px; z-index: 10; 
-        }
-        .envelope-body { 
-            width: 100%; height: 100%; 
-            background: linear-gradient(to bottom, #900, #600);
-            border: 2px solid #FFD700; border-radius: 6px; 
-            position: absolute; top: 0; left: 0; z-index: 10; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8); 
-            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        .envelope-lid { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 50%; 
-            background: linear-gradient(to bottom, #700, #500);
-            clip-path: polygon(0 0, 50% 100%, 100% 0); 
-            z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; 
-            border-top: 2px solid #FFD700; 
-        }
-        
-        /* Redesigned Card */
-        .card-insert { 
-            position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; 
-            background: #fffcf5 url('https://www.transparenttextures.com/patterns/cream-paper.png');
-            z-index: 5; color: #2a0000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
-            transform: translateY(0); transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            padding: 24px;
-            border: 8px solid transparent;
-            border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
-        }
-        .card-inner-border {
-            position: absolute; inset: 10px; border: 2px solid #8a0000; opacity: 0.3; pointer-events: none;
-        }
+        .envelope-container { perspective: 1200px; width: 360px; height: 500px; position: relative; margin-top: 50px; z-index: 10; }
+        .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 1s; }
+        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 24px; border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
         
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
         .is-open .envelope-body { transform: translateY(40%); opacity: 0; }
-        
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
         
-        /* Ranks */
-        .rank-1 { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), transparent); }
-        .rank-2 { border-left: 4px solid #C0C0C0; background: linear-gradient(90deg, rgba(192,192,192,0.15), transparent); }
-        .rank-3 { border-left: 4px solid #CD7F32; background: linear-gradient(90deg, rgba(205,127,50,0.15), transparent); }
-        .rank-dead { opacity: 0.5; filter: grayscale(1); text-decoration: line-through; border-left: 4px solid #333; }
-        
-        /* Admin Buttons */
-        .btn-admin {
-            padding: 12px 24px; font-family: 'Cinzel'; font-weight: bold; letter-spacing: 0.1em;
-            border: 1px solid var(--gold); background: rgba(0,0,0,0.5); color: var(--gold);
-            cursor: pointer; transition: all 0.2s; text-transform: uppercase;
-        }
-        .btn-admin:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+        .btn-admin { padding: 12px 24px; font-family: 'Cinzel'; font-weight: bold; letter-spacing: 0.1em; border: 1px solid var(--gold); background: rgba(0,0,0,0.5); color: var(--gold); cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+        .btn-admin:hover { background: var(--gold); color: #000; box-shadow: 0 0 30px var(--gold); }
     </style>
 </head>
 <body class="h-screen flex flex-col relative">
 
     <div class="bg-pattern"></div>
+    <div id="lantern-container" class="absolute inset-0 pointer-events-none z-0"></div>
+
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
@@ -137,57 +122,48 @@
     </header>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
-        
         <div id="start-overlay" class="absolute inset-0 z-[300] bg-black/90 flex flex-col items-center justify-center hidden">
             <h1 class="font-chinese text-[#FFD700] text-8xl mb-8 animate-pulse">新年快乐</h1>
-            <button onclick="adminAction('START')" class="btn-admin text-4xl px-20 py-8 bg-green-900 border-green-500 text-green-100 shadow-[0_0_50px_green]">BEGIN THE AUCTION</button>
+            <button onclick="adminAction('START')" class="btn-admin text-4xl px-20 py-8 bg-green-900 border-green-500 text-green-100 shadow-[0_0_50px_green]">BEGIN</button>
         </div>
 
         <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center backdrop-blur-md">
-            <div class="text-[#FFD700] text-5xl font-imperial mb-10 tracking-[0.2em] text-shadow" id="wheel-title">FATE IS SPINNING...</div>
+            <div class="text-[#FFD700] text-5xl font-imperial mb-10 tracking-[0.2em]" id="wheel-title">FATE IS SPINNING...</div>
             <div class="w-[500px] h-[500px] rounded-full border-[12px] border-[#FFD700] relative bg-[#111] overflow-hidden shadow-[0_0_80px_gold]">
                 <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] shadow-inner"></div>
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_white] z-20"></div>
             </div>
             <div class="absolute top-[48%] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[50px] border-t-white z-[201] drop-shadow-lg"></div>
-            
             <div id="wheel-result" class="mt-10 text-8xl font-black font-imperial text-white hidden drop-shadow-[0_0_40px_gold]">RESULT</div>
-            
-            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-12 btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">SPIN THE WHEEL</button>
+            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-12 btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">SPIN</button>
             <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-12 btn-admin text-3xl bg-[#FFD700] text-black shadow-[0_0_30px_gold]">NEXT ROUND</button>
         </div>
 
         <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
             <div class="flex-1 flex flex-col items-center justify-center">
-                <div id="grid-container" class="grid grid-cols-5 gap-5 w-full max-w-[70vh] aspect-square p-8 glass-panel rounded-2xl relative">
-                    </div>
+                <div id="grid-container" class="grid grid-cols-5 gap-5 w-full max-w-[70vh] aspect-square p-8 glass-panel rounded-2xl relative"></div>
                 <button onclick="adminAction('DRAW')" id="btn-draw" class="mt-10 btn-admin text-2xl shadow-[0_0_20px_gold]">DRAW FORTUNE</button>
             </div>
             <div class="w-[400px] glass-panel rounded-xl p-6 flex flex-col border-r-4 border-r-[#FFD700]">
                 <h2 class="font-imperial text-center text-2xl text-[#FFD700] mb-6 border-b border-[#C5A059] pb-4 tracking-widest">DYNASTY RANKINGS</h2>
-                <div id="roster-grid" class="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-hide"></div>
+                <div id="roster-grid" class="flex-1 overflow-y-auto pr-2"></div>
             </div>
         </div>
 
         <div id="view-auction" class="absolute inset-0 p-8 flex gap-8 z-20 hidden">
             <div class="flex-1 flex flex-col items-center justify-center relative">
-                
                 <div id="timer-box" class="absolute top-10 w-full text-center z-[60] transition-opacity duration-500">
                     <p class="text-[#C5A059] text-sm uppercase tracking-[0.5em] mb-2">Time Remaining</p>
                     <div id="countdown-val" class="text-8xl font-black font-imperial text-white drop-shadow-[0_0_20px_black]">10.0s</div>
                 </div>
-
                 <div class="envelope-container" id="main-envelope">
                     <div class="card-insert shadow-2xl">
-                        <div class="card-inner-border"></div>
                         <h3 id="card-title" class="font-imperial text-[#8a0000] text-3xl font-black mb-6 uppercase tracking-widest border-b-2 border-[#8a0000] pb-2 w-full">Title</h3>
                         <p id="card-desc" class="font-serif text-4xl font-bold text-[#1a0505] leading-tight">Description</p>
                         <div class="mt-auto text-red-700/20 font-chinese text-8xl absolute bottom-4 right-4">福</div>
                     </div>
                     <div class="envelope-body">
                         <span class="text-9xl text-[#FFD700] opacity-30 font-chinese mt-10">馬</span>
-                        <div class="absolute bottom-10 text-[#FFD700] font-imperial tracking-[0.5em] text-xs">IMPERIAL DECREE</div>
-                        
                         <div id="sold-stamp" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-lg">
                             <span class="text-red-500 font-black border-8 border-red-500 p-4 text-7xl -rotate-12 uppercase tracking-widest shadow-[0_0_80px_red]">SOLD</span>
                         </div>
@@ -197,40 +173,28 @@
                     </div>
                     <div class="envelope-lid"></div>
                 </div>
-
                 <div class="absolute bottom-16 w-full flex justify-center gap-6 z-[100]">
                     <button onclick="adminAction('REVEAL')" id="btn-reveal" class="hidden btn-admin bg-red-800 text-white text-2xl shadow-[0_0_40px_red] animate-pulse">REVEAL DESTINY</button>
                     <button onclick="adminAction('NEXT')" id="btn-next" class="hidden btn-admin bg-[#FFD700] text-black text-2xl shadow-[0_0_30px_gold]">NEXT ROUND</button>
                 </div>
             </div>
-
             <div class="w-[400px] glass-panel rounded-xl p-8 flex flex-col">
                 <h2 class="font-imperial text-center text-2xl text-[#FFD700] mb-6 border-b border-[#C5A059] pb-4 tracking-widest">AUCTION LOG</h2>
                 <div class="text-center mb-8 bg-black/60 p-6 rounded-lg border border-[#C5A059]/40 shadow-inner">
                     <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-3">Highest Bid</div>
                     <div class="text-6xl font-imperial font-black text-white drop-shadow-[0_0_15px_gold]">RM <span id="val-high-bid">0</span></div>
-                    <div id="val-leader-name" class="text-green-400 font-bold mt-3 uppercase tracking-widest text-xl">--</div>
+                    <div id="val-leader-name" class="text-green-400 font-bold mt-3 uppercase tracking-widest text-xl animate-pulse">--</div>
                 </div>
-                <div id="bids-list" class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gold"></div>
+                <div id="bids-list" class="flex-1 overflow-y-auto pr-2 scrollbar-hide"></div>
             </div>
         </div>
     </main>
 
     <script type="module">
-        const firebaseConfig = {
-            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
-            authDomain: "auction-ebc97.firebaseapp.com",
-            databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "auction-ebc97",
-            storageBucket: "auction-ebc97.firebasestorage.app",
-            messagingSenderId: "883038465804",
-            appId: "1:883038465804:web:df2595623ca5276561a329",
-            measurementId: "G-69HD10GML7"
-        };
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getDatabase, ref, onValue, set, update, get, remove, onChildAdded, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97", storageBucket: "auction-ebc97.firebasestorage.app", messagingSenderId: "883038465804", appId: "1:883038465804:web:df2595623ca5276561a329", measurementId: "G-69HD10GML7" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
@@ -240,7 +204,6 @@
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.2;
 
-        // --- GAME DATA ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+5,000 Points", type: "ADD", val: 5000 },
             { id: 2, name: "Market Crash", desc: "Lose 20% of Wealth", type: "MULTIPLY", val: 0.8 },
@@ -271,17 +234,28 @@
 
         let gameState = { phase: 'GRID', round: 1 };
         let envelopesStatus = {};
-        
+
+        // LANTERNS
+        function spawnLanterns() {
+            const c = document.getElementById('lantern-container');
+            for(let i=0; i<8; i++) {
+                const l = document.createElement('div');
+                l.className = 'lantern';
+                l.style.left = Math.random() * 100 + '%';
+                l.style.animationDelay = (Math.random() * 10) + 's';
+                l.style.animationDuration = (8 + Math.random() * 10) + 's';
+                c.appendChild(l);
+            }
+        }
+        spawnLanterns();
+
         renderGrid();
         startServerLoop();
 
         onValue(ref(db, 'gameState'), (snap) => {
             const data = snap.val();
-            if(!data || !data.phase) {
-                document.getElementById('start-overlay').classList.remove('hidden'); return;
-            }
+            if(!data || !data.phase) { document.getElementById('start-overlay').classList.remove('hidden'); return; }
             document.getElementById('start-overlay').classList.add('hidden');
-            // Try playing BGM if context allowed
             bgm.play().catch(()=>{});
 
             gameState = data;
@@ -295,16 +269,15 @@
             if (gameState.phase === 'GRID') {
                 vGrid.classList.remove('hidden');
                 vAuc.classList.add('hidden');
-                wheel.classList.add('hidden'); 
-                resetAuctionEffects();
+                wheel.classList.add('hidden');
+                // HARD FORCE HIDE WHEEL
+                wheel.style.display = 'none';
                 
-                // FORCE WHEEL RESET HERE
-                const spinner = document.getElementById('wheel-spinner');
-                spinner.style.transition = 'none';
-                spinner.style.transform = 'rotate(0deg)';
+                resetAuctionEffects();
+                document.getElementById('wheel-spinner').style.transition = 'none';
+                document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
                 document.getElementById('wheel-result').classList.add('hidden');
                 window.hasProcessedSpin = false;
-
             } 
             else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(gameState.phase)) {
                 vGrid.classList.add('hidden');
@@ -320,24 +293,17 @@
                 else if (gameState.phase === 'SPIN') {
                     document.getElementById('wheel-title').innerText = "SPINNING...";
                     document.getElementById('btn-spin-trigger').classList.add('hidden');
-                    
                     const spinner = document.getElementById('wheel-spinner');
                     const isWin = gameState.spinResult === 'WIN';
-                    // 180deg (Green) is roughly bottom. To land green at top pointer, we need specific rotation.
-                    // Green is 0-180deg. Red is 180-360deg.
-                    // Pointer is at Top.
-                    // To get Green: Rotate so Green sector is at top. e.g. 90deg center.
                     const rotation = 2160 + (isWin ? 90 : 270) + (Math.random() * 40 - 20); 
                     
                     if(!window.hasProcessedSpin) {
                         window.hasProcessedSpin = true;
                         spinner.style.transition = "transform 5s cubic-bezier(0.15, 0, 0.15, 1)";
-                        
                         requestAnimationFrame(() => {
                             spinner.style.transform = `rotate(${rotation}deg)`;
                             sfxSpin.currentTime = 0; sfxSpin.play();
                         });
-
                         setTimeout(async () => {
                             const res = document.getElementById('wheel-result');
                             res.innerText = isWin ? "WINNER!" : "LOSS";
@@ -345,29 +311,18 @@
                             res.style.color = isWin ? '#00ff00' : '#ff0000';
                             document.getElementById('btn-next-wheel').classList.remove('hidden');
                             
-                            // APPLY GAMBLE EFFECT DB
+                            // Apply Gamble Math
                             if(gameState.leaderId) {
                                 const tRef = ref(db, `teams/${gameState.leaderId}`);
                                 const s = await get(tRef);
                                 if(s.exists()) {
                                     const t = s.val();
                                     let newBal = t.balance;
-                                    
                                     if(gameState.wagerAmount === "MYSTERY") {
-                                        // Auto gamble based on current balance + bid returned? 
-                                        // For simplicity: Base = Balance (assuming bid is spent)
-                                        // But actually, bid is spent. 
-                                        // "Win 200% OR Lose 50%" usually means Balance * 2 or Balance * 0.5
                                         if(isWin) newBal = Math.floor(t.balance * 2.0); 
                                         else newBal = Math.floor(t.balance * 0.5);
                                     } else {
-                                        // High Roller Wager
                                         const w = parseInt(gameState.wagerAmount);
-                                        if(isWin) newBal = t.balance + w; // Already deducted? No.
-                                        // Controller: Logic check -> "LOCK IN FATE" -> just state update.
-                                        // Need to handle balance deduct? 
-                                        // High Roller: Double or Nothing. 
-                                        // If win: +Wager. If lose: -Wager.
                                         if(isWin) newBal = t.balance + w;
                                         else newBal = Math.max(0, t.balance - w);
                                     }
@@ -377,7 +332,6 @@
                         }, 5000);
                     }
                 } else {
-                    // WAGER phase
                     window.hasProcessedSpin = false;
                     document.getElementById('wheel-title').innerText = "AWAITING WAGER...";
                     document.getElementById('wheel-spinner').style.transition = 'none';
@@ -391,6 +345,7 @@
                 vGrid.classList.add('hidden');
                 vAuc.classList.remove('hidden');
                 wheel.classList.add('hidden');
+                wheel.style.display = 'none';
 
                 document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
                 document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
@@ -401,12 +356,11 @@
                     document.getElementById('unsold-stamp').classList.add('hidden');
                     document.getElementById('main-envelope').classList.add('shaking');
                     document.getElementById('btn-reveal').classList.add('hidden');
-                    document.getElementById('bids-list').innerHTML = ''; // clear old logs
+                    // Reset Auction Log visually only if needed, but keeping history is better
                 } 
                 else if(gameState.phase === 'SOLD') {
                     document.getElementById('timer-box').classList.add('opacity-0');
                     document.getElementById('main-envelope').classList.remove('shaking');
-                    
                     if(gameState.leaderId) {
                         document.getElementById('sold-stamp').classList.remove('hidden');
                         document.getElementById('btn-reveal').classList.remove('hidden');
@@ -421,39 +375,23 @@
         onValue(ref(db, 'revealTrigger'), (snap) => {
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
-                
                 const card = cardsData.find(c => c.id === gameState.currentCard);
-                
                 if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
                     const isWin = Math.random() > 0.5;
-                    const res = isWin ? 'WIN' : 'LOSE';
-                    update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: res, wagerAmount: "MYSTERY" });
+                    update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: "MYSTERY" });
                     return;
                 }
-
                 if(card.type === 'GAMBLE_WAGER' && gameState.leaderId) {
-                    setTimeout(() => {
-                        update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: gameState.leaderId });
-                    }, 2000);
-                    // Don't reveal yet fully? Or Reveal card then move to wheel.
-                    // Let's Reveal Card First below, then trigger wheel after.
+                    setTimeout(() => update(ref(db, 'gameState'), { phase: 'WAGER', wagerTeam: gameState.leaderId }), 2000);
                 }
-
                 update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 sfxGong.play();
                 document.getElementById('main-envelope').classList.add('is-open');
                 document.getElementById('btn-reveal').classList.add('hidden'); 
-
                 document.getElementById('card-title').innerText = card.name;
                 document.getElementById('card-desc').innerText = card.desc;
-                
-                if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
-                    executeCardEffect(card.id, gameState.leaderId);
-                }
-                
-                if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
-                    setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
-                }
+                if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') executeCardEffect(card.id, gameState.leaderId);
+                if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 2000);
             }
         });
 
@@ -465,12 +403,14 @@
             sorted.forEach((key, idx) => {
                 const t = teams[key];
                 const isDead = t.balance <= 0;
-                let cls = isDead ? 'rank-dead' : (idx===0 ? 'rank-1' : (idx===1 ? 'rank-2' : (idx===2 ? 'rank-3' : '')));
+                let cls = isDead ? 'rank-dead' : 'roster-item';
+                if (gameState.leaderId === key) cls += ' leader';
+                
                 const div = document.createElement('div');
-                div.className = `p-4 flex justify-between bg-black/40 ${cls} mb-2 rounded border border-white/5 items-center`;
+                div.className = cls;
                 div.innerHTML = `
                     <div>
-                        <div class="font-bold text-white text-lg">${t.name}</div>
+                        <div class="font-bold text-white text-lg">${t.name} ${idx===0?'👑':''}</div>
                         <div class="text-sm font-imperial ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
                     </div>
                     <div class="text-2xl">${t.items && t.items.jade_seal ? '🛡️' : ''}</div>`;
@@ -478,15 +418,12 @@
             });
         });
 
-        // --- ADMIN ACTIONS ---
         window.adminAction = (action) => {
             if (action === 'START') set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
-            
             if (action === 'DRAW') {
                 let available = [];
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
-                if(!available.length) return alert("All cards used!");
-                
+                if(!available.length) return alert("Done");
                 document.getElementById('btn-draw').disabled = true;
                 let delay = 50, steps = 0;
                 const loop = () => {
@@ -498,9 +435,9 @@
                     if (delay < 400) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
-                            update(ref(db, 'gameState'), {
-                                phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 
-                            });
+                            // Reset Auction Log on New Draw
+                            document.getElementById('bids-list').innerHTML = '';
+                            update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 });
                             set(ref(db, 'currentRoundBids'), {});
                             document.getElementById('btn-draw').disabled = false;
                         }, 500);
@@ -509,15 +446,14 @@
                 loop();
             }
             if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
-            
             if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
-
-            // FORCE CLEAN RESET FOR NEXT ROUND
             if (action === 'NEXT') {
+                // HARD FORCE UI RESET BEFORE DB UPDATE
+                document.getElementById('wheel-stage').style.display = 'none';
+                document.getElementById('wheel-stage').classList.add('hidden');
+                
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
-                
-                // CRITICAL: Reset phase AND spin data
                 updates['gameState/phase'] = 'GRID';
                 updates['gameState/round'] = (gameState.round||1)+1;
                 updates['gameState/currentCard'] = null;
@@ -526,18 +462,12 @@
                 updates['gameState/leaderName'] = null;
                 updates['gameState/wagerAmount'] = null;
                 updates['gameState/spinResult'] = null;
-                updates['currentRoundBids'] = null;
-                
-                // Spy Logic Cleanup
                 get(ref(db, 'teams')).then(s => {
                     const t = s.val();
                     for(let k in t) { 
                         if(t[k].items) {
                             if(t[k].items.spy_active) updates[`teams/${k}/items/spy_active`] = null;
-                            if(t[k].items.spy_stored) {
-                                updates[`teams/${k}/items/spy_stored`] = null;
-                                updates[`teams/${k}/items/spy_active`] = true;
-                            }
+                            if(t[k].items.spy_stored) { updates[`teams/${k}/items/spy_stored`] = null; updates[`teams/${k}/items/spy_active`] = true; }
                         }
                     }
                     update(ref(db), updates);
@@ -545,7 +475,7 @@
             }
         };
 
-        window.resetGame = () => { if(confirm("Really Reset?")) set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} }); }
+        window.resetGame = () => { if(confirm("Reset?")) set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} }); }
 
         function renderGrid() {
             const g = document.getElementById('grid-container'); g.innerHTML = '';
@@ -571,7 +501,6 @@
             document.getElementById('btn-next-wheel').classList.add('hidden');
             document.getElementById('btn-reveal').classList.add('hidden');
             document.getElementById('btn-spin-trigger').classList.add('hidden');
-            document.getElementById('wheel-stage').classList.remove('flex'); 
             document.getElementById('wheel-stage').classList.add('hidden');
         }
 
@@ -582,12 +511,8 @@
                     if (diff <= 0) {
                         update(ref(db, 'gameState'), { phase: 'SOLD' });
                         document.getElementById('countdown-val').innerText = "0.0s";
-                        if(!gameState.highestBid) {
-                            setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
-                        }
-                    } else {
-                        document.getElementById('countdown-val').innerText = (diff/1000).toFixed(1) + "s";
-                    }
+                        if(!gameState.highestBid) setTimeout(() => update(ref(db), { revealTrigger: true }), 1000);
+                    } else document.getElementById('countdown-val').innerText = (diff/1000).toFixed(1) + "s";
                 }
             }, 100);
         }
@@ -607,31 +532,22 @@
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
             
-            // Validation
-            if (state.phase !== 'BIDDING' || req.amount < min || team.balance < cost) { 
-                await remove(ref(db, `bidQueue/${key}`)); return; 
-            }
-            
-            // Refund Previous Leader
+            if (state.phase !== 'BIDDING' || req.amount < min || team.balance < cost) { await remove(ref(db, `bidQueue/${key}`)); return; }
             if (state.leaderId && !isSelf) {
                 const prevRef = ref(db, `teams/${state.leaderId}`);
                 const pSnap = await get(prevRef);
                 if (pSnap.exists()) await update(prevRef, { balance: pSnap.val().balance + state.highestBid });
             }
-            
-            // Deduct New Bidder
             await update(teamRef, { balance: team.balance - cost });
-            
-            // Extend Time if needed
             let newTime = state.bidDeadline;
             if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
-            
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // Add Log to UI
+            // NEW AUCTION LOG LOGIC
+            document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             const logDiv = document.createElement('div');
-            logDiv.className = "text-white text-sm border-b border-white/10 pb-1";
-            logDiv.innerHTML = `<span class="text-[#FFD700]">${team.name}</span> bids RM ${req.amount}`;
+            logDiv.className = "log-entry latest";
+            logDiv.innerHTML = `<span class="text-white font-bold">${team.name}</span><span class="text-[#FFD700] font-mono">RM ${req.amount.toLocaleString()}</span>`;
             document.getElementById('bids-list').prepend(logDiv);
             
             await remove(ref(db, `bidQueue/${key}`));
@@ -646,10 +562,7 @@
             const others = Object.keys(teams).filter(id => id !== wid);
             
             const checkShield = (tid) => {
-                if (teams[tid].items && teams[tid].items.jade_seal) {
-                    updates[`teams/${tid}/items/jade_seal`] = null; 
-                    return true; 
-                }
+                if (teams[tid].items && teams[tid].items.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; }
                 return false;
             };
 
@@ -669,29 +582,24 @@
             }
             else if(card.type === 'MULTIPLY') {
                 let newVal = Math.floor(card.val < 1 ? winner.balance * card.val : base * card.val);
-                if(card.val < 1 && checkShield(wid)) {} 
-                else updates[wRef] = newVal;
+                if(card.val < 1 && checkShield(wid)) {} else updates[wRef] = newVal;
             }
             else if(card.type === 'STEAL_PCT') {
                 let richestId = others[0];
                 others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
-                if(richestId) {
-                    if(!checkShield(richestId)) {
-                        const stolen = Math.floor(teams[richestId].balance * card.val);
-                        updates[wRef] = winner.balance + stolen;
-                        updates[`teams/${richestId}/balance`] = Math.max(0, teams[richestId].balance - stolen);
-                    }
+                if(richestId && !checkShield(richestId)) {
+                    const stolen = Math.floor(teams[richestId].balance * card.val);
+                    updates[wRef] = winner.balance + stolen;
+                    updates[`teams/${richestId}/balance`] = Math.max(0, teams[richestId].balance - stolen);
                 }
             }
             else if(card.type === 'STEAL_RIVAL') {
                 const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
                 const victimId = sorted[1]; 
-                if(victimId && victimId !== wid) {
-                     if(!checkShield(victimId)) {
-                         const amt = Math.floor(Math.min(teams[victimId].balance, teams[victimId].balance * 0.2)); // Corrected logic: 20%
-                         updates[wRef] = winner.balance + amt;
-                         updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
-                     }
+                if(victimId && victimId !== wid && !checkShield(victimId)) {
+                     const amt = Math.floor(Math.min(teams[victimId].balance, teams[victimId].balance * 0.2));
+                     updates[wRef] = winner.balance + amt;
+                     updates[`teams/${victimId}/balance`] = teams[victimId].balance - amt;
                 }
             }
             else if(card.type === 'STEAL_CHOICE') {
@@ -711,9 +619,7 @@
                 }
             }
             else if(card.type === 'GLOBAL_HIT') {
-                others.forEach(oid => {
-                    if(!checkShield(oid)) updates[`teams/${oid}/balance`] = Math.floor(teams[oid].balance * card.val);
-                });
+                others.forEach(oid => { if(!checkShield(oid)) updates[`teams/${oid}/balance`] = Math.floor(teams[oid].balance * card.val); });
             }
             else if(card.type === 'SWAP') {
                 const targetId = others[Math.floor(Math.random() * others.length)];
