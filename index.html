@@ -1,465 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMPERIAL GRAND CASINO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
-    <style>
-        :root { --gold: #FFD700; --red: #2a0a0a; }
-        body { 
-            background-color: var(--red);
-            background-image: url("https://www.transparenttextures.com/patterns/black-scales.png");
-            color: #fff; font-family: 'Cinzel', serif; overflow: hidden;
-        }
-        .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
-        .gold-text { 
-            background: linear-gradient(to bottom, #FFD700, #FDB931); 
-            -webkit-background-clip: text; color: transparent; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
-
-        /* 3D CARD ENGINE */
-        .card-scene { perspective: 1500px; width: 100%; height: 100%; cursor: pointer; z-index: 10; transition: transform 0.2s; position: relative; }
-        .card-scene:hover { transform: translateY(-8px); }
-        
-        /* IMPORTANT: PRESERVE 3D */
-        .card-obj { 
-            width: 100%; height: 100%; position: relative; transform-style: preserve-3d; 
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
-            pointer-events: none; /* Let clicks pass through to parent */
-        }
-        .card-obj.flipped { transform: rotateY(180deg); }
-
-        .card-face {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: #1a1a1a; border: 3px solid var(--gold);
-        }
-
-        /* Front = Red Envelope */
-        .card-front { background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%); }
-        /* Back = Result */
-        .card-back { transform: rotateY(180deg); background: #000; }
-
-        /* MODAL */
-        #focus-modal { transition: opacity 0.3s; pointer-events: none; opacity: 0; }
-        #focus-modal.active { pointer-events: auto; opacity: 1; }
-        #focus-card { transition: transform 0.8s; transform: scale(0.5) rotateY(0deg); }
-        #focus-modal.active #focus-card { transform: scale(0.9) rotateY(180deg); }
-
-        .pointer-none { pointer-events: none; }
-        .click-target { position: absolute; inset: 0; z-index: 50; cursor: pointer; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Playfair Display', serif; background: #2a0000; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); color: #FFD700; touch-action: manipulation; }
+        .font-imp { font-family: 'Cinzel', serif; }
+        .glass-panel { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn-gold { background: linear-gradient(180deg, #FFD700, #B8860B); color: #2a0000; border: 1px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-weight: 900; }
+        .btn-gold:active { transform: scale(0.95); }
+        .profile-header { background: linear-gradient(180deg, #1a0000 0%, #000000 100%); border-bottom: 2px solid #C5A059; }
+        .btn-seal { background: linear-gradient(180deg, #00ff00, #006600); color: white; box-shadow: 0 0 20px #00ff00; animation: pulse-green 2s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 30px #00ff00; } 100% { box-shadow: 0 0 10px #00ff00; } }
+    </style>
 </head>
-<body class="h-screen w-screen flex flex-col">
+<body class="h-[100dvh] flex flex-col">
 
-    <div id="click-wall" class="fixed inset-0 z-[999] bg-black/95 flex flex-col items-center justify-center cursor-pointer" onclick="initAudio()">
-        <div class="text-7xl mb-6 animate-bounce">🔊</div>
-        <div class="text-4xl font-bold gold-text">CLICK TO INITIALIZE</div>
-    </div>
+    <div id="login" class="absolute inset-0 z-50 bg-[#1a0000] flex flex-col items-center justify-center p-8">
+        <h1 class="font-imp text-4xl mb-4 text-[#FFD700]">IMPERIAL<br>COURT</h1>
+        <input id="inp-name" class="w-full glass-panel p-4 text-center rounded text-xl" placeholder="Dynasty Name">
+        <button onclick="login()" class="mt-4 btn-gold w-full py-4 text-xl rounded shadow-[0_0_20px_gold]">ENTER</button>
+    </div>
 
-    <audio id="sfx-flip" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-    <audio id="sfx-trap" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
-    <audio id="sfx-start" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2555/2555-preview.mp3"></audio>
+    <div id="view-bankrupt" class="hidden absolute inset-0 z-40 bg-black flex flex-col items-center justify-center text-center p-8">
+        <div class="text-6xl mb-4">☠️</div>
+        <h1 class="font-imp text-4xl text-red-600 mb-2">DYNASTY FALLEN</h1>
+        <p class="text-gray-400">Your treasury is empty.</p>
+    </div>
 
-    <header class="h-24 flex justify-between items-center px-10 border-b-2 border-[#FFD700] bg-[#1a0505]/95 z-40 relative shadow-2xl">
-        <div class="flex items-center gap-4">
-            <span class="text-5xl drop-shadow-[0_0_15px_gold]">🏮</span>
-            <div>
-                <h1 class="text-4xl font-black gold-text tracking-widest">IMPERIAL COURT</h1>
-                <div class="text-xs text-[#FFD700]/70 tracking-[0.4em] uppercase font-bold">High Stakes Auction</div>
-            </div>
-        </div>
-        <div class="text-center">
-            <div class="text-xs text-[#FFD700]/70 tracking-[0.5em] uppercase mb-1">Round</div>
-            <div id="round-disp" class="text-5xl font-black text-white drop-shadow-md font-chinese">LOBBY</div>
-        </div>
-        <button onclick="window.fullReset()" class="px-4 py-2 border-2 border-red-800 text-red-500 hover:bg-red-900/50 rounded-lg font-bold text-xs pointer-events-auto">RESET</button>
-    </header>
+    <div id="app" class="hidden flex-col h-full relative">
+        <div class="h-20 flex justify-between items-center px-4 profile-header shrink-0 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-black border border-[#C5A059] flex items-center justify-center text-xl"><span id="rank-icon">⚔️</span></div>
+                <div class="flex flex-col"><span id="name-display" class="font-bold text-white text-lg leading-none">Player</span><span id="rank-display" class="text-xs text-[#C5A059] uppercase tracking-widest">Soldier</span></div>
+            </div>
+            <div class="text-right"><div class="text-[9px] text-[#C5A059] uppercase">Treasury</div><div class="font-imp font-bold text-xl text-white">RM <span id="balance" class="text-[#FFD700]">--</span></div></div>
+        </div>
 
-    <div class="flex-1 p-8 flex gap-8 z-10 relative overflow-hidden">
-        
-        <div id="lobby-view" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md">
-            <h1 class="text-8xl gold-text font-black mb-8 font-chinese drop-shadow-2xl">OPEN THE GATES</h1>
-            <div id="player-count" class="text-3xl text-[#FFD700] mb-12 tracking-widest border-b-4 border-[#FFD700] pb-4 font-bold">0 PLAYERS</div>
-            <button onclick="window.startGame()" class="px-16 py-6 bg-gradient-to-b from-[#FFD700] to-[#B8860B] text-black font-black text-4xl rounded-xl shadow-[0_0_50px_gold] hover:scale-105 transition pointer-events-auto cursor-pointer">BEGIN</button>
-        </div>
+        <div id="spy-banner" class="hidden bg-[#000] border-y border-red-500 p-2 text-center shadow-lg">
+            <span class="text-red-500 text-xs font-bold uppercase tracking-widest mr-2 animate-pulse">🕵️ INTEL REPORT:</span>
+            <span id="spy-text" class="text-white font-bold">--</span>
+        </div>
 
-        <div id="grid" class="flex-1 grid grid-cols-3 grid-rows-2 gap-6 perspective-[2000px]"></div>
+        <div class="flex-1 p-4 flex flex-col justify-center relative overflow-hidden">
+            <div id="view-bidding" class="hidden flex-col gap-4">
+                <div class="glass-panel p-4 rounded text-center">
+                    <p class="text-[#C5A059] text-xs uppercase tracking-widest">Current High Bid</p>
+                    <div class="text-5xl font-imp font-black text-white drop-shadow-md">RM <span id="high-bid">0</span></div>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="quick(0.1)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+10%</button>
+                    <button onclick="quick(0.25)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+25%</button>
+                    <button onclick="quick(0.5)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+50%</button>
+                    <button onclick="quick(1)" class="glass-panel py-3 rounded text-xs text-red-400 border-red-900 hover:bg-red-600 hover:text-white transition">ALL</button>
+                </div>
+                <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5A059]">RM</span><input type="number" id="bid-val" class="w-full glass-panel p-4 pl-12 text-3xl font-bold rounded text-center" placeholder="0"></div>
+                <button onclick="submit()" id="btn-bid" class="btn-gold py-5 text-2xl rounded shadow-lg tracking-widest mt-2">OFFER TRIBUTE</button>
+                <div id="feedback" class="text-center text-red-300 h-6 text-sm font-bold tracking-wide mt-2"></div>
+            </div>
 
-        <div class="w-[400px] bg-[#1a0505]/95 border-2 border-[#FFD700] rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-4 border-b-2 border-[#FFD700] bg-gradient-to-b from-[#2a0a0a] to-[#1a0505]">
-                <h2 class="text-center gold-text tracking-[0.2em] font-black text-xl">RANKINGS</h2>
-            </div>
-            <div id="roster" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
-        </div>
-    </div>
+            <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-6 rounded">
+                <div class="text-center"><div class="text-6xl mb-2">🎲</div><h2 class="text-2xl font-imp text-[#FFD700]">HIGH ROLLER</h2><p class="text-sm text-gray-300">Double or Nothing?</p></div>
+                <input type="number" id="wager-val" class="w-full glass-panel p-4 text-3xl font-bold rounded text-center" placeholder="Amount">
+                <button onclick="submitWager()" class="btn-gold w-full py-4 text-xl rounded">LOCK IN WAGER</button>
+            </div>
 
-    <div class="h-28 bg-[#1a0505]/95 border-t-2 border-[#FFD700] flex justify-center items-center gap-12 z-40 relative shadow-2xl">
-        <div id="timer-container" class="absolute left-10 hidden">
-            <div class="text-xs text-gray-400 tracking-widest mb-1">TIME REMAINING</div>
-            <div id="timer-val" class="text-5xl font-black text-white font-mono">20</div>
-        </div>
+            <div id="view-idle" class="hidden text-center opacity-70">
+                <div class="animate-pulse text-6xl mb-4">🐎</div><h2 class="font-imp text-2xl text-white" id="idle-msg">WAITING...</h2>
+            </div>
+        </div>
+        
+        <div id="seal-indicator" class="hidden absolute bottom-6 right-6 w-16 h-16 rounded-full text-2xl z-50 flex items-center justify-center border-2 border-white bg-green-700 shadow-[0_0_20px_green]">🛡️</div>
+    </div>
 
-        <div id="status-text" class="text-4xl font-black text-gray-500 tracking-widest font-chinese">--</div>
-        
-        <button onclick="window.closeBidding()" id="btn-lock" class="hidden px-12 py-4 bg-red-800 text-white font-black text-2xl rounded-xl shadow-[0_0_30px_red] hover:scale-105 transition border-4 border-red-600 pointer-events-auto">STOP BIDDING</button>
-        
-        <button onclick="window.nextRound()" id="btn-next" class="hidden px-12 py-4 bg-[#FFD700] text-black font-black text-2xl rounded-xl shadow-[0_0_30px_gold] hover:scale-105 transition border-4 border-white pointer-events-auto">NEXT ROUND</button>
-        
-        <div id="msg-hint" class="hidden text-[#FFD700]/80 text-xl animate-pulse tracking-widest font-bold">CLICK CARD TO REVEAL</div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get, set, update, push, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-    <div id="focus-modal" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-lg opacity-0 pointer-events-none transition-opacity duration-500">
-        <div class="relative w-[500px] h-[700px] perspective-[2000px]">
-            <div id="focus-card" class="w-full h-full relative transform-style-3d shadow-2xl transition-transform duration-700">
-                <div id="f-front" class="absolute inset-0 backface-hidden rounded-3xl border-4 border-[#FFD700] bg-gradient-to-br from-[#7f1d1d] to-[#450a0a] flex items-center justify-center">
-                    <div class="text-[150px] opacity-20 select-none">?</div>
-                </div>
-                <div id="f-back" class="absolute inset-0 backface-hidden rounded-3xl border-4 bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center" style="transform: rotateY(180deg);">
-                    <div id="f-cat" class="text-sm font-bold uppercase tracking-[0.4em] text-gray-400 mb-6">CATEGORY</div>
-                    <div id="f-title" class="text-5xl font-black text-white leading-tight mb-4 font-chinese">Title</div>
-                    <div id="f-val" class="text-6xl font-black gold-text mb-8 drop-shadow-xl">+$$$</div>
-                    <div class="w-full h-1 bg-[#FFD700]/30 mb-8"></div>
-                    <div class="text-xs text-gray-500 uppercase tracking-widest mb-2 font-bold">WINNING BIDDER</div>
-                    <div id="f-winner" class="text-4xl font-bold text-white">NAME</div>
-                    <div id="f-cost" class="text-red-500 font-mono text-2xl mt-2 font-bold">-$0</div>
-                </div>
-            </div>
-        </div>
-        <button onclick="window.closeFocus()" class="absolute bottom-8 px-12 py-3 border-2 border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl tracking-widest cursor-pointer pointer-events-auto font-bold text-xl transition-all">CLOSE</button>
-    </div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+            authDomain: "auction-ebc97.firebaseapp.com",
+            databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "auction-ebc97",
+            storageBucket: "auction-ebc97.firebasestorage.app",
+            messagingSenderId: "883038465804",
+            appId: "1:883038465804:web:df2595623ca5276561a329",
+            measurementId: "G-69HD10GML7"
+        };
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
+        let isSpinning = false; 
 
-        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97", storageBucket: "auction-ebc97.firebasestorage.app", messagingSenderId: "883038465804", appId: "1:883038465804:web:df2595623ca5276561a329", measurementId: "G-69HD10GML7" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // UPDATED CARD LIST
+        const cardNames = {
+            1: "Magic Bowl (+5k)", 2: "Market Crash (-20%)", 3: "Tax (Steal 30%)",
+            4: "Duel (Steal 20%)", 5: "Golden Horse (x3)", 6: "Bandits (-10%)",
+            7: "Imperial Grant (+8k)", 8: "Blockade", 9: "Robin Hood (Steal 15%)",
+            10: "Broken Vase (-5%)", 11: "Interest (+50%)", 12: "God of Wealth (+18k)",
+            13: "Bad Omen (-25%)", 14: "Twin Carp", 15: "Nian Monster (-50%)",
+            16: "Spy (Item)", 17: "Phoenix", 18: "False Friend", 19: "Shared Bill (-10%)",
+            20: "Jade Seal (Auto-Block)", 21: "Mystery Box (Spin)", 22: "Bad Luck (-15%)",
+            23: "Chaos Swap", 24: "Lucky Song (+6k)", 25: "High Roller (Gamble)"
+        };
 
-        const sfx = { flip: document.getElementById('sfx-flip'), win: document.getElementById('sfx-win'), trap: document.getElementById('sfx-trap'), start: document.getElementById('sfx-start'), tick: document.getElementById('sfx-tick') };
-        window.initAudio = () => { document.getElementById('click-wall').remove(); sfx.start.play().catch(e => console.log("Audio waiting...")); };
+        if(myId) init();
 
-        // --- MATH-SAFE CARD DATA ---
-        const deck = [
-            { name: "Magic Bowl", val: 8000, type: "ADD", cat: "WEALTH" },
-            { name: "Tax Refund", val: 12000, type: "ADD", cat: "WEALTH" },
-            { name: "Gold Mine", val: 20000, type: "ADD", cat: "WEALTH" },
-            { name: "Interest", val: 0.50, type: "MULTIPLY", cat: "WEALTH" }, // +50% Profit
-            { name: "Bull Run", val: 1.00, type: "MULTIPLY", cat: "WEALTH" }, // +100% Profit
-            { name: "Jackpot", val: 50000, type: "ADD", cat: "WEALTH" },
-            { name: "Pickpocket", val: 5000, type: "STEAL_FLAT", cat: "STEAL" },
-            { name: "Mugger", val: 15000, type: "STEAL_FLAT", cat: "STEAL" },
-            { name: "Taxman", val: 0.30, type: "STEAL_PCT", cat: "STEAL" },
-            { name: "Coin Flip", val: 50000, type: "GAMBLE", cat: "GAMBLE" },
-            { name: "High Roller", val: 3.0, type: "GAMBLE", cat: "GAMBLE" },
-            { name: "Scam", val: 0.5, type: "TRAP", cat: "TRAP" },
-            { name: "Rug Pull", val: 0.25, type: "TRAP", cat: "TRAP" },
-            { name: "The Nuke", val: 0.5, type: "CHAOS", cat: "CHAOS" },
-            { name: "Socialism", val: 0, type: "CHAOS", cat: "CHAOS" }
-        ];
+        window.login = async () => {
+            const n = document.getElementById('inp-name').value;
+            if(!n) return;
+            const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const r = ref(db, teams/${id});
+            const s = await get(r);
+            if(s.exists()) { alert("NAME TAKEN! Choose another."); return; }
+            await set(r, { name: n, balance: 1000 });
+            localStorage.setItem('id', id); localStorage.setItem('name', n);
+            myId = id; myName = n;
+            init();
+        }
 
-        let state = { phase: 'LOBBY', round: 0, cards: [] };
-        let timerInterval;
+        function init() {
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('app').classList.add('flex');
+            document.getElementById('name-display').innerText = myName;
 
-        // --- CORE LOGIC ---
-        onValue(ref(db, 'gameState'), (snap) => {
-            const data = snap.val();
-            if(!data) return;
-            state = data;
-            
-            const lobby = document.getElementById('lobby-view');
-            const status = document.getElementById('status-text');
-            const btnLock = document.getElementById('btn-lock');
-            const btnNext = document.getElementById('btn-next');
-            const msgHint = document.getElementById('msg-hint');
+            onValue(ref(db, teams/${myId}), (snap) => {
+                const t = snap.val();
+                if(!t) return;
+                balance = t.balance;
+                document.getElementById('balance').innerText = balance.toLocaleString();
+                checkAlive();
+                
+                // Show Shield Icon if protected
+                const hasSeal = t.items && t.items.jade_seal;
+                if(hasSeal) document.getElementById('seal-indicator').classList.remove('hidden');
+                else document.getElementById('seal-indicator').classList.add('hidden');
+                
+                // SPY LOGIC: Only show if 'spy_active' is true
+                window.hasSpy = t.items && t.items.spy_active;
+            });
+            
+            onValue(ref(db, 'gameState'), (snap) => {
+                const st = snap.val();
+                if(!st) return;
+                highBid = st.highestBid || 0;
+                document.getElementById('high-bid').innerText = highBid.toLocaleString();
+                
+                if(st.leaderId === myId) myCurrentBid = highBid; else myCurrentBid = 0;
+                checkAlive();
+                updateView(st);
+            });
+            
+            onValue(ref(db, 'teams'), (snap) => {
+                const teams = snap.val();
+                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+                const rank = sorted.indexOf(myId) + 1;
+                const rText = document.getElementById('rank-display');
+                if(rank === 1) { rText.innerText = "EMPEROR"; rText.style.color = "#FFD700"; }
+                else if(rank === 2) { rText.innerText = "WARLORD"; rText.style.color = "#C0C0C0"; }
+                else { rText.innerText = RANK #${rank}; rText.style.color = "#C5A059"; }
+            });
+        }
 
-            if (state.phase === 'LOBBY') {
-                lobby.classList.remove('hidden');
-                document.getElementById('grid').innerHTML = '';
-                document.getElementById('round-disp').innerText = "LOBBY";
-            } 
-            else if (state.phase === 'BIDDING') {
-                lobby.classList.add('hidden');
-                document.getElementById('round-disp').innerText = state.round;
-                status.classList.add('hidden'); 
-                
-                btnLock.classList.remove('hidden');
-                btnNext.classList.add('hidden');
-                msgHint.classList.add('hidden');
-                document.getElementById('timer-container').classList.remove('hidden');
-                
-                startTimer(20);
-                
-                // Force Grid Refresh
-                const grid = document.getElementById('grid');
-                if(grid.childElementCount === 0) renderGrid(false);
-            }
-            else if (state.phase === 'REVEAL') {
-                clearInterval(timerInterval);
-                document.getElementById('timer-container').classList.add('hidden');
-                status.classList.remove('hidden');
-                status.innerText = "REVEAL PHASE";
-                status.className = "absolute left-12 text-4xl font-black text-[#FFD700] tracking-widest font-chinese";
-                
-                btnLock.classList.add('hidden');
-                btnNext.classList.remove('hidden');
-                msgHint.classList.remove('hidden');
-            }
-        });
+        function checkAlive() {
+            const netWorth = balance + myCurrentBid;
+            if(netWorth <= 0 && !isSpinning) {
+                document.getElementById('view-bankrupt').classList.remove('hidden');
+                document.getElementById('view-bankrupt').classList.add('flex');
+            } else {
+                document.getElementById('view-bankrupt').classList.add('hidden');
+            }
+        }
 
-        // LIVE BIDS
-        onValue(ref(db, 'roundBids'), (snap) => {
-            if(state.phase !== 'BIDDING') return;
-            const bids = snap.val() || {};
-            for(let i=0; i<6; i++) {
-                const cardBids = Object.values(bids).filter(b => b.cardIdx === i);
-                const total = cardBids.reduce((a,b) => a + parseInt(b.amount), 0);
-                document.getElementById(`count-${i}`).innerText = `${cardBids.length} BIDDERS`;
-                document.getElementById(`pot-${i}`).innerText = `$${total.toLocaleString()}`;
-            }
-        });
+        function updateView(st) {
+            ['view-bidding', 'view-wager', 'view-idle'].forEach(i => {
+                const el = document.getElementById(i);
+                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+            });
+            document.getElementById('spy-banner').classList.add('hidden');
 
-        // LEADERBOARD
-        onValue(ref(db, 'teams'), (snap) => {
-            const teams = snap.val() || {};
-            document.getElementById('player-count').innerText = `${Object.keys(teams).length} PLAYERS READY`;
-            const roster = document.getElementById('roster');
-            roster.innerHTML = '';
-            const sorted = Object.keys(teams).sort((a,b) => parseInt(b.balance) - parseInt(a.balance));
-            sorted.forEach((id, idx) => {
-                const t = teams[id];
-                const div = document.createElement('div');
-                let col = "text-gray-400";
-                if(idx===0) col = "text-[#FFD700] font-black";
-                if(idx===1) col = "text-gray-300 font-bold";
-                div.className = `flex justify-between p-3 border-b border-white/10 ${t.frozen > 0 ? 'opacity-50 line-through text-red-500' : col} text-lg`;
-                div.innerHTML = `<span>#${idx+1} ${t.name}</span><span class="font-mono">$${t.balance.toLocaleString()}</span>`;
-                roster.appendChild(div);
-            });
-        });
+            if (st.phase === 'BIDDING') {
+                isSpinning = false;
+                document.getElementById('view-bidding').classList.remove('hidden');
+                document.getElementById('view-bidding').classList.add('flex');
+                document.getElementById('bid-val').placeholder = Min: ${highBid+50};
+                if(window.hasSpy && st.currentCard) {
+                    document.getElementById('spy-banner').classList.remove('hidden');
+                    const cName = cardNames[st.currentCard] || Mystery Card #${st.currentCard};
+                    document.getElementById('spy-text').innerText = cName;
+                }
+            } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
+                isSpinning = true;
+                document.getElementById('view-wager').classList.remove('hidden');
+                document.getElementById('view-wager').classList.add('flex');
+            } else if (st.phase === 'READY_TO_SPIN' || st.phase === 'SPIN') {
+                isSpinning = true;
+                document.getElementById('view-idle').classList.remove('hidden');
+                document.getElementById('idle-msg').innerText = "WATCH THE SCREEN...";
+            } else {
+                isSpinning = false;
+                document.getElementById('view-idle').classList.remove('hidden');
+                if(st.phase === 'SOLD') {
+                    document.getElementById('idle-msg').innerText = (st.leaderId === myId) ? "VICTORY" : "SOLD";
+                } else {
+                    document.getElementById('idle-msg').innerText = "WAITING...";
+                }
+            }
+            checkAlive();
+        }
 
-        function renderGrid(isReveal) {
-            const grid = document.getElementById('grid');
-            if(grid.childElementCount > 0 && !isReveal) return;
-            grid.innerHTML = '';
-            if(!state.cards) return;
+        window.quick = (p) => {
+            const totalPower = balance + myCurrentBid;
+            document.getElementById('bid-val').value = Math.floor(totalPower * p);
+        };
+        
+        window.submit = async () => {
+            const v = parseInt(document.getElementById('bid-val').value);
+            if(isNaN(v)) return;
+            const cost = v - myCurrentBid;
+            if(cost > balance) return feedback("Low Funds");
+            if(v < highBid + 50) return feedback("Too Low");
+            const b = document.getElementById('btn-bid');
+            b.disabled = true; b.innerText = "...";
+            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
+            setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
+        };
+        
+        window.submitWager = async () => {
+             const v = parseInt(document.getElementById('wager-val').value);
+             if(!v || v > balance) return;
+             
+             const isWin = Math.random() > 0.5;
+             const result = isWin ? 'WIN' : 'LOSE';
+             
+             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: result, wagerAmount: v });
+        };
 
-            state.cards.forEach((card, idx) => {
-                const isRevealed = state.revealed && state.revealed[idx];
-                const div = document.createElement('div');
-                // Added click-target so clicking anywhere works
-                div.className = "card-scene"; 
-                div.onclick = () => window.revealCard(idx);
-                
-                const visColor = card.visualCategory;
-                div.innerHTML = `
-                    <div class="card-obj ${isRevealed ? 'flipped' : ''}" id="card-obj-${idx}">
-                        <div class="card-face card-front">
-                            <div class="text-9xl font-black text-white/20 pointer-events-none select-none absolute top-4 left-6">${idx+1}</div>
-                            <div class="absolute bottom-8 w-full text-center pointer-events-none">
-                                <div class="inline-block px-6 py-2 rounded-full text-sm font-bold text-white mb-2 bg-black/60 border border-[#FFD700]/30 backdrop-blur-md" id="count-${idx}">0 BIDDERS</div>
-                                <div class="text-2xl font-mono text-[#FFD700] font-black drop-shadow-md" id="pot-${idx}">$0</div>
-                            </div>
-                        </div>
-                        <div class="card-face card-back theme-${card.actualCategory}">
-                            <div class="text-6xl animate-pulse">👁️</div>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(div);
-                if(isRevealed) div.querySelector('.card-obj').classList.add('flipped');
-            });
-        }
-
-        function startTimer(seconds) {
-            clearInterval(timerInterval);
-            let t = seconds;
-            const el = document.getElementById('timer-val');
-            el.innerText = t;
-            timerInterval = setInterval(() => {
-                t--;
-                el.innerText = t;
-                if(t <= 5 && t > 0) sfx.tick.play();
-                if(t <= 0) {
-                    clearInterval(timerInterval);
-                    window.closeBidding(); 
-                }
-            }, 1000);
-        }
-
-        // --- FUNCTIONS ---
-        window.startGame = async () => {
-            sfx.start.play();
-            const cards = generateCards();
-            await set(ref(db, 'gameState'), { phase: 'BIDDING', round: 1, cards: cards, revealed: [false,false,false,false,false,false] });
-            await set(ref(db, 'roundBids'), {});
-        };
-
-        window.fullReset = async () => {
-            if(confirm("HARD RESET SYSTEM?")) {
-                await set(ref(db), { gameState: { phase: 'LOBBY', round: 0 }, teams: {}, roundBids: {} });
-                location.reload();
-            }
-        };
-
-        window.closeBidding = async () => { sfx.start.play(); update(ref(db, 'gameState'), { phase: 'REVEAL' }); };
-
-        window.nextRound = async () => {
-            // WIPE GRID VISUALLY FIRST
-            document.getElementById('grid').innerHTML = ''; 
-            
-            const snap = await get(ref(db, 'teams'));
-            const teams = snap.val();
-            for(let k in teams) {
-                if(teams[k].frozen > 0) {
-                    let f = teams[k].frozen - 1;
-                    let b = teams[k].balance;
-                    if(f === 0) b = 2000;
-                    await update(ref(db, `teams/${k}`), { frozen: f, balance: b });
-                }
-            }
-            const cards = generateCards();
-            await update(ref(db, 'gameState'), { phase: 'BIDDING', round: state.round + 1, cards: cards, revealed: [false,false,false,false,false,false] });
-            await set(ref(db, 'roundBids'), {});
-            window.closeFocus();
-        };
-
-        window.revealCard = async (idx) => {
-            if(state.phase !== 'REVEAL') return;
-            if(state.revealed && state.revealed[idx]) return;
-
-            const updates = {}; updates[`gameState/revealed/${idx}`] = true; await update(ref(db), updates);
-            sfx.flip.play();
-
-            const bidsSnap = await get(ref(db, 'roundBids'));
-            const teamsSnap = await get(ref(db, 'teams'));
-            const bids = Object.values(bidsSnap.val() || {}).filter(b => b.cardIdx === idx);
-            const teams = teamsSnap.val();
-            const card = state.cards[idx];
-
-            let winnerId = null; let winningVal = 0; let isSniper = (bids.length === 1);
-            
-            bids.forEach(b => { 
-                let amt = parseInt(b.amount);
-                let power = b.isAllIn ? amt * 2 : amt; 
-                if(power > winningVal) { winningVal = power; winnerId = b.teamId; } 
-            });
-
-            // MODAL DISPLAY
-            const modal = document.getElementById('focus-modal');
-            const fBack = document.getElementById('f-back');
-            fBack.className = `absolute inset-0 backface-hidden rounded-3xl border-4 border-[#FFD700] bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] flex flex-col items-center justify-center theme-${card.actualCategory}`;
-            
-            document.getElementById('f-cat').innerText = card.actualCategory;
-            document.getElementById('f-title').innerText = card.name;
-            document.getElementById('f-val').innerText = getValText(card);
-
-            if(winnerId && teams[winnerId]) {
-                const t = teams[winnerId]; const bid = bids.find(b=>b.teamId===winnerId);
-                const bidAmt = parseInt(bid.amount);
-                document.getElementById('f-winner').innerText = t.name;
-                document.getElementById('f-cost').innerText = `PAID -$${bidAmt.toLocaleString()}`;
-                
-                if(card.cat === 'TRAP') sfx.trap.play(); else sfx.win.play();
-                if(card.cat === 'WEALTH') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#FFD700', '#FFA500'] });
-
-                // --- MATH LOGIC ---
-                let currentBal = parseInt(t.balance);
-                let mult = bid.isAllIn ? 3 : 1;
-                
-                // 1. REFUND BID (Winning logic: you pay, but Wealth returns it)
-                // Actually, let's stick to standard: Pay Bid -> Get Effect.
-                // Standard: newBal = currentBal - bidAmt.
-                
-                // WEALTH CARD FIX:
-                // If it's a Wealth Card, we treat the Bid as an "Investment".
-                // Result = Bid + (Bid * Effect * Mult).
-                // So if you bid 2000 on +50%, you get 2000 + 1000 = 3000 back.
-                
-                let newBal = currentBal - bidAmt; // Deduct first
-                
-                if(card.type === 'ADD') {
-                    newBal += (card.val * mult); // Standard add
-                    // If it was All In, we should probably refund the bid too? 
-                    // No, ADD cards are just cash.
-                }
-                
-                if(card.type === 'MULTIPLY') {
-                    // PROFIT MODE: Base is the Bid Amount.
-                    // Return = Bid + (Bid * Rate * Mult).
-                    let profit = 0;
-                    if(card.val <= 1) { // e.g. 0.5 (50%)
-                        profit = Math.floor(bidAmt * card.val * mult);
-                    } else { // e.g. 2.0 (200%)
-                        profit = Math.floor(bidAmt * (card.val - 1) * mult);
-                    }
-                    newBal += (bidAmt + profit); // Refund Bid + Add Profit
-                }
-                
-                if(card.type === 'STEAL_FLAT') newBal += (card.val * mult);
-                if(card.type === 'STEAL_PCT') {
-                    // Steal % based on Bid Amount? Or arbitrary? Let's say Profit = Bid * % * Mult.
-                    let profit = Math.floor(bidAmt * card.val * mult);
-                    newBal += (bidAmt + profit);
-                }
-                
-                if(card.type === 'GAMBLE') { 
-                    if(Math.random() > 0.5) {
-                        // WIN: Refund + Profit
-                        let profit = Math.floor(bidAmt * card.val * mult);
-                        newBal += (bidAmt + profit);
-                    } else {
-                        // LOSE: Do nothing (Bid already lost)
-                    }
-                }
-                
-                if(card.type === 'TRAP') { 
-                    // TRAP: Bid lost. Additional Penalty?
-                    // If % trap (0.5), lose 50% of REMAINING balance.
-                    if(card.val > 0 && card.val < 1) newBal = Math.floor(newBal * card.val); 
-                    else newBal += card.val; // Flat subtract
-                }
-                
-                if(isSniper) newBal += 1000;
-
-                let frozen = 0; if(newBal <= 0) { newBal = 0; frozen = 2; }
-                await update(ref(db, `teams/${winnerId}`), { balance: newBal, frozen: frozen });
-            } else {
-                document.getElementById('f-winner').innerText = "NO BIDS"; document.getElementById('f-cost').innerText = "--";
-            }
-
-            modal.classList.add('active');
-            const cardObj = document.getElementById('focus-card');
-            cardObj.style.transform = 'rotateY(0deg) scale(0.5)';
-            setTimeout(() => { cardObj.style.transform = 'rotateY(180deg) scale(1)'; }, 100);
-        };
-
-        window.closeFocus = () => { document.getElementById('focus-modal').classList.remove('active'); };
-
-        function generateCards() {
-            const res = [];
-            for(let i=0; i<6; i++) {
-                const c = deck[Math.floor(Math.random() * deck.length)];
-                let vis = c.cat;
-                if(Math.random() < 0.2) { const cats = ['WEALTH','STEAL','GAMBLE','TRAP','CHAOS']; vis = cats[Math.floor(Math.random()*cats.length)]; }
-                res.push({ ...c, visualCategory: vis, actualCategory: c.cat });
-            }
-            return res;
-        }
-
-        function getValText(c) {
-            if(c.type === 'MULTIPLY') return `+${(c.val * 100)}% PROFIT`;
-            if(c.val > 0) return `+$${c.val.toLocaleString()}`;
-            return `-$${Math.abs(c.val).toLocaleString()}`;
-        }
-    </script>
+        function feedback(t) { document.getElementById('feedback').innerText = t; }
+    </script>
 </body>
 </html>
