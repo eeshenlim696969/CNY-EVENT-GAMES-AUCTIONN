@@ -1,175 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Imperial Bidder</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-    <style>
-        body { 
-            background: #2a0a0a; 
-            background-image: url("https://www.transparenttextures.com/patterns/black-scales.png");
-            color: #ffedc2; font-family: 'Cinzel', serif; touch-action: manipulation; 
-        }
-        .btn-card { 
-            height: 90px; border-radius: 12px; font-weight: 900; font-size: 24px; 
-            border: 2px solid #5c1c1c; 
-            background: linear-gradient(135deg, #7f1d1d, #450a0a);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: all 0.2s; position: relative; overflow: hidden;
-        }
-        .btn-card::after { content: '🧧'; position: absolute; right: 10px; bottom: 5px; opacity: 0.2; font-size: 30px; }
-        .btn-card.selected { border-color: #FFD700; box-shadow: 0 0 20px #FFD700; transform: scale(1.02); background: linear-gradient(135deg, #991b1b, #7f1d1d); }
-        .dot { width: 10px; height: 10px; border-radius: 50%; position: absolute; top: 10px; left: 10px; }
-        .bg-WEALTH { background: #10b981; } .bg-STEAL { background: #ef4444; } .bg-GAMBLE { background: #a855f7; } .bg-TRAP { background: #f97316; } .bg-CHAOS { background: #94a3b8; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Playfair Display', serif; background: #2a0000; background-image: url('https://www.transparenttextures.com/patterns/black-scales.png'); color: #FFD700; touch-action: manipulation; }
+        .font-imp { font-family: 'Cinzel', serif; }
+        .glass-panel { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,215,0,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn-gold { background: linear-gradient(180deg, #FFD700, #B8860B); color: #2a0000; border: 1px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-weight: 900; }
+        .btn-gold:active { transform: scale(0.95); }
+        .profile-header { background: linear-gradient(180deg, #1a0000 0%, #000000 100%); border-bottom: 2px solid #C5A059; }
+        .btn-seal { background: linear-gradient(180deg, #00ff00, #006600); color: white; box-shadow: 0 0 20px #00ff00; animation: pulse-green 2s infinite; }
+        @keyframes pulse-green { 0% { box-shadow: 0 0 10px #00ff00; } 50% { box-shadow: 0 0 30px #00ff00; } 100% { box-shadow: 0 0 10px #00ff00; } }
+    </style>
 </head>
-<body class="h-[100dvh] flex flex-col p-4">
+<body class="h-[100dvh] flex flex-col">
 
-    <div id="login" class="fixed inset-0 z-50 bg-[#1a0505] flex flex-col justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
-        <div class="text-6xl text-center mb-4">🧧</div>
-        <h1 class="text-4xl text-center font-black mb-8 text-[#FFD700]">IMPERIAL<br>COURT</h1>
-        <input id="name" class="bg-[#2a0a0a] border-2 border-[#FFD700]/50 p-4 text-center text-xl rounded-lg mb-6 text-[#FFD700] placeholder-red-900/50 uppercase" placeholder="ENTER NAME">
-        <button onclick="window.login()" class="bg-[#FFD700] text-red-900 font-black py-4 rounded-lg text-xl shadow-[0_0_20px_#FFD700] hover:scale-105 transition">JOIN DYNASTY</button>
-    </div>
+    <div id="login" class="absolute inset-0 z-50 bg-[#1a0000] flex flex-col items-center justify-center p-8">
+        <h1 class="font-imp text-4xl mb-4 text-[#FFD700]">IMPERIAL<br>COURT</h1>
+        <input id="inp-name" class="w-full glass-panel p-4 text-center rounded text-xl" placeholder="Dynasty Name">
+        <button onclick="login()" class="mt-4 btn-gold w-full py-4 text-xl rounded shadow-[0_0_20px_gold]">ENTER</button>
+    </div>
 
-    <div id="game" class="hidden flex-col h-full">
-        <div class="flex justify-between items-end border-b border-[#FFD700]/30 pb-3 mb-4">
-            <div><div class="text-[10px] text-red-400 tracking-widest uppercase">Bidder</div><div id="p-name" class="font-bold text-lg text-white leading-none">--</div></div>
-            <div class="text-right"><div class="text-[10px] text-red-400 tracking-widest uppercase">Treasury</div><div class="font-black text-3xl text-[#FFD700] leading-none">$<span id="bal">--</span></div></div>
-        </div>
+    <div id="view-bankrupt" class="hidden absolute inset-0 z-40 bg-black flex flex-col items-center justify-center text-center p-8">
+        <div class="text-6xl mb-4">☠️</div>
+        <h1 class="font-imp text-4xl text-red-600 mb-2">DYNASTY FALLEN</h1>
+        <p class="text-gray-400">Your treasury is empty.</p>
+    </div>
 
-        <div id="view-bid" class="flex-1 flex flex-col hidden">
-            <p class="text-center text-red-400 mb-2 text-[10px] tracking-[0.3em] uppercase">Select Envelope</p>
-            <div class="grid grid-cols-2 gap-3 mb-6" id="btn-grid"></div>
-            <div class="bg-[#1a0505] p-4 rounded-xl border border-[#FFD700]/30 mb-4 shadow-lg relative">
-                <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-red-400 tracking-widest">BID AMOUNT</span><span id="all-in-tag" class="text-xs bg-red-600 text-white px-2 py-0.5 rounded font-bold hidden animate-pulse">ALL IN ACTIVE</span></div>
-                <input type="number" id="amt" class="w-full bg-[#0f0303] border border-red-900/50 p-4 text-3xl text-center rounded text-[#FFD700] font-mono focus:border-[#FFD700] outline-none" placeholder="0">
-                <div class="flex items-center gap-3 mt-4 p-3 bg-red-900/10 rounded border border-red-900/30 cursor-pointer active:bg-red-900/20" onclick="document.getElementById('allin').click()">
-                    <input type="checkbox" id="allin" class="w-6 h-6 accent-red-600" onchange="window.toggleAllIn()">
-                    <label for="allin" class="font-bold text-red-400 text-sm">GO ALL IN (x3 Power)</label>
-                </div>
-            </div>
-            <button onclick="window.submitBid()" id="btn-submit" class="bg-[#FFD700] text-red-900 font-black py-5 rounded-xl text-xl shadow-[0_0_20px_rgba(255,215,0,0.4)] transition transform active:scale-95 border-b-4 border-[#b8860b]">SEAL BID</button>
-        </div>
+    <div id="app" class="hidden flex-col h-full relative">
+        <div class="h-20 flex justify-between items-center px-4 profile-header shrink-0 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-black border border-[#C5A059] flex items-center justify-center text-xl"><span id="rank-icon">⚔️</span></div>
+                <div class="flex flex-col"><span id="name-display" class="font-bold text-white text-lg leading-none">Player</span><span id="rank-display" class="text-xs text-[#C5A059] uppercase tracking-widest">Soldier</span></div>
+            </div>
+            <div class="text-right"><div class="text-[9px] text-[#C5A059] uppercase">Treasury</div><div class="font-imp font-bold text-xl text-white">RM <span id="balance" class="text-[#FFD700]">--</span></div></div>
+        </div>
 
-        <div id="view-wait" class="flex-1 flex flex-col justify-center items-center text-center hidden">
-            <div class="text-7xl mb-6 animate-bounce">🔒</div>
-            <h2 class="text-3xl font-black text-[#FFD700] mb-2">LOCKED IN</h2>
-            <p class="text-red-300/50 text-sm tracking-widest">FATE IS DECIDED</p>
-        </div>
+        <div id="spy-banner" class="hidden bg-[#000] border-y border-red-500 p-2 text-center shadow-lg">
+            <span class="text-red-500 text-xs font-bold uppercase tracking-widest mr-2 animate-pulse">🕵️ INTEL REPORT:</span>
+            <span id="spy-text" class="text-white font-bold">--</span>
+        </div>
 
-        <div id="view-frozen" class="flex-1 flex flex-col justify-center items-center text-center hidden bg-red-950/30 rounded-xl border-2 border-red-900 p-8">
-            <div class="text-7xl mb-4">🧊</div>
-            <h2 class="text-3xl font-black text-red-500">BANKRUPT</h2>
-            <p class="text-red-300 mt-2 px-4 leading-relaxed">Frozen for 1 Round.</p>
-        </div>
-    </div>
+        <div class="flex-1 p-4 flex flex-col justify-center relative overflow-hidden">
+            <div id="view-bidding" class="hidden flex-col gap-4">
+                <div class="glass-panel p-4 rounded text-center">
+                    <p class="text-[#C5A059] text-xs uppercase tracking-widest">Current High Bid</p>
+                    <div class="text-5xl font-imp font-black text-white drop-shadow-md">RM <span id="high-bid">0</span></div>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="quick(0.1)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+10%</button>
+                    <button onclick="quick(0.25)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+25%</button>
+                    <button onclick="quick(0.5)" class="glass-panel py-3 rounded text-xs hover:bg-[#FFD700] hover:text-black transition">+50%</button>
+                    <button onclick="quick(1)" class="glass-panel py-3 rounded text-xs text-red-400 border-red-900 hover:bg-red-600 hover:text-white transition">ALL</button>
+                </div>
+                <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5A059]">RM</span><input type="number" id="bid-val" class="w-full glass-panel p-4 pl-12 text-3xl font-bold rounded text-center" placeholder="0"></div>
+                <button onclick="submit()" id="btn-bid" class="btn-gold py-5 text-2xl rounded shadow-lg tracking-widest mt-2">OFFER TRIBUTE</button>
+                <div id="feedback" class="text-center text-red-300 h-6 text-sm font-bold tracking-wide mt-2"></div>
+            </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+            <div id="view-wager" class="hidden flex-col items-center gap-6 glass-panel p-6 rounded">
+                <div class="text-center"><div class="text-6xl mb-2">🎲</div><h2 class="text-2xl font-imp text-[#FFD700]">HIGH ROLLER</h2><p class="text-sm text-gray-300">Double or Nothing?</p></div>
+                <input type="number" id="wager-val" class="w-full glass-panel p-4 text-3xl font-bold rounded text-center" placeholder="Amount">
+                <button onclick="submitWager()" class="btn-gold w-full py-4 text-xl rounded">LOCK IN WAGER</button>
+            </div>
 
-        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97", storageBucket: "auction-ebc97.firebasestorage.app", messagingSenderId: "883038465804", appId: "1:883038465804:web:df2595623ca5276561a329", measurementId: "G-69HD10GML7" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+            <div id="view-idle" class="hidden text-center opacity-70">
+                <div class="animate-pulse text-6xl mb-4">🐎</div><h2 class="font-imp text-2xl text-white" id="idle-msg">WAITING...</h2>
+            </div>
+        </div>
+        
+        <div id="seal-indicator" class="hidden absolute bottom-6 right-6 w-16 h-16 rounded-full text-2xl z-50 flex items-center justify-center border-2 border-white bg-green-700 shadow-[0_0_20px_green]">🛡️</div>
+    </div>
 
-        let myId = localStorage.getItem('id'), balance = 0, selectedIdx = -1;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get, set, update, push, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-        if(myId) init();
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM",
+            authDomain: "auction-ebc97.firebaseapp.com",
+            databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "auction-ebc97",
+            storageBucket: "auction-ebc97.firebasestorage.app",
+            messagingSenderId: "883038465804",
+            appId: "1:883038465804:web:df2595623ca5276561a329",
+            measurementId: "G-69HD10GML7"
+        };
 
-        window.login = async () => {
-            const n = document.getElementById('name').value.trim();
-            if(!n) return;
-            const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const s = await get(ref(db, `teams/${id}`));
-            if(s.exists()) { alert("NAME TAKEN!"); return; }
-            await set(ref(db, `teams/${id}`), { name: n, balance: 2000, frozen: 0 });
-            localStorage.setItem('id', id); myId = id;
-            init();
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
+        let isSpinning = false; 
 
-        function init() {
-            document.getElementById('login').classList.add('hidden');
-            document.getElementById('game').classList.remove('hidden');
-            document.getElementById('game').classList.add('flex');
+        // UPDATED CARD LIST
+        const cardNames = {
+            1: "Magic Bowl (+5k)", 2: "Market Crash (-20%)", 3: "Tax (Steal 30%)",
+            4: "Duel (Steal 20%)", 5: "Golden Horse (x3)", 6: "Bandits (-10%)",
+            7: "Imperial Grant (+8k)", 8: "Blockade", 9: "Robin Hood (Steal 15%)",
+            10: "Broken Vase (-5%)", 11: "Interest (+50%)", 12: "God of Wealth (+18k)",
+            13: "Bad Omen (-25%)", 14: "Twin Carp", 15: "Nian Monster (-50%)",
+            16: "Spy (Item)", 17: "Phoenix", 18: "False Friend", 19: "Shared Bill (-10%)",
+            20: "Jade Seal (Auto-Block)", 21: "Mystery Box (Spin)", 22: "Bad Luck (-15%)",
+            23: "Chaos Swap", 24: "Lucky Song (+6k)", 25: "High Roller (Gamble)"
+        };
 
-            onValue(ref(db, `teams/${myId}`), snap => {
-                const t = snap.val();
-                if(!t) { localStorage.clear(); location.reload(); return; }
-                balance = t.balance;
-                document.getElementById('p-name').innerText = t.name;
-                document.getElementById('bal').innerText = balance.toLocaleString();
-                if(t.frozen > 0) showView('view-frozen');
-                else if(document.getElementById('view-frozen').classList.contains('flex')) showView('view-wait');
-            });
+        if(myId) init();
 
-            onValue(ref(db, 'gameState'), snap => {
-                const st = snap.val();
-                if(!st) return;
-                
-                if(st.phase === 'BIDDING') {
-                    const grid = document.getElementById('btn-grid');
-                    grid.innerHTML = '';
-                    st.cards.forEach((c, i) => {
-                        grid.innerHTML += `<button onclick="window.sel(${i})" id="btn-${i}" class="btn-card relative"><div class="dot bg-${c.visualCategory}"></div>${i+1}</button>`;
-                    });
-                    
-                    if(document.getElementById('view-frozen').classList.contains('hidden')) {
-                        showView('view-bid');
-                        const btn = document.getElementById('btn-submit');
-                        btn.disabled = false;
-                        btn.innerText = "SEAL BID";
-                        btn.classList.remove('opacity-50');
-                        selectedIdx = -1;
-                        document.getElementById('amt').value = '';
-                        document.getElementById('amt').disabled = false;
-                        document.getElementById('allin').checked = false;
-                        document.getElementById('all-in-tag').classList.add('hidden');
-                    }
-                } else {
-                    if(document.getElementById('view-frozen').classList.contains('hidden')) showView('view-wait');
-                }
-            });
-        }
+        window.login = async () => {
+            const n = document.getElementById('inp-name').value;
+            if(!n) return;
+            const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const r = ref(db, teams/${id});
+            const s = await get(r);
+            if(s.exists()) { alert("NAME TAKEN! Choose another."); return; }
+            await set(r, { name: n, balance: 1000 });
+            localStorage.setItem('id', id); localStorage.setItem('name', n);
+            myId = id; myName = n;
+            init();
+        }
 
-        window.sel = (i) => {
-            selectedIdx = i;
-            for(let j=0; j<6; j++) document.getElementById(`btn-${j}`).classList.remove('selected');
-            document.getElementById(`btn-${i}`).classList.add('selected');
-        }
+        function init() {
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('app').classList.add('flex');
+            document.getElementById('name-display').innerText = myName;
 
-        window.toggleAllIn = () => {
-            const is = document.getElementById('allin').checked;
-            const inp = document.getElementById('amt');
-            if(is) { inp.value = balance; inp.disabled = true; document.getElementById('all-in-tag').classList.remove('hidden'); } 
-            else { inp.disabled = false; document.getElementById('all-in-tag').classList.add('hidden'); }
-        }
+            onValue(ref(db, teams/${myId}), (snap) => {
+                const t = snap.val();
+                if(!t) return;
+                balance = t.balance;
+                document.getElementById('balance').innerText = balance.toLocaleString();
+                checkAlive();
+                
+                // Show Shield Icon if protected
+                const hasSeal = t.items && t.items.jade_seal;
+                if(hasSeal) document.getElementById('seal-indicator').classList.remove('hidden');
+                else document.getElementById('seal-indicator').classList.add('hidden');
+                
+                // SPY LOGIC: Only show if 'spy_active' is true
+                window.hasSpy = t.items && t.items.spy_active;
+            });
+            
+            onValue(ref(db, 'gameState'), (snap) => {
+                const st = snap.val();
+                if(!st) return;
+                highBid = st.highestBid || 0;
+                document.getElementById('high-bid').innerText = highBid.toLocaleString();
+                
+                if(st.leaderId === myId) myCurrentBid = highBid; else myCurrentBid = 0;
+                checkAlive();
+                updateView(st);
+            });
+            
+            onValue(ref(db, 'teams'), (snap) => {
+                const teams = snap.val();
+                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+                const rank = sorted.indexOf(myId) + 1;
+                const rText = document.getElementById('rank-display');
+                if(rank === 1) { rText.innerText = "EMPEROR"; rText.style.color = "#FFD700"; }
+                else if(rank === 2) { rText.innerText = "WARLORD"; rText.style.color = "#C0C0C0"; }
+                else { rText.innerText = RANK #${rank}; rText.style.color = "#C5A059"; }
+            });
+        }
 
-        window.submitBid = async () => {
-            if(selectedIdx === -1) return alert("SELECT AN ENVELOPE!");
-            const val = parseInt(document.getElementById('amt').value);
-            if(isNaN(val) || val <= 0) return alert("ENTER VALID AMOUNT!");
-            if(val > balance) return alert("NOT ENOUGH FUNDS!");
-            
-            const isAll = document.getElementById('allin').checked;
-            const btn = document.getElementById('btn-submit');
-            btn.innerText = "BID SEALED";
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
+        function checkAlive() {
+            const netWorth = balance + myCurrentBid;
+            if(netWorth <= 0 && !isSpinning) {
+                document.getElementById('view-bankrupt').classList.remove('hidden');
+                document.getElementById('view-bankrupt').classList.add('flex');
+            } else {
+                document.getElementById('view-bankrupt').classList.add('hidden');
+            }
+        }
 
-            await push(ref(db, 'roundBids'), { teamId: myId, cardIdx: selectedIdx, amount: val, isAllIn: isAll });
-            showView('view-wait');
-        }
+        function updateView(st) {
+            ['view-bidding', 'view-wager', 'view-idle'].forEach(i => {
+                const el = document.getElementById(i);
+                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+            });
+            document.getElementById('spy-banner').classList.add('hidden');
 
-        function showView(id) {
-            ['view-bid','view-wait','view-frozen'].forEach(v => {
-                document.getElementById(v).classList.add('hidden');
-                document.getElementById(v).classList.remove('flex');
-            });
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(id).classList.add('flex');
-        }
-    </script>
+            if (st.phase === 'BIDDING') {
+                isSpinning = false;
+                document.getElementById('view-bidding').classList.remove('hidden');
+                document.getElementById('view-bidding').classList.add('flex');
+                document.getElementById('bid-val').placeholder = Min: ${highBid+50};
+                if(window.hasSpy && st.currentCard) {
+                    document.getElementById('spy-banner').classList.remove('hidden');
+                    const cName = cardNames[st.currentCard] || Mystery Card #${st.currentCard};
+                    document.getElementById('spy-text').innerText = cName;
+                }
+            } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
+                isSpinning = true;
+                document.getElementById('view-wager').classList.remove('hidden');
+                document.getElementById('view-wager').classList.add('flex');
+            } else if (st.phase === 'READY_TO_SPIN' || st.phase === 'SPIN') {
+                isSpinning = true;
+                document.getElementById('view-idle').classList.remove('hidden');
+                document.getElementById('idle-msg').innerText = "WATCH THE SCREEN...";
+            } else {
+                isSpinning = false;
+                document.getElementById('view-idle').classList.remove('hidden');
+                if(st.phase === 'SOLD') {
+                    document.getElementById('idle-msg').innerText = (st.leaderId === myId) ? "VICTORY" : "SOLD";
+                } else {
+                    document.getElementById('idle-msg').innerText = "WAITING...";
+                }
+            }
+            checkAlive();
+        }
+
+        window.quick = (p) => {
+            const totalPower = balance + myCurrentBid;
+            document.getElementById('bid-val').value = Math.floor(totalPower * p);
+        };
+        
+        window.submit = async () => {
+            const v = parseInt(document.getElementById('bid-val').value);
+            if(isNaN(v)) return;
+            const cost = v - myCurrentBid;
+            if(cost > balance) return feedback("Low Funds");
+            if(v < highBid + 50) return feedback("Too Low");
+            const b = document.getElementById('btn-bid');
+            b.disabled = true; b.innerText = "...";
+            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
+            setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
+        };
+        
+        window.submitWager = async () => {
+             const v = parseInt(document.getElementById('wager-val').value);
+             if(!v || v > balance) return;
+             
+             const isWin = Math.random() > 0.5;
+             const result = isWin ? 'WIN' : 'LOSE';
+             
+             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: result, wagerAmount: v });
+        };
+
+        function feedback(t) { document.getElementById('feedback').innerText = t; }
+    </script>
 </body>
 </html>
