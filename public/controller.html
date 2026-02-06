@@ -7,7 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; touch-action: manipulation; overflow: hidden; }
+        body { 
+            font-family: 'Playfair Display', serif; 
+            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
+            color: #FFD700; 
+            touch-action: manipulation; 
+            overflow: hidden;
+        }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
         .btn-gold { background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); color: #2a0000; border: 1px solid #fff; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -30,13 +36,12 @@
         <p class="text-xs text-gray-400 mb-6">Hit GREEN to earn +200 Gold</p>
         <canvas id="game-canvas" width="300" height="50" class="mb-8"></canvas>
         <button id="btn-strike" class="btn-gold px-12 py-6 rounded-full text-2xl shadow-[0_0_30px_gold]">STRIKE</button>
-        <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">EXIT</button>
+        <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">EXIT (FORFEIT)</button>
     </div>
 
     <div id="login" class="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-8">
         <div class="mb-6 text-6xl animate-bounce">🐎</div>
         <h1 class="font-imp text-5xl mb-2 text-[#FFD700] text-center tracking-widest drop-shadow-lg">IMPERIAL<br>COURT</h1>
-        <p class="text-[#C5A059] mb-8 text-sm uppercase tracking-[0.4em]">Establish Your Dynasty</p>
         <input id="inp-name" class="w-full glass-panel p-5 text-center rounded-lg text-2xl text-white placeholder-gray-600 focus:outline-none focus:border-[#FFD700]" placeholder="Enter Name">
         <button onclick="login()" class="mt-6 btn-gold w-full py-5 text-xl rounded-lg shadow-[0_0_30px_#B8860B]">ENTER</button>
     </div>
@@ -64,6 +69,7 @@
         </div>
 
         <div class="flex-1 p-5 flex flex-col justify-center w-full max-w-lg mx-auto relative">
+            
             <div id="view-bidding" class="hidden flex-col gap-4 w-full">
                 <div class="glass-panel p-6 rounded-xl text-center border-t-4 border-t-[#FFD700]">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em] mb-2">Current High Bid</p>
@@ -112,18 +118,45 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
-        let currentRoundNumber = 0, hasWorkedThisRound = false; 
+        let currentRoundNumber = 0, hasWorkedThisRound = false, hasBidThisRound = false; 
 
-        const cardDataMap = { 1: { name: "The Magic Bowl", desc: "+2,000 Points" }, 2: { name: "Market Crash", desc: "Lose 50% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" }, 4: { name: "The Duel", desc: "Steal 20% from 2nd Place" }, 5: { name: "Golden Horse", desc: "Double Score (2x)" }, 6: { name: "Bandits", desc: "Lose 10% Points" }, 7: { name: "Imperial Grant", desc: "+3,000 Points" }, 8: { name: "Blockade", desc: "BANNED from next round" }, 9: { name: "Robin Hood", desc: "Steal 15% from Random" }, 10: { name: "Broken Vase", desc: "Lose 5% Points" }, 11: { name: "Interest Rate", desc: "Gain 25% Interest" }, 12: { name: "God of Wealth", desc: "Jackpot! +6,888" }, 13: { name: "Bad Omen", desc: "Lose 25% Points" }, 14: { name: "Twin Carp", desc: "+2,000 You & Ally" }, 15: { name: "Nian Monster", desc: "Lose 50% Balance" }, 16: { name: "The Spy", desc: "Item: Peek Next Card" }, 17: { name: "Phoenix", desc: "Reset to 3k if <1k" }, 18: { name: "False Friend", desc: "Donate 20% to Poorest" }, 19: { name: "Shared Bill", desc: "Everyone loses 10%" }, 20: { name: "Jade Seal", desc: "Item: Auto-Block Bad Effect" }, 21: { name: "Mystery Box", desc: "Win 200% OR Lose 50%" }, 22: { name: "Bad Luck", desc: "Lose 15% Points" }, 23: { name: "Chaos Swap", desc: "Swap with Random Player" }, 24: { name: "Lucky Song", desc: "+3,000 Points" }, 25: { name: "High Roller", desc: "Wager: Double or Nothing" } };
+        // 36 Cards Data Map
+        const cardDataMap = {
+            1: { name: "The Magic Bowl", desc: "+2,000 Points" }, 2: { name: "Market Crash", desc: "Lose 50% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" }, 4: { name: "The Duel", desc: "Steal 20% from 2nd Place" }, 5: { name: "Golden Horse", desc: "Double Score (2x)" }, 6: { name: "Bandits", desc: "Lose 10% Points" },
+            7: { name: "Imperial Grant", desc: "+3,000 Points" }, 8: { name: "Blockade", desc: "BANNED from next round" }, 9: { name: "Robin Hood", desc: "Steal 15% from Random" }, 10: { name: "Broken Vase", desc: "Lose 5% Points" }, 11: { name: "Interest Rate", desc: "Gain 25% Interest" }, 12: { name: "God of Wealth", desc: "Jackpot! +6,888" },
+            13: { name: "Bad Omen", desc: "Lose 25% Points" }, 14: { name: "Twin Carp", desc: "+2,000 You & Ally" }, 15: { name: "Nian Monster", desc: "Lose 50% Balance" }, 16: { name: "The Spy", desc: "Item: Peek Next Card" }, 17: { name: "Phoenix", desc: "Reset to 3k if <1k" }, 18: { name: "False Friend", desc: "Donate 20% to Poorest" },
+            19: { name: "Shared Bill", desc: "Everyone loses 10%" }, 20: { name: "Jade Seal", desc: "Item: Auto-Block Bad Effect" }, 21: { name: "Mystery Box", desc: "Win 200% OR Lose 50%" }, 22: { name: "Bad Luck", desc: "Lose 15% Points" }, 23: { name: "Chaos Swap", desc: "Swap with Random Player" }, 24: { name: "Lucky Song", desc: "+3,000 Points" },
+            25: { name: "High Roller", desc: "Wager: Double or Nothing" }, 26: { name: "Dragon Ascension", desc: "Double Your Wealth" }, 27: { name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)" }, 28: { name: "THE 888", desc: "TRIPLE WEALTH (x3)" },
+            29: { name: "Iron Rice Bowl", desc: "+10% Interest" }, 30: { name: "Fireworks", desc: "Everyone +1,000" }, 31: { name: "Pickpocket", desc: "Steal 500 from All" }, 32: { name: "Ancestor's Debt", desc: "Lose 30% of Wealth" }, 33: { name: "Silk Road", desc: "Trade Route (x1.5)" }, 34: { name: "Tsunami", desc: "Everyone loses 30%" },
+            35: { name: "Forbidden City", desc: "Immunity Item" }, 36: { name: "Fool's Gold", desc: "Swap with Poorest" }
+        };
 
+        // MINIGAME
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const btnStrike = document.getElementById('btn-strike');
         let barPos = 0, barDir = 1, barSpeed = 6, targetZone = { x: 130, w: 40 };
 
-        window.openMinigame = () => { document.getElementById('minigame-overlay').classList.remove('hidden'); document.getElementById('minigame-overlay').classList.add('flex'); gameActive = true; barPos = 0; gameLoop(); };
-        window.closeMinigame = () => { gameActive = false; cancelAnimationFrame(gameLoopId); document.getElementById('minigame-overlay').classList.add('hidden'); };
+        window.openMinigame = () => { 
+            // LOCKOUT CHECK
+            if(hasWorkedThisRound || hasBidThisRound) return;
+            
+            document.getElementById('minigame-overlay').classList.remove('hidden'); 
+            document.getElementById('minigame-overlay').classList.add('flex'); 
+            
+            // IMMEDIATE LOCKOUT ON START
+            hasWorkedThisRound = true;
+            localStorage.setItem(`labor_done_${myId}_${currentRoundNumber}`, 'true');
+            updateLaborButton(); // Disable button immediately
+            
+            gameActive = true; barPos = 0; gameLoop(); 
+        };
+        
+        window.closeMinigame = () => { 
+            gameActive = false; cancelAnimationFrame(gameLoopId); 
+            document.getElementById('minigame-overlay').classList.add('hidden'); 
+        };
 
         function gameLoop() {
             if(!gameActive) return;
@@ -143,23 +176,21 @@
              
              if(barPos >= targetZone.x && barPos <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 hasWorkedThisRound = true;
-                 localStorage.setItem(`labor_done_${myId}_${currentRoundNumber}`, 'true');
-                 updateLaborButton();
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
-                 btnStrike.innerText = "MISSED (3s)"; btnStrike.style.background = "red"; btnStrike.disabled = true;
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; btnStrike.disabled = false; }, 3000);
+                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red"; btnStrike.disabled = true;
+                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; btnStrike.disabled = false; }, 2000);
              }
         }
 
         function updateLaborButton() {
             const btn = document.getElementById('btn-open-labor');
-            if (hasWorkedThisRound) { btn.disabled = true; btn.innerText = "✅ EXHAUSTED (Wait)"; btn.classList.add('opacity-50', 'cursor-not-allowed'); } 
+            if (hasWorkedThisRound || hasBidThisRound) { btn.disabled = true; btn.innerText = hasBidThisRound ? "🔒 BIDDING ACTIVE" : "✅ EXHAUSTED"; btn.classList.add('opacity-50', 'cursor-not-allowed'); } 
             else { btn.disabled = false; btn.innerText = "⚒️ MANUAL LABOR (+200)"; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
         }
 
+        // PARTICLES
         function createParticles() {
             const container = document.getElementById('particles');
             for(let i=0; i<20; i++) {
@@ -180,7 +211,6 @@
             if(s.exists()) { alert("Name Taken!"); return; }
             await set(r, { name: n, balance: 1000 });
             localStorage.setItem('id', id); localStorage.setItem('name', n); myId = id; myName = n;
-            // CLEAR LABOR HISTORY ON NEW LOGIN
             for(let key in localStorage) if(key.startsWith('labor_done_')) localStorage.removeItem(key);
             init();
         }
@@ -206,6 +236,7 @@
                     currentRoundNumber = st.round;
                     const done = localStorage.getItem(`labor_done_${myId}_${currentRoundNumber}`);
                     hasWorkedThisRound = (done === 'true');
+                    hasBidThisRound = false; // Reset Bid Lock
                     updateLaborButton();
                 }
 
@@ -253,8 +284,6 @@
                 document.getElementById('view-wager').classList.remove('hidden'); document.getElementById('view-wager').classList.add('flex');
             } else {
                 document.getElementById('view-idle').classList.remove('hidden'); document.getElementById('view-idle').classList.add('flex');
-                
-                // UX FIX: SHOW WINNER
                 if(st.phase === 'SOLD') {
                     const winnerName = st.leaderName || "No one";
                     const winAmount = st.highestBid || 0;
@@ -281,13 +310,21 @@
         window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p) + myCurrentBid; };
 
         window.submit = async () => {
+            if(hasWorkedThisRound) return alert("You cannot bid after working!");
+            
             const v = parseInt(document.getElementById('bid-val').value);
             if(isNaN(v)) return;
             const cost = v - myCurrentBid;
             if(cost > balance) return feedback("Insufficient Funds");
             if(v < highBid + 50) return feedback("Bid Too Low");
+            
             const b = document.getElementById('btn-bid');
             b.disabled = true; b.innerText = "SENDING...";
+            
+            // LOCK LABOR
+            hasBidThisRound = true;
+            updateLaborButton();
+            
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
             setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
         };
