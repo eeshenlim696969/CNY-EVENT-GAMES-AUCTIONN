@@ -8,98 +8,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #FFD700; --gold-dim: #C5A059; --red-dark: #2a0000; }
-        body { 
-            font-family: 'Playfair Display', serif; 
-            background: radial-gradient(circle at center, #500000 0%, #1a0000 100%);
-            color: var(--gold); 
-            overflow: hidden; 
-        }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #500000 0%, #1a0000 100%); color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        .bg-pattern { 
-            position: absolute; inset: 0; opacity: 0.15; 
-            background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); 
-            z-index: 0; pointer-events: none;
-        }
+        .bg-pattern { position: absolute; inset: 0; opacity: 0.15; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); z-index: 0; pointer-events: none; }
         
-        /* Lantern Animation */
-        .lantern {
-            position: absolute; width: 40px; height: 50px;
-            background: radial-gradient(circle, #ff0000 0%, #500000 100%);
-            border-radius: 10px; border-top: 2px solid #333; border-bottom: 2px solid gold;
-            box-shadow: 0 0 20px rgba(255, 100, 0, 0.5);
-            animation: rise 15s linear infinite; z-index: 1; opacity: 0.6;
-        }
+        .lantern { position: absolute; width: 40px; height: 50px; background: radial-gradient(circle, #ff0000 0%, #500000 100%); border-radius: 10px; border-top: 2px solid #333; border-bottom: 2px solid gold; box-shadow: 0 0 20px rgba(255, 100, 0, 0.5); animation: rise 15s linear infinite; z-index: 1; opacity: 0.6; }
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
 
-        /* Glass UI */
-        .glass-panel { 
-            background: rgba(10, 0, 0, 0.9); 
-            border: 1px solid var(--gold-dim); 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
-            backdrop-filter: blur(10px);
-        }
-
-        /* Crown & Log Effects */
-        .log-entry {
-            display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
-            padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid #555;
-            transition: all 0.3s;
-        }
-        .log-entry.latest {
-            border-left: 4px solid #FFD700;
-            background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4));
-            transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        .crown-icon { 
-            font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); 
-            animation: pulseCrown 1s infinite alternate; 
-        }
+        .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 10px 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid #555; transition: all 0.3s; }
+        .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .crown-icon { font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); animation: pulseCrown 1s infinite alternate; }
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
 
-        /* Roster Styles */
-        .roster-item {
-            padding: 10px; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        .roster-item.leader {
-            border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5));
-            box-shadow: 0 0 15px rgba(255,215,0,0.3);
-        }
-        .roster-item.richest {
-            border: 1px solid #00ff00; background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5));
-            box-shadow: 0 0 10px rgba(0,255,0,0.2);
-        }
+        .roster-item { padding: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+        .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5)); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .roster-item.richest { border: 1px solid #00ff00; background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5)); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+        .roster-item.blocked { border: 1px solid #ff0000; opacity: 0.7; }
 
-        /* Wheel & Envelope */
-        .angpao {
-            background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); 
-            border: 2px solid #600; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
-            font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 2rem;
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
+        .angpao { background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); border: 2px solid #600; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 2rem; display: flex; align-items: center; justify-content: center; position: relative; }
         .angpao.active { background: #FFD700; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); }
 
         .envelope-container { perspective: 1200px; width: 360px; height: 500px; position: relative; margin-top: 50px; z-index: 10; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 1s; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 24px; border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
         
-        /* Fixed Card Reveal Position */
-        .card-insert { 
-            position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
-            transform: translateY(0); transition: transform 1s; padding: 24px; 
-            border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; 
-        }
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-40%) scale(1.1); z-index: 100 !important; box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
         .is-open .envelope-body { transform: translateY(50%); opacity: 0; }
-        
         .shaking { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
         
@@ -129,8 +69,41 @@
             <div>ROUND <span id="round-num" class="text-white font-bold ml-2 text-2xl">--</span></div>
             <div>STATUS: <span id="status-text" class="text-[#FFD700] ml-2">--</span></div>
         </div>
-        <button onclick="resetGame()" class="text-[10px] text-red-800 border border-red-900 px-3 py-1 rounded hover:bg-red-900 hover:text-white uppercase transition">System Reset</button>
+        <div class="flex gap-4">
+             <button onclick="document.getElementById('debug-modal').classList.remove('hidden')" class="text-2xl text-white hover:text-[#FFD700] transition">⚙️</button>
+             <button onclick="resetGame()" class="text-[10px] text-red-800 border border-red-900 px-3 py-1 rounded hover:bg-red-900 hover:text-white uppercase transition">System Reset</button>
+        </div>
     </header>
+
+    <div id="debug-modal" class="absolute inset-0 z-[400] bg-black/80 flex items-center justify-center hidden backdrop-blur-md">
+        <div class="glass-panel p-8 w-[600px] rounded-xl flex flex-col gap-4">
+            <h2 class="text-2xl font-imperial text-white border-b border-gray-600 pb-2">ADMIN CONTROLS</h2>
+            
+            <div class="flex gap-4 items-center">
+                <span class="text-gray-400 w-32">Force Card:</span>
+                <select id="debug-card-select" class="flex-1 bg-black border border-gray-600 p-2 text-white">
+                    <option value="25">25: High Roller (Test Wheel)</option>
+                    <option value="21">21: Mystery Box (Test Wheel)</option>
+                    <option value="8">8: Blockade (Test Ban)</option>
+                    <option value="12">12: God of Wealth (Rich)</option>
+                </select>
+                <button onclick="debugForceCard()" class="btn-admin text-sm py-2">Set Current</button>
+            </div>
+
+            <div class="flex gap-4 items-center border-t border-gray-700 pt-4">
+                <span class="text-gray-400 w-32">Game Phase:</span>
+                <button onclick="adminAction('DEBUG_WHEEL')" class="btn-admin text-sm py-2 bg-blue-900">Force Wheel View</button>
+                <button onclick="adminAction('NEXT')" class="btn-admin text-sm py-2 bg-yellow-900">Force Next Round</button>
+            </div>
+
+            <div class="flex gap-4 items-center border-t border-gray-700 pt-4">
+                <span class="text-gray-400 w-32">Economy:</span>
+                <button onclick="debugMoney()" class="btn-admin text-sm py-2 bg-green-900">Give Everyone +5000</button>
+            </div>
+            
+            <button onclick="document.getElementById('debug-modal').classList.add('hidden')" class="mt-4 bg-gray-700 text-white py-2 rounded hover:bg-gray-600">CLOSE</button>
+        </div>
+    </div>
 
     <main class="flex-1 relative overflow-hidden p-8 flex gap-8 z-10">
         <div id="start-overlay" class="absolute inset-0 z-[300] bg-black/90 flex flex-col items-center justify-center hidden">
@@ -140,20 +113,17 @@
 
         <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center backdrop-blur-md">
             <div class="text-[#FFD700] text-5xl font-imperial mb-8 tracking-[0.2em]" id="wheel-title">FATE IS SPINNING...</div>
-            
             <div class="w-[400px] h-[400px] rounded-full border-[10px] border-[#FFD700] relative bg-[#111] overflow-hidden shadow-[0_0_80px_gold] z-[210]">
                 <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] shadow-inner"></div>
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_white] z-20"></div>
             </div>
-            
             <div class="absolute top-[calc(50%-220px)] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[50px] border-t-white z-[220] drop-shadow-lg"></div>
-            
             <div id="wheel-result" class="mt-8 text-8xl font-black font-imperial text-white hidden drop-shadow-[0_0_40px_gold] z-[250]">RESULT</div>
             
-            <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden mt-10 btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red] z-[300]">SPIN THE WHEEL</button>
-            <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden mt-10 btn-admin text-3xl bg-[#FFD700] text-black shadow-[0_0_30px_gold] z-[300]">NEXT ROUND</button>
-
-            <button onclick="forceEnableSpin()" class="absolute bottom-4 right-4 text-xs text-gray-700 hover:text-white z-[300]">Force Spin Unlock</button>
+            <div class="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-[300]">
+                <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">SPIN THE WHEEL</button>
+                <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden btn-admin text-3xl bg-[#FFD700] text-black shadow-[0_0_30px_gold]">NEXT ROUND</button>
+            </div>
         </div>
 
         <div id="view-grid" class="absolute inset-0 p-8 flex gap-8 z-10 hidden">
@@ -252,23 +222,31 @@
         let gameState = { phase: 'GRID', round: 1 };
         let envelopesStatus = {};
 
-        // LANTERNS
         function spawnLanterns() {
             const c = document.getElementById('lantern-container');
             for(let i=0; i<8; i++) {
                 const l = document.createElement('div');
                 l.className = 'lantern';
-                l.style.left = Math.random() * 100 + '%';
-                l.style.animationDelay = (Math.random() * 10) + 's';
-                l.style.animationDuration = (8 + Math.random() * 10) + 's';
+                l.style.left = Math.random() * 100 + '%'; l.style.animationDelay = (Math.random() * 10) + 's';
                 c.appendChild(l);
             }
         }
         spawnLanterns();
-        
-        // Manual Force Override
-        window.forceEnableSpin = () => {
-             document.getElementById('btn-spin-trigger').classList.remove('hidden');
+
+        // --- DEBUG FUNCTIONS ---
+        window.debugForceCard = async () => {
+             const cid = parseInt(document.getElementById('debug-card-select').value);
+             await update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: cid, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 60000 });
+             alert("Forced Card ID: " + cid);
+        };
+        window.debugMoney = async () => {
+             const s = await get(ref(db, 'teams'));
+             const t = s.val();
+             if(!t) return;
+             const up = {};
+             for(let k in t) up[`teams/${k}/balance`] = t[k].balance + 5000;
+             await update(ref(db), up);
+             alert("Granted 5000 to all.");
         };
 
         renderGrid();
@@ -291,10 +269,8 @@
             if (gameState.phase === 'GRID') {
                 vGrid.classList.remove('hidden');
                 vAuc.classList.add('hidden');
-                
-                // Hard reset wheel view
                 wheel.classList.add('hidden');
-                wheel.style.display = 'none';
+                wheel.style.display = 'none'; // Force hide
                 
                 resetAuctionEffects();
                 document.getElementById('wheel-spinner').style.transition = 'none';
@@ -355,7 +331,6 @@
                         }, 5000);
                     }
                 } else {
-                    // WAGER PHASE
                     window.hasProcessedSpin = false;
                     document.getElementById('wheel-title').innerText = "AWAITING WAGER...";
                     document.getElementById('wheel-spinner').style.transition = 'none';
@@ -423,8 +398,6 @@
             roster.innerHTML = '';
             const teams = snap.val() || {};
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-            
-            // Highlight Richest Logic
             const maxBalance = sorted.length > 0 ? teams[sorted[0]].balance : 0;
 
             sorted.forEach((key, idx) => {
@@ -433,12 +406,14 @@
                 let cls = isDead ? 'rank-dead' : 'roster-item';
                 if (gameState.leaderId === key) cls += ' leader';
                 if (!isDead && t.balance === maxBalance && maxBalance > 0) cls += ' richest'; 
-                
+                // Visual Indicator for Blocked
+                if (t.blockedRound === (gameState.round || 0)) cls += ' blocked';
+
                 const div = document.createElement('div');
                 div.className = cls;
                 div.innerHTML = `
                     <div>
-                        <div class="font-bold text-white text-lg">${t.name} ${idx===0?'👑':''}</div>
+                        <div class="font-bold text-white text-lg">${t.name} ${idx===0?'👑':''} ${t.blockedRound === (gameState.round||0) ? '⛓️' : ''}</div>
                         <div class="text-sm font-imperial ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
                     </div>
                     <div class="text-2xl">${t.items && t.items.jade_seal ? '🛡️' : ''}</div>`;
@@ -448,6 +423,8 @@
 
         window.adminAction = (action) => {
             if (action === 'START') set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+            if (action === 'DEBUG_WHEEL') update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN' });
+            
             if (action === 'DRAW') {
                 let available = [];
                 for(let i=1; i<=25; i++) if(!envelopesStatus[i]) available.push(i);
@@ -463,7 +440,6 @@
                     if (delay < 400) setTimeout(loop, delay);
                     else {
                         setTimeout(() => {
-                            // Reset Auction Log
                             document.getElementById('bids-list').innerHTML = '';
                             update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: r, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 15000 });
                             set(ref(db, 'currentRoundBids'), {});
@@ -476,7 +452,6 @@
             if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
             if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
             if (action === 'NEXT') {
-                // FORCE HIDE WHEEL LOCALLY FIRST
                 document.getElementById('wheel-stage').style.display = 'none';
                 document.getElementById('wheel-stage').classList.add('hidden');
                 
@@ -556,6 +531,13 @@
             let tSnap = await get(teamRef);
             if (!tSnap.exists()) return;
             const team = tSnap.val();
+            
+            // Check Blocked Status
+            if(team.blockedRound === state.round) { 
+                 await remove(ref(db, `bidQueue/${key}`)); 
+                 return; 
+            }
+
             const isSelf = (state.leaderId === req.teamId);
             const cost = isSelf ? (req.amount - (state.highestBid || 0)) : req.amount;
             const min = (state.highestBid || 0) + 50;
@@ -571,7 +553,6 @@
             if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // NEW AUCTION LOG
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             const logDiv = document.createElement('div');
             logDiv.className = "log-entry latest";
@@ -605,13 +586,19 @@
                 update(ref(db), updates); return;
             }
 
+            // --- BLOCKADE LOGIC ---
+            if(card.type === 'BLOCK') {
+                updates[`teams/${wid}/blockedRound`] = gameState.round + 1; // Block next round
+                update(ref(db), updates); return;
+            }
+
             const wRef = `teams/${wid}/balance`;
             let base = winner.balance;
             if (card.val > 1) base = winner.balance + (gameState.highestBid || 0);
 
             if(card.type === 'ADD') {
                 updates[wRef] = winner.balance + card.val;
-                if (card.val < 0 && checkShield(wid)) delete updates[wRef];
+                if (card.val < 1 && checkShield(wid)) delete updates[wRef];
             }
             else if(card.type === 'MULTIPLY') {
                 let newVal = Math.floor(card.val < 1 ? winner.balance * card.val : base * card.val);
