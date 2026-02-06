@@ -100,10 +100,11 @@
         </div>
 
         <div id="spy-banner" class="hidden bg-red-900/90 border-y border-red-500 p-3 text-center shadow-lg backdrop-blur-sm z-20">
-            <div class="flex items-center justify-center gap-2">
+            <div class="flex items-center justify-center gap-2 mb-1">
                 <span class="text-white text-xs font-bold uppercase tracking-widest">🕵️ SPY REPORT:</span>
             </div>
-            <span id="spy-text" class="text-[#FFD700] font-bold text-lg font-imp block mt-1 drop-shadow-md">--</span>
+            <span id="spy-title" class="text-[#FFD700] font-bold text-lg font-imp block leading-none">--</span>
+            <span id="spy-desc" class="text-white text-xs font-serif italic block mt-1">--</span>
         </div>
 
         <div class="flex-1 p-5 flex flex-col justify-center w-full max-w-lg mx-auto relative">
@@ -174,16 +175,33 @@
         const db = getDatabase(app);
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
 
-        // Card Names Map
-        const cardNames = {
-            1: "Magic Bowl (+5k)", 2: "Market Crash (-20%)", 3: "Tax (Steal 30%)",
-            4: "Duel (Steal 20%)", 5: "Golden Horse (x3)", 6: "Bandits (-10%)",
-            7: "Imperial Grant (+8k)", 8: "Blockade", 9: "Robin Hood (Steal 15%)",
-            10: "Broken Vase (-5%)", 11: "Interest (+50%)", 12: "God of Wealth (+18k)",
-            13: "Bad Omen (-25%)", 14: "Twin Carp", 15: "Nian Monster (-50%)",
-            16: "Spy (Item)", 17: "Phoenix", 18: "False Friend", 19: "Shared Bill (-10%)",
-            20: "Jade Seal (Item)", 21: "Mystery Box (Spin)", 22: "Bad Luck (-15%)",
-            23: "Chaos Swap", 24: "Lucky Song (+6k)", 25: "High Roller (Gamble)"
+        // FULL CARD DATA FOR SPY
+        const cardDataMap = {
+            1: { name: "The Magic Bowl", desc: "+5,000 Points" },
+            2: { name: "Market Crash", desc: "Lose 20% of Wealth" },
+            3: { name: "Tax Collector", desc: "Steal 30% from Richest" },
+            4: { name: "The Duel", desc: "Steal 20% from 2nd Place" },
+            5: { name: "Golden Horse", desc: "Triple Score (3x)" },
+            6: { name: "Bandits", desc: "Lose 10% Points" },
+            7: { name: "Imperial Grant", desc: "+8,000 Points" },
+            8: { name: "Blockade", desc: "BANNED from next round" },
+            9: { name: "Robin Hood", desc: "Steal 15% from Random" },
+            10: { name: "Broken Vase", desc: "Lose 5% Points" },
+            11: { name: "Interest Rate", desc: "Gain 50% Interest" },
+            12: { name: "God of Wealth", desc: "Jackpot! +18,888" },
+            13: { name: "Bad Omen", desc: "Lose 25% Points" },
+            14: { name: "Twin Carp", desc: "+5,000 You & Ally" },
+            15: { name: "Nian Monster", desc: "Lose 50% Balance" },
+            16: { name: "The Spy", desc: "Item: Peek Next Card" },
+            17: { name: "Phoenix", desc: "Reset to 5k if <1k" },
+            18: { name: "False Friend", desc: "Donate 20% to Poorest" },
+            19: { name: "Shared Bill", desc: "Everyone loses 10%" },
+            20: { name: "Jade Seal", desc: "Item: Auto-Block Bad Effect" },
+            21: { name: "Mystery Box", desc: "Win 200% OR Lose 50%" },
+            22: { name: "Bad Luck", desc: "Lose 15% Points" },
+            23: { name: "Chaos Swap", desc: "Swap with Random Player" },
+            24: { name: "Lucky Song", desc: "+6,000 Points" },
+            25: { name: "High Roller", desc: "Wager: Double or Nothing" }
         };
 
         // PARTICLES SYSTEM
@@ -235,7 +253,8 @@
                 else document.getElementById('seal-indicator').classList.add('hidden');
                 
                 window.hasSpy = t.items && t.items.spy_active;
-                checkAlive();
+                // Check alive on balance update, but pass current phase context needed
+                // We rely on gameState listener to trigger the main updateView
             });
             
             onValue(ref(db, 'gameState'), (snap) => {
@@ -272,20 +291,21 @@
             });
         }
 
-        function checkAlive() {
-            if(balance <= 0) {
+        function updateView(st) {
+            // FIX: Only show bankrupt if Phase is GRID (start of new round) AND balance is 0.
+            // If in Bidding, Sold, or Revealed phase, do not declare death yet (allows All In).
+            if(balance <= 0 && st.phase === 'GRID') {
                 document.getElementById('view-bidding').classList.add('hidden');
                 document.getElementById('view-wager').classList.add('hidden');
                 document.getElementById('view-idle').classList.add('hidden');
                 document.getElementById('view-bankrupt').classList.remove('hidden');
                 document.getElementById('view-bankrupt').classList.add('flex');
+                return;
             } else {
                 document.getElementById('view-bankrupt').classList.add('hidden');
                 document.getElementById('view-bankrupt').classList.remove('flex');
             }
-        }
 
-        function updateView(st) {
             // Hide all first
             ['view-bidding', 'view-wager', 'view-idle'].forEach(i => {
                 const el = document.getElementById(i);
@@ -293,16 +313,14 @@
             });
             document.getElementById('spy-banner').classList.add('hidden');
 
-            // Show active
-            if(balance <= 0) { checkAlive(); return; }
-
             if (st.phase === 'BIDDING') {
                 document.getElementById('view-bidding').classList.remove('hidden');
                 document.getElementById('view-bidding').classList.add('flex');
                 document.getElementById('bid-val').placeholder = `Min: ${highBid+50}`;
-                if(window.hasSpy && st.currentCard) {
+                if(window.hasSpy && st.currentCard && cardDataMap[st.currentCard]) {
                     document.getElementById('spy-banner').classList.remove('hidden');
-                    document.getElementById('spy-text').innerText = cardNames[st.currentCard] || "???";
+                    document.getElementById('spy-title').innerText = cardDataMap[st.currentCard].name;
+                    document.getElementById('spy-desc').innerText = cardDataMap[st.currentCard].desc;
                 }
             } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
                 document.getElementById('view-wager').classList.remove('hidden');
