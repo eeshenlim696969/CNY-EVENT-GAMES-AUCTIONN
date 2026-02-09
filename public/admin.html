@@ -5,30 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imperial Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { background: #1a0505; color: white; padding: 20px; font-family: sans-serif; }
-        .btn-action { transition: all 0.2s; }
-        .btn-action:active { transform: scale(0.98); }
+        body { background: #1a0505; color: #FFD700; padding: 20px; font-family: 'Cinzel', serif; }
+        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 1px solid #C5A059; border-radius: 12px; }
+        .btn-action { transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .btn-action:active { transform: scale(0.97); }
     </style>
 </head>
 <body class="max-w-md mx-auto flex flex-col gap-4 pb-20">
 
-    <div class="bg-[#2a0000] p-4 rounded-xl border border-[#FFD700] text-center shadow-lg">
-        <h1 class="text-2xl text-[#FFD700] font-bold tracking-widest">ADMIN PANEL</h1>
-        <div class="text-xs text-[#C5A059] mt-2 font-mono">
+    <div class="glass-panel p-4 text-center">
+        <h1 class="text-2xl font-bold tracking-widest text-[#FFD700]">ADMIN CONTROL</h1>
+        <div class="text-xs text-[#C5A059] mt-2 font-sans">
             PHASE: <span id="phase-disp" class="text-white font-bold">--</span> | 
             CARD: <span id="card-id-disp" class="text-white font-bold">--</span>
         </div>
     </div>
 
-    <div class="bg-gray-900 p-6 rounded-xl border-2 border-[#FFD700] shadow-2xl flex flex-col gap-4">
+    <div class="glass-panel p-6 shadow-2xl flex flex-col gap-4 bg-[#2a0000]">
         
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-[#FFD700] to-[#B8860B] text-black font-black text-xl p-5 rounded-lg shadow-lg border-2 border-white mb-2">
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-black font-black text-xl p-5 rounded-lg border-2 border-yellow-400 mb-2">
             1. DRAW CARD
         </button>
 
-        <div id="secret-preview" class="hidden bg-black p-4 rounded border border-dashed border-gray-500">
-            <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">SECRET HOST PREVIEW</p>
+        <div id="secret-preview" class="hidden bg-black p-4 rounded border border-dashed border-gray-500 font-sans">
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">HOST PREVIEW</p>
             <h2 id="secret-title" class="text-xl text-yellow-400 font-bold leading-tight">--</h2>
             <p id="secret-desc" class="text-gray-300 text-sm">--</p>
             <p id="secret-type" class="text-blue-400 text-xs mt-1 font-mono">--</p>
@@ -38,32 +40,28 @@
             ⚠ FORCE END TIMER ⚠
         </button>
 
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-800 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-900 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
             2. REVEAL CARD
         </button>
 
         <div id="challenge-controls" class="hidden p-4 bg-purple-900/90 rounded border border-purple-400 shadow-lg">
-            <p class="text-center text-xs text-purple-200 mb-3 font-bold uppercase tracking-widest">👨‍⚖️ JUDGE'S DECISION</p>
+            <p class="text-center text-xs text-purple-200 mb-3 font-bold uppercase tracking-widest font-sans">JUDGE'S DECISION</p>
             <div class="flex gap-3">
-                <button onclick="resolveChallenge(true)" class="btn-action flex-1 bg-green-600 border border-green-400 p-3 rounded text-white font-bold text-sm shadow-md">✅ PASS (+Reward)</button>
-                <button onclick="resolveChallenge(false)" class="btn-action flex-1 bg-red-600 border border-red-400 p-3 rounded text-white font-bold text-sm shadow-md">❌ FAIL (Punish)</button>
+                <button onclick="resolveChallenge(true)" class="btn-action flex-1 bg-green-700 border border-green-400 p-3 rounded text-white font-bold text-sm">PASS</button>
+                <button onclick="resolveChallenge(false)" class="btn-action flex-1 bg-red-700 border border-red-400 p-3 rounded text-white font-bold text-sm">FAIL</button>
             </div>
         </div>
 
-        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
             3. NEXT ROUND ➡
         </button>
     </div>
 
     <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 hover:opacity-100 transition">
-        <p class="text-xs text-red-500 font-bold mb-3 uppercase text-center tracking-widest">⚠ DANGER ZONE ⚠</p>
+        <p class="text-xs text-red-500 font-bold mb-3 uppercase text-center tracking-widest font-sans">⚠ DANGER ZONE ⚠</p>
         <div class="grid grid-cols-2 gap-3">
-            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 font-bold hover:bg-red-800">
-                🔄 FULL RESET GAME
-            </button>
-            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 font-bold hover:bg-green-800">
-                💰 +5000 ALL (DEBUG)
-            </button>
+            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 font-bold hover:bg-red-800">RESET GAME</button>
+            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 font-bold hover:bg-green-800">+5000 ALL</button>
         </div>
     </div>
 
@@ -75,48 +73,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- 36 CARD DECK CONFIGURATION ---
+        // CARD DATA
         const deck = [
-            // 1-10: GOOD (Fixed)
-            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 },
-            { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 },
-            { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 },
-            { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 },
-            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
-            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
-            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
-            { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 },
-            { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 },
-            { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
-            // 11-20: BAD (%)
-            { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
-            { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 },
-            { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 },
-            { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 },
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
-            { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
-            { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
-            { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 },
-            { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 },
-            { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
-            // 21-26: ACTION
-            { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
-            { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 },
-            { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 },
-            { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 },
-            { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" },
-            { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
-            // 27-36: CHALLENGES
-            { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" },
-            { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" },
-            { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" },
-            { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE" },
-            { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE" },
-            { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE" },
-            { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE" },
-            { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE" },
-            { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE" },
-            { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE" }
+            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 }, { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
+            { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
+            { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 }, { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 }, { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 }, { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 }, { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" }, { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
+            { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" }, { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" }, { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" }, { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE" }, { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE" }, { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE" }, { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE" }, { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE" }, { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE" }, { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE" }
         ];
 
         let gameState = {};
@@ -126,76 +88,56 @@
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            const btnReveal = document.getElementById('btn-reveal');
-            const btnNext = document.getElementById('btn-next');
-            const btnSkip = document.getElementById('btn-skip');
-            const secretBox = document.getElementById('secret-preview');
-            const challengeBox = document.getElementById('challenge-controls');
-
-            // Button States
-            btnReveal.disabled = (gameState.phase !== 'SOLD');
-            btnNext.disabled = (gameState.phase === 'GRID' || gameState.phase === 'BIDDING' || gameState.phase === 'SOLD' || gameState.phase === 'CHALLENGE' || gameState.phase === 'TARGETING');
+            document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
+            document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
             
-            // Skip Timer Logic
             if(gameState.phase === 'BIDDING') {
-                btnSkip.classList.remove('hidden');
-                secretBox.classList.remove('hidden');
+                document.getElementById('btn-skip').classList.remove('hidden');
+                document.getElementById('secret-preview').classList.remove('hidden');
             } else {
-                btnSkip.classList.add('hidden');
-                if(gameState.phase === 'GRID') secretBox.classList.add('hidden');
+                document.getElementById('btn-skip').classList.add('hidden');
+                if(gameState.phase === 'GRID') document.getElementById('secret-preview').classList.add('hidden');
             }
 
-            // Challenge Logic
-            if (gameState.phase === 'CHALLENGE') {
-                challengeBox.classList.remove('hidden');
-            } else {
-                challengeBox.classList.add('hidden');
-            }
+            if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
+            else document.getElementById('challenge-controls').classList.add('hidden');
         });
+
+        // --- TIMER AUTO-END LOGIC (Crucial Fix) ---
+        setInterval(() => {
+            if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
+                const now = Date.now();
+                if (now > gameState.bidDeadline) {
+                    update(ref(db, 'gameState'), { phase: 'SOLD' });
+                }
+            }
+        }, 500);
 
         window.adminAction = async (action) => {
             if(action === 'START') {
-                if(confirm("⚠ WARNING: This will RESET EVERYONE'S money. Proceed?")) 
-                    await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+                if(confirm("⚠ RESET GAME?")) await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
             }
-            
             if(action === 'DRAW') {
-                const usedSnap = await get(ref(db, 'envelopes'));
-                const used = usedSnap.val() || {};
+                const used = (await get(ref(db, 'envelopes'))).val() || {};
                 const available = deck.filter(c => !used[c.id]);
                 if(available.length === 0) return alert("Deck Empty!");
-                
                 const card = available[Math.floor(Math.random() * available.length)];
                 
-                // Show Host Preview
                 document.getElementById('secret-title').innerText = card.name;
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // Push to DB with 90s Timer
-                await update(ref(db, 'gameState'), { 
-                    phase: 'BIDDING', 
-                    currentCard: card.id, 
-                    highestBid: 0, 
-                    leaderId: null, leaderName: null, 
-                    bidDeadline: Date.now() + 90000 
-                });
+                await update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: card.id, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 90000 });
             }
-
             if(action === 'SKIP_TIMER') {
-                // Set deadline to past -> Triggers Sold on Client
                 await update(ref(db, 'gameState/bidDeadline'), Date.now() - 1000);
             }
-
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
-                
-                // Delay effect execution
                 setTimeout(() => processCardEffect(card), 2000);
             }
-
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -215,23 +157,13 @@
              const t = s.val(); if(!t) return;
              const up = {}; for(let k in t) up[`teams/${k}/balance`] = t[k].balance + 5000;
              await update(ref(db), up);
-             alert("Granted +5000 to all.");
         };
 
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
             if(!leaderId) return; 
-
-            if(card.type === 'CHALLENGE') {
-                await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc });
-                return;
-            }
-
-            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') {
-                await update(ref(db, 'gameState'), { phase: 'TARGETING' });
-                return;
-            }
-
+            if(card.type === 'CHALLENGE') { await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc }); return; }
+            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { await update(ref(db, 'gameState'), { phase: 'TARGETING' }); return; }
             executeEffect(card, leaderId, null);
         }
 
@@ -246,68 +178,43 @@
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
-            const teamsSnap = await get(ref(db, 'teams'));
-            const teams = teamsSnap.val();
-            const currentBal = teams[leaderId].balance;
-            
-            if(pass) await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
-            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
-            
+            const t = (await get(ref(db, `teams/${leaderId}`))).val();
+            if(pass) await update(ref(db, `teams/${leaderId}/balance`), t.balance + 2000);
+            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, t.balance - 500));
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
         async function executeEffect(card, winnerId, targetId) {
-            const teamsSnap = await get(ref(db, 'teams'));
-            const teams = teamsSnap.val();
+            const teams = (await get(ref(db, 'teams'))).val();
             const winner = teams[winnerId];
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== winnerId);
-
-            const checkShield = (tid) => {
-                if(teams[tid]?.items?.jade_seal) {
-                    updates[`teams/${tid}/items/jade_seal`] = null; return true;
-                }
-                return false;
-            };
-
+            const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             const wRef = `teams/${winnerId}/balance`;
 
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
-            
             if(card.type === 'MULTIPLY') {
                 let val = Math.floor(winner.balance * card.val);
-                if(card.val < 1 && checkShield(winnerId)) {} 
-                else updates[wRef] = val;
+                if(card.val < 1 && checkShield(winnerId)) {} else updates[wRef] = val;
             }
-            
             if(card.type === 'STEAL_RND') {
                 const victim = others[Math.floor(Math.random()*others.length)];
                 if(victim && !checkShield(victim)) {
                     const amt = Math.floor(teams[victim].balance * card.val);
-                    updates[wRef] = winner.balance + amt;
-                    updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
+                    updates[wRef] = winner.balance + amt; updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
                 }
             }
-
             if(card.type === 'STEAL_TGT' && targetId) {
                 if(!checkShield(targetId)) {
                     const amt = Math.floor(teams[targetId].balance * card.val);
-                    updates[wRef] = winner.balance + amt;
-                    updates[`teams/${targetId}/balance`] = teams[targetId].balance - amt;
+                    updates[wRef] = winner.balance + amt; updates[`teams/${targetId}/balance`] = teams[targetId].balance - amt;
                 }
             }
-
             if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
                 let tid = targetId || others[Math.floor(Math.random()*others.length)];
-                if(tid && !checkShield(tid)) {
-                    updates[wRef] = teams[tid].balance;
-                    updates[`teams/${tid}/balance`] = winner.balance;
-                }
+                if(tid && !checkShield(tid)) { updates[wRef] = teams[tid].balance; updates[`teams/${tid}/balance`] = winner.balance; }
             }
-
-            if(card.type === 'ITEM') {
-                updates[`teams/${winnerId}/items/${card.item}`] = true;
-            }
+            if(card.type === 'ITEM') updates[`teams/${winnerId}/items/${card.item}`] = true;
 
             await update(ref(db), updates);
         }
