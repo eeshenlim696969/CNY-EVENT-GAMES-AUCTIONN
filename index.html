@@ -19,14 +19,12 @@
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
         
-        /* AUCTION LOG */
+        /* LOG & ROSTER */
         .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .log-entry .crown-icon { display: none; margin-right: 8px; filter: drop-shadow(0 0 5px gold); font-size: 1.2em; }
         .log-entry.latest .crown-icon { display: inline-block; animation: pulseCrown 1s infinite alternate; }
         .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
-        @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
-
         .roster-item { padding: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; font-size: 0.9rem; }
         .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5)); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
         .roster-item.richest { border: 1px solid #00ff00; background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5)); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
@@ -34,6 +32,15 @@
         .roster-item.swap-target { background: #FFD700 !important; color: black !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #FFD700; }
         .roster-item.swap-source { background: #ff0000 !important; color: white !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #ff0000; }
 
+        /* COIN ANIMATION */
+        .coin-container { perspective: 1000px; width: 300px; height: 300px; }
+        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .coin-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 50px rgba(255,215,0,0.5); border: 10px solid #FFD700; background: radial-gradient(circle, #B8860B, #553300); }
+        .coin-front { transform: rotateY(0deg); }
+        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
+        .coin-text { font-size: 5rem; font-weight: 900; font-family: 'Cinzel'; }
+        
+        /* CARD GRID */
         .angpao { background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); border: 1px solid #600; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; position: relative; }
         .angpao.active { background: #FFD700; box-shadow: 0 0 40px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); }
@@ -42,7 +49,6 @@
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 1s; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
         .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 24px; border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
-        
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-45%) scale(1.1); z-index: 100 !important; box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
         .is-open .envelope-body { transform: translateY(50%); opacity: 0; }
@@ -61,7 +67,7 @@
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-    <audio id="sfx-spin" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
     <header class="h-20 flex justify-between items-center px-8 border-b border-[#C5A059] bg-[#1a0505]/95 z-50 relative shadow-2xl">
         <div class="flex items-center gap-4">
@@ -90,7 +96,7 @@
                 <button onclick="debugForceCard()" class="btn-admin">Set</button>
             </div>
             <div class="flex gap-4 items-center border-t border-gray-700 pt-4">
-                <button onclick="adminAction('DEBUG_WHEEL')" class="btn-admin bg-blue-900">Wheel</button>
+                <button onclick="adminAction('DEBUG_COIN')" class="btn-admin bg-blue-900">Force Coin</button>
                 <button onclick="adminAction('NEXT')" class="btn-admin bg-yellow-900">Next</button>
                 <button onclick="debugMoney()" class="btn-admin bg-green-900">+5k All</button>
             </div>
@@ -104,17 +110,24 @@
             <button onclick="adminAction('START')" class="btn-admin text-4xl px-20 py-8 bg-green-900 border-green-500 text-green-100 shadow-[0_0_50px_green]">BEGIN</button>
         </div>
 
-        <div id="wheel-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center backdrop-blur-md">
-            <div class="text-[#FFD700] text-5xl font-imperial mb-8 tracking-[0.2em]" id="wheel-title">FATE IS SPINNING...</div>
-            <div class="w-[400px] h-[400px] rounded-full border-[10px] border-[#FFD700] relative bg-[#111] overflow-hidden shadow-[0_0_80px_gold] z-[210]">
-                <div id="wheel-spinner" class="w-full h-full bg-[conic-gradient(#00aa00_0deg_180deg,#aa0000_180deg_360deg)] shadow-inner"></div>
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_white] z-20"></div>
+        <div id="coin-stage" class="absolute inset-0 bg-black/95 z-[200] hidden flex-col items-center justify-center backdrop-blur-md">
+            <div class="text-[#FFD700] text-5xl font-imperial mb-8 tracking-[0.2em]" id="coin-title">DESTINY FLIPPING...</div>
+            
+            <div class="coin-container">
+                <div id="the-coin" class="coin">
+                    <div class="coin-face coin-front">
+                        <div class="coin-text text-[#553300]">福</div>
+                    </div>
+                    <div class="coin-face coin-back">
+                        <div class="coin-text text-red-500">☠️</div>
+                    </div>
+                </div>
             </div>
-            <div class="absolute top-[calc(50%-220px)] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[50px] border-t-white z-[220] drop-shadow-lg"></div>
-            <div id="wheel-result" class="mt-8 text-8xl font-black font-imperial text-white hidden drop-shadow-[0_0_40px_gold] z-[250]">RESULT</div>
+            
+            <div id="coin-result" class="mt-12 text-8xl font-black font-imperial text-white hidden drop-shadow-[0_0_40px_gold] z-[250]">WINNER</div>
             <div class="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-[300]">
-                <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">SPIN</button>
-                <button onclick="adminAction('NEXT')" id="btn-next-wheel" class="hidden btn-admin text-3xl bg-[#FFD700] text-black shadow-[0_0_30px_gold]">NEXT</button>
+                <button onclick="adminAction('FLIP')" id="btn-flip-trigger" class="hidden btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">FLIP COIN</button>
+                <button onclick="adminAction('NEXT')" id="btn-next-coin" class="hidden btn-admin text-3xl bg-[#FFD700] text-black shadow-[0_0_30px_gold]">NEXT</button>
             </div>
         </div>
 
@@ -179,53 +192,56 @@
         
         const sfxTick = document.getElementById('sfx-tick');
         const sfxGong = document.getElementById('sfx-gong');
-        const sfxSpin = document.getElementById('sfx-spin');
+        const sfxCoin = document.getElementById('sfx-coin');
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.2;
 
         window.toggleAudio = () => { if(bgm.paused) { bgm.play(); document.getElementById('btn-audio').innerText = '🔊'; } else { bgm.pause(); document.getElementById('btn-audio').innerText = '🔈'; } };
 
         // --- BALANCED 6x6 CARD DATA ---
+        // 20 GOOD, 8 BAD, 8 CHAOS
         const cardsData = [
-            // WINNERS (FIXED)
-            { id: 1, name: "The Magic Bowl", desc: "+1,200 Points", type: "ADD", val: 1200 },
-            { id: 2, name: "Golden Horse", desc: "+2,500 Points", type: "ADD", val: 2500 },
-            { id: 3, name: "Imperial Grant", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 4, name: "Interest Rate", desc: "+500 Points", type: "ADD", val: 500 },
+            // GOOD (FIXED AMOUNTS)
+            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 },
+            { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 },
+            { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 },
+            { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 },
             { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
             { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
             { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
-            { id: 8, name: "Lucky Song", desc: "+1,500 Points", type: "ADD", val: 1500 },
-            { id: 9, name: "Dragon Ascension", desc: "+4,000 Points", type: "ADD", val: 4000 },
-            { id: 10, name: "THE 888", desc: "+888 Points", type: "ADD", val: 888 },
-            { id: 11, name: "Iron Rice Bowl", desc: "+800 Points", type: "ADD", val: 800 },
+            { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 },
+            { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 },
+            { id: 10, name: "THE 888", desc: "+888 Gold", type: "ADD", val: 888 },
+            { id: 11, name: "Iron Rice Bowl", desc: "+800 Gold", type: "ADD", val: 800 },
             { id: 12, name: "Fireworks", desc: "Everyone +1,000", type: "GLOBAL_ADD", val: 1000 },
-            { id: 13, name: "Silk Road", desc: "+1,200 Points", type: "ADD", val: 1200 },
-            { id: 14, name: "Jade Garden", desc: "+600 Points", type: "ADD", val: 600 },
-            { id: 15, name: "Lion Dance", desc: "+2,000 Points", type: "ADD", val: 2000 },
-            { id: 16, name: "Red Packet", desc: "+500 Points", type: "ADD", val: 500 },
-            // LOSERS (%)
-            { id: 17, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
-            { id: 18, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
-            { id: 19, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
-            { id: 20, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
-            { id: 21, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 22, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
-            { id: 23, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
-            { id: 24, name: "Ancestor's Debt", desc: "Lose 30% of Wealth", type: "MULTIPLY", val: 0.70 },
+            { id: 13, name: "Silk Road", desc: "+1,200 Gold", type: "ADD", val: 1200 },
+            { id: 14, name: "Jade Garden", desc: "+600 Gold", type: "ADD", val: 600 },
+            { id: 15, name: "Lion Dance", desc: "+2,000 Gold", type: "ADD", val: 2000 },
+            { id: 16, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
+            { id: 17, name: "Moon Festival", desc: "+1,500 Gold", type: "ADD", val: 1500 },
+            { id: 18, name: "Tea Harvest", desc: "+1,000 Gold", type: "ADD", val: 1000 },
+            { id: 19, name: "Lucky Coin", desc: "+800 Gold", type: "ADD", val: 800 },
+            { id: 20, name: "Golden Ox", desc: "+2,500 Gold", type: "ADD", val: 2500 },
+
+            // BAD (PERCENTAGE)
+            { id: 21, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 22, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 },
+            { id: 23, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 },
+            { id: 24, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 },
+            { id: 25, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 26, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
+            { id: 27, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
+            { id: 28, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 },
+
             // CHAOS
-            { id: 25, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
-            { id: 26, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
-            { id: 27, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 28, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
-            { id: 29, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
-            { id: 30, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
-            { id: 31, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
-            { id: 32, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
-            { id: 33, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
-            { id: 34, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
-            { id: 35, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 },
-            { id: 36, name: "Fool's Gold", desc: "Swap with Poorest Player", type: "SWAP_POOR", val: 0 }
+            { id: 29, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
+            { id: 30, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
+            { id: 31, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
+            { id: 32, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
+            { id: 33, name: "Jade Seal", desc: "Item: Auto-Block Bad", type: "ITEM", item: "jade_seal" },
+            { id: 34, name: "Mystery Box", desc: "Flip Coin: Win Big/Lose", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 35, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
+            { id: 36, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 }
         ];
 
         let gameState = { phase: 'GRID', round: 1 };
@@ -269,50 +285,47 @@
 
             const vGrid = document.getElementById('view-grid');
             const vAuc = document.getElementById('view-auction');
-            const wheel = document.getElementById('wheel-stage');
+            const coinStage = document.getElementById('coin-stage');
 
             if (gameState.phase === 'GRID') {
                 vGrid.classList.remove('hidden'); vAuc.classList.add('hidden');
-                wheel.classList.add('hidden'); wheel.style.display = 'none'; 
+                coinStage.classList.add('hidden'); coinStage.style.display = 'none'; 
                 resetAuctionEffects();
-                document.getElementById('wheel-spinner').style.transition = 'none';
-                document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
-                document.getElementById('wheel-result').classList.add('hidden');
-                window.hasProcessedSpin = false;
+                document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
+                document.getElementById('coin-result').classList.add('hidden');
             } 
             else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(gameState.phase)) {
                 vGrid.classList.add('hidden'); vAuc.classList.add('hidden');
-                wheel.classList.remove('hidden'); wheel.style.display = 'flex';
+                coinStage.classList.remove('hidden'); coinStage.style.display = 'flex';
                 
                 if (gameState.phase === 'READY_TO_SPIN') {
-                    document.getElementById('wheel-title').innerText = "PLAYER READY";
-                    document.getElementById('btn-spin-trigger').classList.remove('hidden');
-                    document.getElementById('btn-next-wheel').classList.add('hidden');
+                    document.getElementById('coin-title').innerText = "PLAYER READY";
+                    document.getElementById('btn-flip-trigger').classList.remove('hidden');
+                    document.getElementById('btn-next-coin').classList.add('hidden');
                 }
                 else if (gameState.phase === 'SPIN') {
-                    document.getElementById('wheel-title').innerText = "SPINNING...";
-                    document.getElementById('btn-spin-trigger').classList.add('hidden');
-                    const spinner = document.getElementById('wheel-spinner');
+                    document.getElementById('coin-title').innerText = "FLIPPING...";
+                    document.getElementById('btn-flip-trigger').classList.add('hidden');
+                    const coin = document.getElementById('the-coin');
                     const isWin = gameState.spinResult === 'WIN';
-                    // RIGGED VISUALS: 0-180 is Green. Pointer is 0. 
-                    // Spin 270 -> 0 moves to 270 (Left), 180 moves to 90 (Top). Green is under pointer.
-                    // Spin 90 -> 0 moves to 90 (Right), 180 moves to 270 (Bottom). Red is under pointer.
-                    const rotation = 2160 + (isWin ? 270 : 90) + (Math.random() * 40 - 20); 
+                    
+                    // COIN MATH: Front = 0deg (Win/Dragon), Back = 180deg (Loss/Skull)
+                    // Add rotations: 1080 (3 spins) + outcome
+                    const rot = 1800 + (isWin ? 0 : 180); 
                     
                     if(!window.hasProcessedSpin) {
                         window.hasProcessedSpin = true;
-                        spinner.style.transition = "transform 5s cubic-bezier(0.15, 0, 0.15, 1)";
-                        requestAnimationFrame(() => {
-                            spinner.style.transform = `rotate(${rotation}deg)`;
-                            sfxSpin.currentTime = 0; sfxSpin.play();
-                        });
+                        sfxCoin.currentTime = 0; sfxCoin.play();
+                        coin.style.transform = `rotateY(${rot}deg)`;
+                        
                         setTimeout(async () => {
-                            const res = document.getElementById('wheel-result');
+                            const res = document.getElementById('coin-result');
                             res.innerText = isWin ? "WINNER!" : "LOSS";
-                            res.classList.remove('hidden');
                             res.style.color = isWin ? '#00ff00' : '#ff0000';
-                            document.getElementById('btn-next-wheel').classList.remove('hidden');
+                            res.classList.remove('hidden');
+                            document.getElementById('btn-next-coin').classList.remove('hidden');
                             
+                            // APPLY GAMBLE RESULT
                             if(gameState.leaderId) {
                                 const tRef = ref(db, `teams/${gameState.leaderId}`);
                                 const s = await get(tRef);
@@ -330,21 +343,20 @@
                                     await update(tRef, { balance: newBal });
                                 }
                             }
-                        }, 5000);
+                        }, 3500);
                     }
                 } else {
                     window.hasProcessedSpin = false;
-                    document.getElementById('wheel-title').innerText = "AWAITING WAGER...";
-                    document.getElementById('wheel-spinner').style.transition = 'none';
-                    document.getElementById('wheel-spinner').style.transform = 'rotate(0deg)';
-                    document.getElementById('wheel-result').classList.add('hidden');
-                    document.getElementById('btn-next-wheel').classList.add('hidden');
-                    document.getElementById('btn-spin-trigger').classList.add('hidden');
+                    document.getElementById('coin-title').innerText = "AWAITING WAGER...";
+                    document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
+                    document.getElementById('coin-result').classList.add('hidden');
+                    document.getElementById('btn-next-coin').classList.add('hidden');
+                    document.getElementById('btn-flip-trigger').classList.add('hidden');
                 }
             } 
             else {
                 vGrid.classList.add('hidden'); vAuc.classList.remove('hidden');
-                wheel.classList.add('hidden'); wheel.style.display = 'none';
+                coinStage.classList.add('hidden'); coinStage.style.display = 'none';
                 document.getElementById('val-high-bid').innerText = (gameState.highestBid || 0).toLocaleString();
                 document.getElementById('val-leader-name').innerText = gameState.leaderName || '--';
 
@@ -373,10 +385,9 @@
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
                 const card = cardsData.find(c => c.id === gameState.currentCard);
-                
                 if(!card) return;
 
-                // RIGGED MYSTERY BOX (80% Win)
+                // RIGGED AUTO GAMBLE (80% Win)
                 if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
                     const isWin = Math.random() < 0.8;
                     update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: "MYSTERY" });
@@ -395,7 +406,6 @@
                 if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
                     executeCardEffect(card.id, gameState.leaderId);
                 }
-                
                 if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 4000); 
             }
         });
@@ -408,11 +418,11 @@
                 const team = s.val();
                 await update(tRef, { balance: team.balance + data.amount });
                 
-                // Remove OLD Crowns
+                // Remove Old Crowns & Latest
                 document.querySelectorAll('.log-entry .crown-icon').forEach(el => el.remove());
                 document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
                 
-                const logDiv = document.createElement('div'); logDiv.className = "log-entry";
+                const logDiv = document.createElement('div'); logDiv.className = "log-entry latest";
                 logDiv.innerHTML = `<span class="text-xs text-gray-400">Labor</span> <span class="text-white">${team.name} +${data.amount}</span>`;
                 document.getElementById('bids-list').prepend(logDiv);
             }
@@ -422,7 +432,6 @@
         onValue(ref(db, 'teams'), (snap) => {
             const roster = document.getElementById('roster-grid');
             if(document.querySelector('.swap-target')) return;
-            
             roster.innerHTML = '';
             const teams = snap.val() || {};
             const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
@@ -451,7 +460,8 @@
 
         window.adminAction = (action) => {
             if (action === 'START') set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
-            if (action === 'DEBUG_WHEEL') update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN' });
+            if (action === 'DEBUG_COIN') update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN' });
+            if (action === 'FLIP') update(ref(db, 'gameState'), { phase: 'SPIN' });
             if (action === 'DRAW') {
                 let available = []; for(let i=1; i<=36; i++) if(!envelopesStatus[i]) available.push(i);
                 if(!available.length) return alert("Done");
@@ -476,10 +486,9 @@
                 loop();
             }
             if (action === 'REVEAL') update(ref(db), { revealTrigger: true });
-            if (action === 'SPIN') update(ref(db, 'gameState'), { phase: 'SPIN' });
             if (action === 'NEXT') {
-                document.getElementById('wheel-stage').style.display = 'none';
-                document.getElementById('wheel-stage').classList.add('hidden');
+                document.getElementById('coin-stage').style.display = 'none';
+                document.getElementById('coin-stage').classList.add('hidden');
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID'; updates['gameState/round'] = (gameState.round||1)+1;
@@ -517,7 +526,7 @@
             document.getElementById('sold-stamp').classList.add('hidden'); document.getElementById('unsold-stamp').classList.add('hidden');
             document.getElementById('btn-next').classList.add('hidden'); document.getElementById('btn-next-wheel').classList.add('hidden');
             document.getElementById('btn-reveal').classList.add('hidden'); document.getElementById('btn-spin-trigger').classList.add('hidden');
-            document.getElementById('wheel-stage').classList.add('hidden');
+            document.getElementById('coin-stage').classList.add('hidden'); document.getElementById('btn-flip-trigger').classList.add('hidden'); document.getElementById('btn-next-coin').classList.add('hidden');
         }
 
         function startServerLoop() {
@@ -555,7 +564,7 @@
             let newTime = state.bidDeadline; if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // FIXED: REMOVE OLD CROWN ELEMENTS FROM DOM
+            // FIXED: REMOVE OLD CROWN ELEMENTS
             document.querySelectorAll('.log-entry .crown-icon').forEach(el => el.remove());
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             
@@ -610,6 +619,7 @@
             const tSnap = await get(ref(db, 'teams'));
             const teams = tSnap.val();
             if(!teams || !teams[wid]) return;
+            
             const winner = teams[wid];
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== wid);
@@ -617,7 +627,8 @@
             const checkShield = (tid) => {
                 const target = teams[tid];
                 if (target && target.items && target.items.jade_seal) { 
-                    updates[`teams/${tid}/items/jade_seal`] = null; return true; 
+                    updates[`teams/${tid}/items/jade_seal`] = null; 
+                    return true; 
                 }
                 return false;
             };
@@ -631,6 +642,7 @@
             if(card.type === 'BLOCK') { updates[`teams/${wid}/blockedRound`] = gameState.round + 1; update(ref(db), updates); return; }
 
             const wRef = `teams/${wid}/balance`;
+            
             const applyPity = (tid, bal) => {
                 if (bal < 500) { logPity(teams[tid].name); return 800; }
                 return bal;
