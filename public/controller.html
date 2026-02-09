@@ -8,9 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
     <style>
         body { background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; font-family: 'Cinzel', serif; touch-action: manipulation; }
-        .glass-panel { background: rgba(30, 0, 0, 0.9); border: 1px solid #C5A059; box-shadow: 0 4px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .glass-panel { background: rgba(30, 0, 0, 0.9); border: 2px solid #C5A059; box-shadow: 0 4px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
         .btn-gold { background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%); color: #1a0505; border: 1px solid #fff; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
         .btn-gold:active { transform: scale(0.96); filter: brightness(0.9); }
+        .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
         .winning-glow { box-shadow: inset 0 0 50px #FFD700; border: 3px solid #FFD700; }
@@ -26,10 +27,10 @@
     </div>
 
     <div id="app" class="hidden flex-col h-full relative">
-        <div class="flex justify-between items-end mb-6 border-b border-[#C5A059] pb-4 bg-black/20 p-4 rounded-xl">
+        <div class="flex justify-between items-end mb-6 border-b-2 border-[#C5A059] pb-4 bg-black/40 p-4 rounded-xl">
             <div>
                 <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">DYNASTY</div>
-                <div id="name-display" class="text-2xl text-white leading-none font-bold">--</div>
+                <div id="name-display" class="text-2xl text-white leading-none font-bold drop-shadow-md">--</div>
             </div>
             <div class="text-right">
                 <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">TREASURY</div>
