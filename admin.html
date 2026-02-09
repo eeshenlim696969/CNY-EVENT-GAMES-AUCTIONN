@@ -19,8 +19,8 @@
 
     <div class="bg-gray-800 p-4 rounded border border-yellow-700">
         <div class="flex justify-between mb-2">
-            <span class="text-gray-400">Current Phase: <strong id="phase-disp" class="text-white">--</strong></span>
-            <span class="text-gray-400">Card ID: <strong id="card-id-disp">--</strong></span>
+            <span class="text-gray-400">Phase: <strong id="phase-disp" class="text-white">--</strong></span>
+            <span class="text-gray-400">Card: <strong id="card-id-disp">--</strong></span>
         </div>
         
         <div id="secret-preview" class="bg-black p-4 rounded mb-4 border border-dashed border-gray-600 hidden">
@@ -113,14 +113,12 @@
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            // Button States
             document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
-            document.getElementById('btn-next').disabled = (gameState.phase === 'GRID' || gameState.phase === 'BIDDING');
+            // Allow clicking Next during 'REVEALED' phase only
+            document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
             
-            // Challenge Mode
             if (gameState.phase === 'CHALLENGE') {
                 document.getElementById('challenge-controls').classList.remove('hidden');
-                document.getElementById('btn-next').disabled = true; // Must judge first
             } else {
                 document.getElementById('challenge-controls').classList.add('hidden');
             }
@@ -129,11 +127,11 @@
         // --- ACTIONS ---
         window.adminAction = async (action) => {
             if(action === 'START') {
-                await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+                if(confirm("Start new game? (Clears all)")) 
+                    await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
             }
             
             if(action === 'DRAW') {
-                // Find unused card
                 const usedSnap = await get(ref(db, 'envelopes'));
                 const used = usedSnap.val() || {};
                 const available = deck.filter(c => !used[c.id]);
@@ -141,14 +139,12 @@
                 
                 const card = available[Math.floor(Math.random() * available.length)];
                 
-                // Show Secret Preview on Admin Screen
+                // Show Secret Preview
                 document.getElementById('secret-preview').classList.remove('hidden');
                 document.getElementById('secret-title').innerText = card.name;
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // Push to DB (but don't reveal details to projector yet)
-                // 90 Seconds Timer
                 await update(ref(db, 'gameState'), { 
                     phase: 'BIDDING', 
                     currentCard: card.id, 
@@ -163,12 +159,12 @@
             }
 
             if(action === 'REVEAL') {
-                // Send Card Details to DB so Projector can see them now
                 const card = deck.find(c => c.id === gameState.currentCard);
+                // Push details to DB so projector can see them
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
                 
-                // AUTO LOGIC TRIGGER
+                // AUTO LOGIC AFTER DELAY
                 setTimeout(() => processCardEffect(card), 2000);
             }
 
@@ -181,6 +177,8 @@
                 updates['gameState/currentCard'] = null;
                 updates['gameState/highestBid'] = 0;
                 updates['gameState/leaderId'] = null;
+                updates['gameState/cardName'] = null;
+                updates['gameState/cardDesc'] = null;
                 await update(ref(db), updates);
             }
         };
@@ -188,23 +186,18 @@
         // --- CARD LOGIC ENGINE ---
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
-            if(!leaderId) return; // Unsold
+            if(!leaderId) return; 
 
-            // If Challenge -> Switch Phase -> Wait for Admin
             if(card.type === 'CHALLENGE') {
                 await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc });
                 return;
             }
 
-            // If Targeted -> Switch Phase -> Wait for Player Input
             if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') {
                 await update(ref(db, 'gameState'), { phase: 'TARGETING' });
-                // We wait for controller to update 'gameState/targetId'
-                // Listener below handles execution once target is picked
                 return;
             }
 
-            // Immediate Effects
             executeEffect(card, leaderId, null);
         }
 
@@ -213,28 +206,20 @@
             if(gameState.phase === 'TARGETING' && snap.val()) {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await executeEffect(card, gameState.leaderId, snap.val());
-                // Reset target for next time
                 await update(ref(db, 'gameState/targetId'), null);
-                await update(ref(db, 'gameState'), { phase: 'REVEALED' }); // Go back to reveal state so Next button works
+                await update(ref(db, 'gameState'), { phase: 'REVEALED' });
             }
         });
 
-        // Resolve Challenge
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
             const teamsSnap = await get(ref(db, 'teams'));
             const teams = teamsSnap.val();
             const currentBal = teams[leaderId].balance;
             
-            if(pass) {
-                // +2000 Reward
-                await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
-            } else {
-                // -500 Penalty
-                await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
-            }
+            if(pass) await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
+            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
             
-            // Allow Next Round
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
@@ -245,7 +230,6 @@
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== winnerId);
 
-            // Safety Shield
             const checkShield = (tid) => {
                 if(teams[tid]?.items?.jade_seal) {
                     updates[`teams/${tid}/items/jade_seal`] = null; return true;
@@ -256,6 +240,7 @@
             const wRef = `teams/${winnerId}/balance`;
 
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
+            
             if(card.type === 'MULTIPLY') {
                 let val = Math.floor(winner.balance * card.val);
                 if(card.val < 1 && checkShield(winnerId)) {} 
@@ -291,10 +276,6 @@
                 updates[`teams/${winnerId}/items/${card.item}`] = true;
             }
 
-            // Imperial Pity Check (Applied after calculations)
-            // Note: This simple version applies updates directly. Pity logic is best done by checking final values.
-            // For now, raw math is applied.
-            
             await update(ref(db), updates);
         }
     </script>
