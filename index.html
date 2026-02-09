@@ -30,16 +30,9 @@
         
         /* --- FIXED AUCTION LOG CSS --- */
         .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
-        
-        /* Highlight Latest Bid */
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        
-        /* HIDE CROWN BY DEFAULT */
         .log-entry .crown-icon { display: none; margin-right: 8px; filter: drop-shadow(0 0 5px gold); font-size: 1.2em; }
-        
-        /* SHOW CROWN ONLY FOR LATEST */
         .log-entry.latest .crown-icon { display: inline-block; animation: pulseCrown 1s infinite alternate; }
-        
         .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
         
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
@@ -203,43 +196,48 @@
 
         window.toggleAudio = () => { if(bgm.paused) { bgm.play(); document.getElementById('btn-audio').innerText = '🔊'; } else { bgm.pause(); document.getElementById('btn-audio').innerText = '🔈'; } };
 
-        // --- EXPANDED 6x6 CARD DATA (36 Cards) ---
+        // --- BALANCED FIXED AMOUNT CARD DATA (6x6) ---
         const cardsData = [
-            { id: 1, name: "The Magic Bowl", desc: "+2,000 Points", type: "ADD", val: 2000 },
-            { id: 2, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
-            { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
-            { id: 4, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
-            { id: 5, name: "Golden Horse", desc: "Double Score (2x)", type: "MULTIPLY", val: 2.0 },
-            { id: 6, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
-            { id: 7, name: "Imperial Grant", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 9, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
-            { id: 10, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
-            { id: 11, name: "Interest Rate", desc: "Gain 25% Interest", type: "MULTIPLY", val: 1.25 },
-            { id: 12, name: "God of Wealth", desc: "Jackpot! +6,888", type: "ADD", val: 6888 },
-            { id: 13, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
-            { id: 14, name: "Twin Carp", desc: "+2,000 You & Ally", type: "GIVE_CHOICE", val: 2000 },
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
-            { id: 17, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
-            { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
-            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
-            { id: 20, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
-            { id: 21, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
-            { id: 22, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
-            { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
-            { id: 24, name: "Lucky Song", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 },
-            { id: 26, name: "Dragon Ascension", desc: "Double Your Wealth (x2)", type: "MULTIPLY", val: 2.0 },
-            { id: 27, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
-            { id: 28, name: "THE 888", desc: "TRIPLE WEALTH (x3)", type: "MULTIPLY", val: 3.0 },
-            { id: 29, name: "Iron Rice Bowl", desc: "+10% Interest", type: "MULTIPLY", val: 1.10 },
-            { id: 30, name: "Fireworks", desc: "Everyone gets +1,000", type: "GLOBAL_ADD", val: 1000 },
-            { id: 31, name: "Pickpocket", desc: "Steal 500 from Everyone", type: "STEAL_ALL_FLAT", val: 500 },
-            { id: 32, name: "Ancestor's Debt", desc: "Lose 30% of Wealth", type: "MULTIPLY", val: 0.70 },
-            { id: 33, name: "Silk Road", desc: "Trade Route (x1.5)", type: "MULTIPLY", val: 1.5 },
-            { id: 34, name: "Tsunami", desc: "Everyone loses 30%", type: "GLOBAL_HIT", val: 0.70 },
-            { id: 35, name: "Forbidden City", desc: "Immunity (Auto-Block)", type: "ITEM", item: "jade_seal" },
+            // WINNERS (FIXED AMOUNTS)
+            { id: 1, name: "The Magic Bowl", desc: "+1,200 Points", type: "ADD", val: 1200 },
+            { id: 2, name: "Golden Horse", desc: "+2,500 Points", type: "ADD", val: 2500 },
+            { id: 3, name: "Imperial Grant", desc: "+3,000 Points", type: "ADD", val: 3000 },
+            { id: 4, name: "Interest Rate", desc: "+500 Points", type: "ADD", val: 500 },
+            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
+            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
+            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
+            { id: 8, name: "Lucky Song", desc: "+1,500 Points", type: "ADD", val: 1500 },
+            { id: 9, name: "Dragon Ascension", desc: "+4,000 Points", type: "ADD", val: 4000 },
+            { id: 10, name: "THE 888", desc: "+888 Points", type: "ADD", val: 888 },
+            { id: 11, name: "Iron Rice Bowl", desc: "+800 Points", type: "ADD", val: 800 },
+            { id: 12, name: "Fireworks", desc: "Everyone +1,000", type: "GLOBAL_ADD", val: 1000 },
+            { id: 13, name: "Silk Road", desc: "+1,200 Points", type: "ADD", val: 1200 },
+            { id: 14, name: "Jade Garden", desc: "+600 Points", type: "ADD", val: 600 },
+            { id: 15, name: "Lion Dance", desc: "+2,000 Points", type: "ADD", val: 2000 },
+            { id: 16, name: "Red Packet", desc: "+500 Points", type: "ADD", val: 500 },
+            
+            // LOSERS (PERCENTAGE) - ONLY 8 BAD CARDS
+            { id: 17, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 18, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
+            { id: 19, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
+            { id: 20, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
+            { id: 21, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
+            { id: 22, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
+            { id: 23, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
+            { id: 24, name: "Ancestor's Debt", desc: "Lose 30% of Wealth", type: "MULTIPLY", val: 0.70 },
+
+            // CHAOS & ITEMS (12 CARDS)
+            { id: 25, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
+            { id: 26, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
+            { id: 27, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
+            { id: 28, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
+            { id: 29, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
+            { id: 30, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
+            { id: 31, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
+            { id: 32, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 33, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
+            { id: 34, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
+            { id: 35, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 },
             { id: 36, name: "Fool's Gold", desc: "Swap with Poorest Player", type: "SWAP_POOR", val: 0 }
         ];
 
@@ -423,7 +421,10 @@
             if(s.exists()) {
                 const team = s.val();
                 await update(tRef, { balance: team.balance + data.amount });
-                const logDiv = document.createElement('div'); logDiv.className = "log-entry";
+                
+                // FIXED: Clear all 'latest' then add new one
+                document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
+                const logDiv = document.createElement('div'); logDiv.className = "log-entry latest";
                 logDiv.innerHTML = `<span class="text-xs text-gray-400">Labor</span> <span class="text-white">${team.name} +${data.amount}</span>`;
                 document.getElementById('bids-list').prepend(logDiv);
             }
@@ -566,7 +567,7 @@
             let newTime = state.bidDeadline; if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // Clean up old 'latest' manually if needed, but CSS handles visual
+            // FIXED: Remove all 'latest' markers before adding new one
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             
             const logDiv = document.createElement('div'); 
@@ -623,7 +624,6 @@
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== wid);
             
-            // SAFE SHIELD CHECK
             const checkShield = (tid) => {
                 const target = teams[tid];
                 if (target?.items?.jade_seal) { 
@@ -642,18 +642,14 @@
             if(card.type === 'BLOCK') { updates[`teams/${wid}/blockedRound`] = gameState.round + 1; update(ref(db), updates); return; }
 
             const wRef = `teams/${wid}/balance`;
-            const winBid = gameState.highestBid || 0;
-            const isHighStakes = winBid >= 2000; 
-
+            
             const applyPity = (tid, bal) => {
                 if (bal < 500) { logPity(teams[tid].name); return 800; }
                 return bal;
             };
 
             if(card.type === 'ADD') {
-                let gain = card.val;
-                if(isHighStakes && card.val > 0) gain = Math.floor(winBid * (card.val / 2000)); 
-                updates[wRef] = winner.balance + gain;
+                updates[wRef] = winner.balance + card.val;
             }
             else if(card.type === 'MULTIPLY') {
                 let newVal = Math.floor(winner.balance * card.val);
