@@ -7,48 +7,60 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>body { background: #1a0505; color: white; padding: 20px; font-family: sans-serif; }</style>
 </head>
-<body class="max-w-2xl mx-auto flex flex-col gap-4">
+<body class="max-w-md mx-auto flex flex-col gap-4 pb-20">
 
-    <div class="bg-gray-900 p-4 rounded border border-gray-700">
-        <h1 class="text-xl text-yellow-500 font-bold mb-2">GAME CONTROL</h1>
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="adminAction('START')" class="bg-green-700 p-4 rounded text-white font-bold">START NEW GAME</button>
-            <button onclick="adminAction('RESET_ROUND')" class="bg-red-900 p-4 rounded text-white">RESET ROUND</button>
+    <div class="bg-gray-900 p-4 rounded border border-gray-700 text-center">
+        <h1 class="text-xl text-yellow-500 font-bold">ADMIN PANEL</h1>
+        <div class="text-xs text-gray-400 mt-1">
+            PHASE: <span id="phase-disp" class="text-white font-mono">--</span> | 
+            CARD: <span id="card-id-disp" class="text-white font-mono">--</span>
         </div>
     </div>
 
-    <div class="bg-gray-800 p-4 rounded border border-yellow-700">
-        <div class="flex justify-between mb-2">
-            <span class="text-gray-400">Phase: <strong id="phase-disp" class="text-white">--</strong></span>
-            <span class="text-gray-400">Card: <strong id="card-id-disp">--</strong></span>
+    <div class="bg-gray-800 p-4 rounded border-2 border-yellow-700 shadow-xl flex flex-col gap-3">
+        
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="w-full bg-yellow-600 hover:bg-yellow-500 p-4 rounded text-black font-bold text-lg shadow-lg mb-2">
+            1. DRAW CARD
+        </button>
+
+        <div id="secret-preview" class="hidden bg-black p-4 rounded border border-dashed border-gray-500">
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">SECRET HOST PREVIEW</p>
+            <h2 id="secret-title" class="text-xl text-yellow-400 font-bold leading-tight">--</h2>
+            <p id="secret-desc" class="text-gray-300 text-sm">--</p>
+            <p id="secret-type" class="text-blue-400 text-xs mt-1 font-mono">--</p>
         </div>
         
-        <div id="secret-preview" class="bg-black p-4 rounded mb-4 border border-dashed border-gray-600 hidden">
-            <p class="text-xs text-gray-500 uppercase">Secret Preview (Hidden from Screen)</p>
-            <h2 id="secret-title" class="text-2xl text-yellow-400 font-bold">--</h2>
-            <p id="secret-desc" class="text-white">--</p>
-            <p id="secret-type" class="text-blue-400 text-sm mt-1">--</p>
-        </div>
+        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-900/50 border border-red-500 text-red-200 py-2 rounded text-sm hover:bg-red-900">
+            ⚠ FORCE END TIMER
+        </button>
 
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="w-full bg-yellow-600 p-4 rounded text-black font-bold mb-2">1. DRAW CARD</button>
-        
-        <div class="flex gap-2 mb-2">
-            <button onclick="adminAction('SKIP_TIMER')" class="flex-1 bg-red-600 p-2 rounded text-white text-sm">SKIP TIMER (FORCE END)</button>
-        </div>
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="w-full bg-blue-700 hover:bg-blue-600 p-4 rounded text-white font-bold text-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            2. REVEAL CARD
+        </button>
 
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="w-full bg-blue-700 p-4 rounded text-white font-bold mb-2 disabled:opacity-50" disabled>2. REVEAL CARD</button>
-
-        <div id="challenge-controls" class="hidden flex gap-2 mb-2 p-2 bg-purple-900 rounded">
-            <div class="text-center w-full">
-                <p class="text-xs mb-1">JUDGE DECISION</p>
-                <div class="flex gap-2">
-                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-500 p-3 rounded text-black font-bold">✅ PASS (+2000)</button>
-                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-500 p-3 rounded text-white font-bold">❌ FAIL (-500)</button>
-                </div>
+        <div id="challenge-controls" class="hidden p-3 bg-purple-900/80 rounded border border-purple-500">
+            <p class="text-center text-xs text-purple-200 mb-2 font-bold uppercase">👨‍⚖️ JUDGE'S DECISION</p>
+            <div class="flex gap-2">
+                <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-500 p-3 rounded text-white font-bold text-sm">✅ PASS (+Reward)</button>
+                <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-500 p-3 rounded text-white font-bold text-sm">❌ FAIL (Punish)</button>
             </div>
         </div>
 
-        <button onclick="adminAction('NEXT')" id="btn-next" class="w-full bg-gray-700 p-4 rounded text-white font-bold disabled:opacity-50" disabled>3. NEXT ROUND</button>
+        <button onclick="adminAction('NEXT')" id="btn-next" class="w-full bg-gray-600 hover:bg-gray-500 p-4 rounded text-white font-bold text-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            3. NEXT ROUND ➡
+        </button>
+    </div>
+
+    <div class="mt-8 border-t border-gray-700 pt-8">
+        <p class="text-xs text-red-500 font-bold mb-2 uppercase text-center">⚠ DANGER ZONE ⚠</p>
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 hover:bg-red-800">
+                🔄 FULL RESET GAME
+            </button>
+            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 hover:bg-green-800">
+                💰 +5000 ALL (DEBUG)
+            </button>
+        </div>
     </div>
 
     <script type="module">
@@ -59,7 +71,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- 36 CARD DECK CONFIGURATION ---
+        // --- 36 CARD DECK ---
         const deck = [
             // 1-10: GOOD (Fixed)
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 },
@@ -72,7 +84,6 @@
             { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 },
             { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 },
             { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
-
             // 11-20: BAD (%)
             { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
             { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 },
@@ -84,16 +95,14 @@
             { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 },
             { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 },
             { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
-
-            // 21-26: ACTION (Steal/Swap/Target)
-            { id: 21, name: "Tax Collector", desc: "Steal 30% (Targeted)", type: "STEAL_TGT", val: 0.30 },
+            // 21-26: ACTION
+            { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
             { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 },
             { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 },
             { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 },
             { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" },
             { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
-
-            // 27-36: CHALLENGES (Dares)
+            // 27-36: CHALLENGES
             { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" },
             { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" },
             { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" },
@@ -113,34 +122,54 @@
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
-            // Allow clicking Next during 'REVEALED' phase only
-            document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
+            // BUTTON LOGIC
+            const btnReveal = document.getElementById('btn-reveal');
+            const btnNext = document.getElementById('btn-next');
+            const btnSkip = document.getElementById('btn-skip');
+            const secretBox = document.getElementById('secret-preview');
+            const challengeBox = document.getElementById('challenge-controls');
+
+            // 1. Reveal is only active if Sold
+            btnReveal.disabled = (gameState.phase !== 'SOLD');
             
-            if (gameState.phase === 'CHALLENGE') {
-                document.getElementById('challenge-controls').classList.remove('hidden');
+            // 2. Next is active if Revealed OR Challenge Done
+            // (If targeting, we wait. If challenge, we wait for judge.)
+            btnNext.disabled = (gameState.phase === 'GRID' || gameState.phase === 'BIDDING' || gameState.phase === 'SOLD' || gameState.phase === 'CHALLENGE' || gameState.phase === 'TARGETING');
+
+            // 3. Skip Timer only visible during Bidding
+            if(gameState.phase === 'BIDDING') {
+                btnSkip.classList.remove('hidden');
+                secretBox.classList.remove('hidden'); // Keep secret visible during bidding
             } else {
-                document.getElementById('challenge-controls').classList.add('hidden');
+                btnSkip.classList.add('hidden');
+                if(gameState.phase === 'GRID') secretBox.classList.add('hidden');
+            }
+
+            // 4. Challenge Controls
+            if (gameState.phase === 'CHALLENGE') {
+                challengeBox.classList.remove('hidden');
+            } else {
+                challengeBox.classList.add('hidden');
             }
         });
 
-        // --- ACTIONS ---
         window.adminAction = async (action) => {
             if(action === 'START') {
-                if(confirm("Start new game? (Clears all)")) 
+                if(confirm("⚠ WARNING: This will RESET EVERYONE'S money. Proceed?")) 
                     await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
             }
             
             if(action === 'DRAW') {
+                // Pick random unused card
                 const usedSnap = await get(ref(db, 'envelopes'));
                 const used = usedSnap.val() || {};
                 const available = deck.filter(c => !used[c.id]);
-                if(available.length === 0) return alert("Deck Empty!");
+                
+                if(available.length === 0) return alert("Deck is empty! Game Over.");
                 
                 const card = available[Math.floor(Math.random() * available.length)];
                 
-                // Show Secret Preview
-                document.getElementById('secret-preview').classList.remove('hidden');
+                // Show Host Preview
                 document.getElementById('secret-title').innerText = card.name;
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
@@ -150,26 +179,26 @@
                     currentCard: card.id, 
                     highestBid: 0, 
                     leaderId: null, leaderName: null, 
-                    bidDeadline: Date.now() + 90000 
+                    bidDeadline: Date.now() + 90000 // 90s Timer
                 });
             }
 
             if(action === 'SKIP_TIMER') {
+                // Set deadline to past -> Triggers Sold instantly
                 await update(ref(db, 'gameState/bidDeadline'), Date.now() - 1000);
             }
 
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                // Push details to DB so projector can see them
+                // Send text to projector
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
                 
-                // AUTO LOGIC AFTER DELAY
+                // Trigger Logic
                 setTimeout(() => processCardEffect(card), 2000);
             }
 
             if(action === 'NEXT') {
-                document.getElementById('secret-preview').classList.add('hidden');
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID'; 
@@ -183,10 +212,18 @@
             }
         };
 
-        // --- CARD LOGIC ENGINE ---
+        window.debugMoney = async () => {
+             const s = await get(ref(db, 'teams'));
+             const t = s.val(); if(!t) return;
+             const up = {}; for(let k in t) up[`teams/${k}/balance`] = t[k].balance + 5000;
+             await update(ref(db), up);
+             alert("Granted +5000 to all.");
+        };
+
+        // --- LOGIC CORE ---
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
-            if(!leaderId) return; 
+            if(!leaderId) return; // No winner, no effect
 
             if(card.type === 'CHALLENGE') {
                 await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc });
@@ -198,10 +235,11 @@
                 return;
             }
 
+            // Instant Effect
             executeEffect(card, leaderId, null);
         }
 
-        // Listener for Targeted Selection
+        // Listener for Targets
         onValue(ref(db, 'gameState/targetId'), async (snap) => {
             if(gameState.phase === 'TARGETING' && snap.val()) {
                 const card = deck.find(c => c.id === gameState.currentCard);
@@ -213,13 +251,16 @@
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
-            const teamsSnap = await get(ref(db, 'teams'));
-            const teams = teamsSnap.val();
-            const currentBal = teams[leaderId].balance;
+            const teamsSnap = await get(ref(db, `teams/${leaderId}`));
+            const team = teamsSnap.val();
             
-            if(pass) await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
-            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
-            
+            if(pass) {
+                // Reward: +2000
+                await update(ref(db, `teams/${leaderId}/balance`), team.balance + 2000);
+            } else {
+                // Punishment: -500
+                await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, team.balance - 500));
+            }
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
@@ -239,6 +280,7 @@
 
             const wRef = `teams/${winnerId}/balance`;
 
+            // CARD LOGIC
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             
             if(card.type === 'MULTIPLY') {
