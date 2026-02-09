@@ -11,49 +11,38 @@
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* LAYERS */
+        /* BACKGROUND LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
-        .layer-lanterns { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; } 
-        .layer-ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
-        .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; } /* COIN RAIN */
+        
+        /* LANTERNS - STRICTLY BACKGROUND */
+        .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
+        
+        /* UI - STRICTLY FOREGROUND */
+        .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
 
         /* ANIMATIONS */
-        .lantern { position: absolute; width: 50px; height: 70px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.9; top: 110%; /* START BELOW SCREEN */ }
-        @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.9; } 90% { opacity: 0.9; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
+        .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.8; top: 110%; }
+        @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
 
-        /* MEGA SLAM (BIDDING) */
-        @keyframes slamIn {
-            0% { transform: scale(10); opacity: 0; }
-            40% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        /* PANELS */
+        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 60px rgba(0,0,0,0.9); backdrop-filter: blur(10px); border-radius: 16px; }
+
+        /* ORIGINAL GRID DESIGN (CLEANER) */
+        .angpao { 
+            background: linear-gradient(135deg, #900 0%, #600 100%); 
+            border: 2px solid #b8860b; 
+            border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-family: 'Cinzel'; font-weight: 900; font-size: 1.8rem; color: rgba(255,215,0,0.4); 
+            transition: all 0.2s; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .slam-text { animation: slamIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
-        @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; } 50% { text-shadow: 0 0 100px red; transform: scale(1.05); } 100% { text-shadow: 0 0 50px red; } }
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
+        .angpao.highlight { background: #ffaa00 !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 40px orange; border-color: white; z-index: 60; }
+        .angpao.used { background: #1a0505; opacity: 0.3; border: 1px solid #444; color: transparent; box-shadow: none; }
 
-        /* COIN PARTICLE */
-        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 10px gold; animation: fall 2s linear forwards; }
-        @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
-
-        /* ENVELOPE */
-        .envelope-container { perspective: 1200px; width: 300px; height: 420px; position: relative; margin: 0 auto; transition: all 0.5s; }
-        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
-        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
-        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 15px; border: 6px double #b8860b; }
-        .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
-        .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 80px rgba(255, 215, 0, 0.8); }
-        .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
-        .shaking { animation: shake 2s infinite ease-in-out; }
-        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
-
-        /* GRID */
-        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 50px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .angpao { background: linear-gradient(135deg, #700 0%, #400 100%); border: 1px solid #900; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel'; font-weight: bold; font-size: 1.5rem; color: rgba(255,215,0,0.3); transition: all 0.2s; box-shadow: inset 0 0 20px #000; }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000 !important; opacity: 1; }
-        .angpao.highlight { background: #ffaa00 !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 40px orange; border-color: white; z-index: 40; }
-        .angpao.used { background: #000; opacity: 0.2; border: 1px solid #333; color: transparent; }
+        /* VIEW CONTAINERS */
+        .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         /* COIN */
         .coin-container { perspective: 1000px; width: 350px; height: 350px; }
@@ -63,22 +52,38 @@
         .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
         .coin-text { font-size: 6rem; font-weight: 900; font-family: 'Cinzel'; }
 
-        /* LOG ENTRY */
-        .log-entry { font-size: 1.1rem; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border-left: 2px solid #555; transition: all 0.5s; opacity: 0.7; display: flex; justify-content: space-between; align-items: center; }
-        .log-entry.latest { border-left: 6px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.8), transparent); opacity: 1; transform: scale(1.05); font-weight: bold; animation: slideIn 0.5s ease-out; }
-        .log-entry.all-in { border-left: 6px solid red; background: linear-gradient(90deg, #500, transparent); box-shadow: 0 0 20px red; }
-        @keyframes slideIn { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* ENVELOPE */
+        .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; }
+        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
+        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 15px; border: 6px double #b8860b; }
+        .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
+        .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; }
+        .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
+        .shaking { animation: shake 2s infinite ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
 
-        .hidden-panel { transform: translateX(120%); opacity: 0; }
+        /* LEADERBOARD & LOGS */
         .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.3rem; }
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
+        
+        /* MEGA SLAM ANIMATION */
+        @keyframes slamIn { 0% { transform: scale(5); opacity: 0; } 50% { transform: scale(1); opacity: 1; } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .slam-text { animation: slamIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
+        @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; } 50% { text-shadow: 0 0 100px red; transform: scale(1.05); } 100% { text-shadow: 0 0 50px red; } }
+        
+        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 10px gold; animation: fall 2s linear forwards; z-index: 100; }
+        @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden">
+<body class="h-screen w-screen overflow-hidden" id="main-body">
 
     <div class="layer-bg"></div>
     <div class="layer-lanterns" id="lantern-container"></div>
-    <div class="layer-fx" id="fx-container"></div> <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
+    <div class="layer-fx" id="fx-container"></div>
+
+    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
@@ -100,7 +105,7 @@
             <div class="flex-1 relative flex items-center justify-center">
                 
                 <div id="view-grid" class="view-container hidden">
-                    <div id="grid-container" class="grid grid-cols-6 gap-4 w-full max-w-[80vh] aspect-square p-8 glass-panel rounded-3xl"></div>
+                    <div id="grid-container" class="grid grid-cols-6 gap-5 w-full max-w-[85vh] aspect-square p-4"></div>
                 </div>
 
                 <div id="view-coin" class="view-container hidden">
@@ -133,31 +138,25 @@
                     </div>
                 </div>
 
-                <div id="view-action" class="view-container hidden">
+                <div id="view-action" class="hidden flex flex-col items-center text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059] shadow-[0_0_80px_rgba(255,215,0,0.3)] leading-relaxed text-center" id="action-desc">--</div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
             </div>
 
-            <div id="info-panel" class="w-[450px] flex flex-col gap-6 transition-all duration-500">
+            <div id="info-panel" class="w-[450px] flex flex-col gap-6">
                 
                 <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden">
                     <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
                     <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
                 </div>
                 
-                <div id="panel-log" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden hidden">
-                    <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">LIVE TRIBUTE FEED</h3>
-                    
-                    <div class="text-center mb-6 bg-gradient-to-b from-black/60 to-black/30 p-6 rounded-xl border border-[#C5A059]">
-                        <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-2">CURRENT EMPEROR</div>
-                        <div id="val-leader-name" class="text-white font-black mt-2 uppercase tracking-widest text-4xl transition-all">--</div>
-                        <div id="val-high-bid" class="text-5xl font-imp text-[#FFD700] drop-shadow-lg mt-2">RM 0</div>
-                    </div>
-                    
-                    <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-2 border-b border-gray-700 pb-1">RECENT BIDS</div>
-                    <div id="bids-list" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
+                <div id="panel-leader" class="glass-panel p-8 rounded-2xl flex-1 flex flex-col items-center justify-center hidden border-4 border-[#FFD700]">
+                    <div class="text-[#C5A059] text-2xl uppercase tracking-widest mb-6">CURRENT EMPEROR</div>
+                    <div id="val-leader-name" class="text-white font-black uppercase tracking-widest text-6xl text-center leading-tight mb-6 drop-shadow-[0_0_40px_gold] transition-all">--</div>
+                    <div class="text-[#C5A059] text-sm uppercase tracking-widest mb-2">OFFERING</div>
+                    <div id="val-high-bid" class="text-8xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
                 </div>
             </div>
 
@@ -172,7 +171,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // LANTERNS (Fixed Position)
+        // LANTERNS (Foreground)
         const lanternContainer = document.getElementById('lantern-container');
         for(let i=0; i<15; i++) {
             const l = document.createElement('div');
@@ -208,16 +207,16 @@
             // VIEW TOGGLE
             ['view-grid', 'view-coin', 'view-auction', 'view-action'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex'); // Remove flex when hidden
+                document.getElementById(id).classList.remove('flex');
             });
             
             // SIDEBAR LOGIC (Rank vs Leader)
             if(st.phase === 'GRID' || st.phase === 'DRAWING') {
                 document.getElementById('panel-rankings').classList.remove('hidden');
-                document.getElementById('panel-log').classList.add('hidden');
+                document.getElementById('panel-leader').classList.add('hidden');
             } else {
                 document.getElementById('panel-rankings').classList.add('hidden');
-                document.getElementById('panel-log').classList.remove('hidden');
+                document.getElementById('panel-leader').classList.remove('hidden');
             }
 
             // --- ANIMATION: ROULETTE ---
@@ -234,7 +233,7 @@
                         r.classList.add('highlight');
                         sfxTick.currentTime = 0; sfxTick.play();
                         spins++;
-                        if(spins > 45) clearInterval(interval); // 5 Seconds approx
+                        if(spins > 45) clearInterval(interval); // 5 Seconds
                     }, 100);
                 }
             }
@@ -289,7 +288,6 @@
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
                     
-                    // Is ALL IN? (You can pass this flag in gameState if needed, assuming yes for Big Jumps)
                     lastLeader = leaderName;
                 } else {
                     if(leaderEl.innerText !== leaderName) leaderEl.innerText = leaderName;
@@ -347,48 +345,28 @@
             });
         });
         
-        // LOG (Big Impact + Coin Rain)
+        // ALL IN EFFECT (COIN RAIN)
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
-            if(req) {
-               const teams = (await get(ref(db, `teams/${req.teamId}`))).val();
-               const log = document.getElementById('bids-list');
-               
-               const div = document.createElement('div');
-               div.className = `log-entry latest ${req.isAllIn ? 'all-in' : ''}`;
-               div.innerHTML = `
-                    <div class="flex justify-between items-center w-full">
-                        <span class="uppercase font-bold">${teams ? teams.name : 'Unknown'}</span> 
-                        <span class="text-[#FFD700]">${req.isAllIn ? 'ALL IN' : 'RM ' + req.amount}</span>
-                    </div>`;
-               
-               log.prepend(div);
-               if(log.children.length > 5) log.lastChild.remove();
-               
-               // ALL IN EFFECT
-               if(req.isAllIn) {
-                   spawnCoinRain();
-                   document.getElementById('val-leader-name').classList.add('all-in-glow');
-               } else {
-                   document.getElementById('val-leader-name').classList.remove('all-in-glow');
+            if(req && req.isAllIn) {
+               const container = document.getElementById('fx-container');
+               for(let i=0; i<30; i++) {
+                   const c = document.createElement('div');
+                   c.className = 'falling-coin';
+                   c.style.left = Math.random() * 100 + '%';
+                   c.style.animationDuration = (1 + Math.random()) + 's';
+                   container.appendChild(c);
+                   setTimeout(() => c.remove(), 2000);
                }
-               
-               setTimeout(() => div.classList.remove('latest'), 1000);
+               document.getElementById('val-leader-name').classList.add('all-in-glow');
+            } else if(req) {
+               document.getElementById('val-leader-name').classList.remove('all-in-glow');
             }
         });
 
-        function spawnCoinRain() {
-            const container = document.getElementById('fx-container');
-            for(let i=0; i<30; i++) {
-                const c = document.createElement('div');
-                c.className = 'falling-coin';
-                c.style.left = Math.random() * 100 + '%';
-                c.style.animationDuration = (1 + Math.random()) + 's';
-                container.appendChild(c);
-                setTimeout(() => c.remove(), 2000);
-            }
-        }
+        // REVEAL SOUND
+        onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
         // TIMER
         setInterval(() => {
