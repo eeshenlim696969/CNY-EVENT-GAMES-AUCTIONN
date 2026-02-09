@@ -7,132 +7,144 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; overflow: hidden; cursor: none; }
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* BACKGROUND FX */
-        .bg-pattern { position: absolute; inset: 0; opacity: 0.15; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); z-index: 0; }
-        .god-rays { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255, 215, 0, 0.05) 20deg, transparent 40deg, rgba(255, 215, 0, 0.05) 60deg, transparent 80deg); animation: rotateRays 60s linear infinite; pointer-events: none; z-index: 0; }
-        @keyframes rotateRays { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* LAYERS */
+        .layer-bg { position: absolute; inset: 0; z-index: 0; }
+        .layer-lanterns { position: absolute; inset: 0; z-index: 10; pointer-events: none; } /* LANTERNS ON TOP OF BG */
+        .layer-ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
+
+        .glass-panel { background: rgba(20, 0, 0, 0.9); border: 2px solid #C5A059; box-shadow: 0 0 50px rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+
+        /* LANTERN ANIMATION */
+        .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff0000 0%, #600 100%); border-radius: 15px; border-top: 4px solid #333; border-bottom: 4px solid gold; box-shadow: 0 0 40px rgba(255, 100, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.8; }
+        @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+
+        /* SLOWER ENVELOPE */
+        .envelope-container { perspective: 1200px; width: 340px; height: 460px; position: relative; margin: 0 auto; transition: all 1s; }
+        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
+        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 1.5s ease-in-out; border-top: 4px solid #FFD700; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 2.5s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 20px; border: 8px double #b8860b; }
         
-        .lantern { position: absolute; width: 40px; height: 50px; background: radial-gradient(circle, #ff0000 0%, #500000 100%); border-radius: 10px; border-top: 2px solid #333; border-bottom: 2px solid gold; box-shadow: 0 0 20px rgba(255, 100, 0, 0.5); animation: rise 20s linear infinite; z-index: 1; opacity: 0.6; }
-        @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
-
-        .glass-panel { background: rgba(10, 0, 0, 0.85); border: 1px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
-
-        /* COIN ANIMATION */
-        .coin-container { perspective: 1000px; width: 350px; height: 350px; }
-        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .coin-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px rgba(255,215,0,0.6); border: 12px solid #FFD700; background: radial-gradient(circle, #B8860B, #553300); }
-        .coin-front { transform: rotateY(0deg); }
-        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
-        .coin-text { font-size: 6rem; font-weight: 900; font-family: 'Cinzel'; }
-
-        /* ENVELOPE */
-        .envelope-container { perspective: 1200px; width: 320px; height: 420px; position: relative; margin: 0 auto; }
-        .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
-        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 20px; border: 6px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
+        /* OPEN STATE */
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
-        .is-open .card-insert { transform: translateY(-50%) scale(1.1); z-index: 100 !important; box-shadow: 0 30px 80px rgba(0,0,0,0.9); }
-        .is-open .envelope-body { transform: translateY(60%); opacity: 0; }
-        .shaking { animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
+        .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 100px rgba(255, 215, 0, 0.6); }
+        .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
+        
+        .shaking { animation: shake 3s infinite ease-in-out; } /* Slower shake */
+        @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
 
-        /* GRID */
-        .angpao { background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); border: 1px solid #600; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel'; font-weight: bold; font-size: 1.5rem; color: rgba(255,215,0,0.3); transition: all 0.3s; }
-        .angpao.active { background: #FFD700; box-shadow: 0 0 40px #FFD700; transform: scale(1.1); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
-        .angpao.used { background: #111; opacity: 0.2; border-color: #333; }
+        /* COIN */
+        .coin-container { perspective: 1000px; width: 400px; height: 400px; }
+        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); } /* 4s Slow Spin */
+        .coin-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 80px rgba(255,215,0,0.4); border: 15px solid #FFD700; background: radial-gradient(circle, #B8860B, #553300); }
+        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #aa0000; }
+        .coin-text { font-size: 8rem; font-weight: 900; font-family: 'Cinzel'; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); }
 
-        /* ROSTER */
+        /* GRID ITEMS */
+        .angpao { background: linear-gradient(135deg, #700 0%, #400 100%); border: 1px solid #900; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel'; font-weight: bold; font-size: 1.5rem; color: rgba(255,215,0,0.2); transition: all 0.5s; box-shadow: inset 0 0 20px #000; }
+        .angpao.active { background: #FFD700; box-shadow: 0 0 60px #FFD700; transform: scale(1.15); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
+        .angpao.used { background: #000; opacity: 0.1; border: none; }
+
+        /* INFO PANEL TRANSITION */
+        .info-panel { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s; }
+        .info-panel.hidden-panel { transform: translateX(120%); opacity: 0; }
+        
         .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.2rem; }
-        .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0)); box-shadow: 0 0 15px rgba(255,215,0,0.1); }
-        .log-entry { padding: 8px 12px; border-left: 3px solid #555; background: rgba(0,0,0,0.5); margin-bottom: 6px; display: flex; justify-content: space-between; font-size: 1rem; }
-        .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.2), rgba(0,0,0,0)); }
+        .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
+        
+        /* LOG STYLING */
+        .log-entry { font-size: 1rem; padding: 10px; margin-bottom: 5px; background: rgba(0,0,0,0.6); border-left: 2px solid #555; }
+        .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), transparent); animation: flash 1s; }
+        @keyframes flash { 0% { background: #FFD700; } 100% { background: linear-gradient(90deg, rgba(255,215,0,0.3), transparent); } }
     </style>
 </head>
-<body class="h-screen flex flex-col p-8">
+<body class="h-screen w-screen overflow-hidden">
 
-    <div class="god-rays"></div>
-    <div class="bg-pattern"></div>
-    <div id="lantern-container" class="absolute inset-0 pointer-events-none z-0"></div>
-
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
+    <div class="layer-bg bg-[url('https://www.transparenttextures.com/patterns/chinese-scales.png')] opacity-20"></div>
+    <div class="layer-lanterns" id="lantern-container"></div> <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
-    <header class="h-24 flex justify-between items-center px-8 border-b-2 border-[#C5A059] mb-8 relative z-20 bg-[#1a0505]/90 backdrop-blur-md shadow-2xl rounded-b-xl">
-        <div class="flex items-center gap-4">
-            <span class="text-6xl drop-shadow-[0_0_15px_gold]">🐎</span>
-            <h1 class="font-imp text-5xl font-bold tracking-[0.2em] text-[#FFD700] text-shadow-md">IMPERIAL AUCTION</h1>
-        </div>
-        <div class="font-imp text-2xl tracking-widest">
-            ROUND <span id="round-num" class="text-white font-bold ml-2 text-3xl">--</span> | 
-            <span id="status-text" class="text-[#FFD700] ml-2 font-bold">WAITING</span>
-        </div>
-    </header>
-
-    <main class="flex-1 flex gap-8 relative z-10 overflow-hidden">
+    <div class="layer-ui p-8">
         
-        <div class="flex-1 relative flex items-center justify-center">
+        <header class="h-28 flex justify-between items-center px-10 border-b-4 border-[#C5A059] mb-4 bg-[#1a0505]/90 rounded-2xl shadow-2xl backdrop-blur-md">
+            <div class="flex items-center gap-6">
+                <span class="text-7xl drop-shadow-[0_0_25px_gold]">🐎</span>
+                <div>
+                    <h1 class="font-imp text-6xl font-black tracking-[0.2em] text-[#FFD700] text-shadow-md">IMPERIAL AUCTION</h1>
+                </div>
+            </div>
+            <div class="font-imp text-3xl tracking-widest text-[#C5A059]">
+                ROUND <span id="round-num" class="text-white font-bold text-4xl mx-2">1</span>
+                <span id="status-text" class="text-[#FFD700] font-bold ml-6 border-l-2 border-[#C5A059] pl-6">WAITING</span>
+            </div>
+        </header>
+
+        <main class="flex-1 flex gap-8 relative overflow-hidden">
             
-            <div id="view-grid" class="hidden grid grid-cols-6 gap-6 w-full max-w-[85vh] aspect-square p-8 glass-panel rounded-3xl"></div>
+            <div class="flex-1 relative flex items-center justify-center">
+                
+                <div id="view-grid" class="hidden grid grid-cols-6 gap-6 w-full max-w-[80vh] aspect-square p-10 glass-panel rounded-3xl"></div>
 
-            <div id="view-coin" class="hidden flex flex-col items-center">
-                <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em] drop-shadow-lg" id="coin-title">DESTINY FLIPPING...</div>
-                <div class="coin-container">
-                    <div id="the-coin" class="coin">
-                        <div class="coin-face coin-front"><div class="coin-text text-[#553300]">福</div></div>
-                        <div class="coin-face coin-back"><div class="coin-text text-red-500">☠️</div></div>
+                <div id="view-coin" class="hidden flex flex-col items-center">
+                    <div class="text-[#FFD700] text-7xl font-imp mb-16 tracking-[0.2em] drop-shadow-[0_0_30px_gold]" id="coin-title">DESTINY FLIPPING...</div>
+                    <div class="coin-container">
+                        <div id="the-coin" class="coin">
+                            <div class="coin-face coin-front"><div class="coin-text text-[#553300]">福</div></div>
+                            <div class="coin-face coin-back"><div class="coin-text text-red-500">☠️</div></div>
+                        </div>
+                    </div>
+                    <div id="coin-result" class="mt-20 text-[10rem] font-black font-imp text-white hidden drop-shadow-[0_0_80px_gold] animate-bounce">WINNER</div>
+                </div>
+
+                <div id="view-auction" class="hidden flex flex-col items-center justify-center w-full h-full">
+                    <div id="timer-box" class="mb-10 text-center">
+                        <p class="text-[#C5A059] text-2xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
+                        <div id="countdown-val" class="text-[12rem] leading-none font-black font-imp text-white drop-shadow-[0_0_50px_rgba(0,0,0,1)] tabular-nums">1:30</div>
+                    </div>
+                    <div class="envelope-container" id="main-envelope">
+                        <div class="card-insert">
+                            <h3 id="card-title" class="font-imp text-[#8a0000] text-4xl font-black mb-4 uppercase border-b-4 border-[#8a0000] w-full pb-4">Secret Item</h3>
+                            <p id="card-desc" class="font-serif text-5xl font-bold text-black leading-tight py-4">Effect Description</p>
+                        </div>
+                        <div class="envelope-body">
+                            <span class="text-9xl text-[#FFD700] opacity-40 font-chinese mt-12">福</span>
+                            <div id="sold-stamp" class="hidden absolute inset-0 bg-black/70 flex items-center justify-center z-20 backdrop-blur-md rounded-lg"><span class="text-red-500 font-black border-[12px] border-red-500 p-6 text-8xl -rotate-12 uppercase shadow-[0_0_100px_red]">SOLD</span></div>
+                            <div id="unsold-stamp" class="hidden absolute inset-0 bg-black/70 flex items-center justify-center z-20 backdrop-blur-md rounded-lg"><span class="text-gray-400 font-black border-[12px] border-gray-400 p-6 text-8xl -rotate-12 uppercase">UNSOLD</span></div>
+                        </div>
+                        <div class="envelope-lid"></div>
                     </div>
                 </div>
-                <div id="coin-result" class="mt-16 text-9xl font-black font-imp text-white hidden drop-shadow-[0_0_60px_gold] animate-pulse">WINNER</div>
+
+                <div id="view-action" class="hidden flex flex-col items-center text-center">
+                    <h2 id="action-title" class="text-8xl font-imp text-[#FFD700] mb-12 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
+                    <div class="text-6xl text-white font-serif max-w-4xl bg-black/90 p-20 rounded-3xl border-4 border-[#C5A059] shadow-[0_0_100px_rgba(255,215,0,0.2)] leading-normal" id="action-desc">--</div>
+                    <div id="action-status" class="mt-16 text-5xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
+                </div>
+
             </div>
 
-            <div id="view-auction" class="hidden flex flex-col items-center justify-center w-full">
-                <div id="timer-box" class="mb-12 text-center transition-all duration-500">
-                    <p class="text-[#C5A059] text-xl tracking-[0.5em] uppercase font-bold mb-4">BIDDING ENDS IN</p>
-                    <div id="countdown-val" class="text-[10rem] leading-none font-black font-imp text-white drop-shadow-[0_0_40px_rgba(0,0,0,0.8)] tabular-nums">1:30</div>
+            <div id="info-panel" class="info-panel w-[500px] flex flex-col gap-6">
+                <div class="glass-panel p-8 rounded-2xl flex-1 flex flex-col overflow-hidden">
+                    <h3 class="font-imp text-center text-3xl text-[#FFD700] border-b-2 border-[#C5A059] pb-4 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
+                    <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
                 </div>
-                <div class="envelope-container" id="main-envelope">
-                    <div class="card-insert">
-                        <h3 id="card-title" class="font-imp text-[#8a0000] text-3xl font-black mb-4 uppercase border-b-2 border-[#8a0000] w-full pb-2">Title</h3>
-                        <p id="card-desc" class="font-serif text-4xl font-bold text-black leading-snug">Effect</p>
+                <div class="glass-panel p-8 rounded-2xl h-1/3 flex flex-col overflow-hidden">
+                    <h3 class="font-imp text-center text-3xl text-[#FFD700] border-b-2 border-[#C5A059] pb-4 mb-4 tracking-[0.2em]">AUCTION LOG</h3>
+                    <div class="text-center mb-4 bg-black/50 p-4 rounded-xl border border-[#C5A059]/50">
+                        <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">Current Leader</div>
+                        <div id="val-high-bid" class="text-5xl font-imp text-white drop-shadow-md">RM 0</div>
+                        <div id="val-leader-name" class="text-green-400 font-bold mt-2 uppercase tracking-widest text-xl">--</div>
                     </div>
-                    <div class="envelope-body">
-                        <span class="text-9xl text-[#FFD700] opacity-30 font-chinese mt-10">馬</span>
-                        <div id="sold-stamp" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-lg"><span class="text-red-500 font-black border-8 border-red-500 p-4 text-7xl -rotate-12 uppercase shadow-[0_0_50px_red]">SOLD</span></div>
-                        <div id="unsold-stamp" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center z-20 backdrop-blur-sm rounded-lg"><span class="text-gray-400 font-black border-8 border-gray-400 p-4 text-7xl -rotate-12 uppercase">UNSOLD</span></div>
-                    </div>
-                    <div class="envelope-lid"></div>
+                    <div id="bids-list" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
                 </div>
             </div>
 
-            <div id="view-action" class="hidden flex flex-col items-center text-center">
-                <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-xl">CHALLENGE</h2>
-                <div class="text-5xl text-white font-serif max-w-3xl bg-black/80 p-16 rounded-2xl border-4 border-[#C5A059] shadow-[0_0_80px_rgba(255,215,0,0.3)] leading-relaxed" id="action-desc">--</div>
-                <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest">Waiting for Judge...</div>
-            </div>
-
-        </div>
-
-        <div id="info-panel" class="w-[450px] flex flex-col gap-6 transition-opacity duration-500">
-            <div class="glass-panel p-6 rounded-xl flex-1 flex flex-col overflow-hidden border-t-4 border-t-[#FFD700]">
-                <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b border-[#C5A059] pb-3 mb-4 tracking-widest">DYNASTY RANKINGS</h3>
-                <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
-            </div>
-            <div class="glass-panel p-6 rounded-xl h-1/3 flex flex-col overflow-hidden border-t-4 border-t-[#FFD700]">
-                <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b border-[#C5A059] pb-3 mb-4 tracking-widest">AUCTION LOG</h3>
-                <div class="text-center mb-4 bg-black/40 p-4 rounded border border-[#C5A059]/30">
-                    <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">Current Leader</div>
-                    <div id="val-high-bid" class="text-4xl font-imp text-white drop-shadow-md">RM 0</div>
-                    <div id="val-leader-name" class="text-green-400 font-bold mt-1 uppercase tracking-widest text-lg">--</div>
-                </div>
-                <div id="bids-list" class="overflow-y-auto pr-2 flex-1 text-sm space-y-2 scrollbar-hide"></div>
-            </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -142,19 +154,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Lanterns
-        function spawnLanterns() {
-            const c = document.getElementById('lantern-container');
-            for(let i=0; i<8; i++) {
-                const l = document.createElement('div');
-                l.className = 'lantern';
-                l.style.left = Math.random() * 100 + '%'; l.style.animationDelay = (Math.random() * 10) + 's';
-                c.appendChild(l);
-            }
+        // LANTERNS
+        const lanternContainer = document.getElementById('lantern-container');
+        for(let i=0; i<12; i++) {
+            const l = document.createElement('div');
+            l.className = 'lantern';
+            l.style.left = Math.random() * 95 + '%';
+            l.style.animationDelay = (Math.random() * 20) + 's';
+            l.style.animationDuration = (20 + Math.random() * 15) + 's'; // Slower rise
+            lanternContainer.appendChild(l);
         }
-        spawnLanterns();
 
-        // RENDER GRID
+        // GRID GENERATION
         const g = document.getElementById('view-grid');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
@@ -163,6 +174,7 @@
             for(let i=1; i<=36; i++) { const el = document.getElementById(`cell-${i}`); if(used[i]) el.classList.add('used'); else el.classList.remove('used'); }
         });
 
+        // MAIN GAME LOOP
         onValue(ref(db, 'gameState'), async (snap) => {
             const st = snap.val();
             if(!st) return;
@@ -170,20 +182,15 @@
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
 
-            // HIDE ALL VIEWS INITIALLY
+            // VIEW CONTROLLER
             ['view-grid', 'view-auction', 'view-coin', 'view-action'].forEach(id => document.getElementById(id).classList.add('hidden'));
             
-            // SHOW SIDEBAR? (Hidden during bidding)
+            // SIDEBAR LOGIC (Hide during Bidding)
             const sidebar = document.getElementById('info-panel');
-            if (st.phase === 'BIDDING') {
-                sidebar.style.opacity = '0';
-                setTimeout(() => sidebar.classList.add('hidden'), 500);
-            } else {
-                sidebar.classList.remove('hidden');
-                setTimeout(() => sidebar.style.opacity = '1', 10);
-            }
+            if (st.phase === 'BIDDING') sidebar.classList.add('hidden-panel');
+            else sidebar.classList.remove('hidden-panel');
 
-            // ROUTING
+            // PHASE ROUTING
             if(st.phase === 'GRID') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
@@ -192,26 +199,20 @@
             } 
             else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(st.phase)) {
                 document.getElementById('view-coin').classList.remove('hidden');
-                
-                if (st.phase === 'READY_TO_SPIN') {
-                    document.getElementById('coin-title').innerText = "PLAYER READY";
-                }
-                else if (st.phase === 'SPIN') {
+                if (st.phase === 'SPIN') {
                     document.getElementById('coin-title').innerText = "DESTINY FLIPPING...";
-                    const coin = document.getElementById('the-coin');
                     const isWin = st.spinResult === 'WIN';
                     const rot = 1800 + (isWin ? 0 : 180); 
-                    
                     if(!window.hasProcessedSpin) {
                         window.hasProcessedSpin = true;
                         document.getElementById('sfx-coin').currentTime = 0; document.getElementById('sfx-coin').play();
-                        coin.style.transform = `rotateY(${rot}deg)`;
+                        document.getElementById('the-coin').style.transform = `rotateY(${rot}deg)`;
                         setTimeout(() => {
                             const res = document.getElementById('coin-result');
                             res.innerText = isWin ? "WINNER!" : "LOSS";
                             res.style.color = isWin ? '#00ff00' : '#ff0000';
                             res.classList.remove('hidden');
-                        }, 3000);
+                        }, 4000); // 4s wait for slow spin
                     }
                 } else {
                     window.hasProcessedSpin = false;
@@ -222,12 +223,9 @@
             }
             else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
                 document.getElementById('view-auction').classList.remove('hidden');
-                
-                // Update Bid Info
-                document.getElementById('val-high-bid').innerText = (st.highestBid||0).toLocaleString();
+                document.getElementById('val-high-bid').innerText = "RM " + (st.highestBid||0).toLocaleString();
                 document.getElementById('val-leader-name').innerText = st.leaderName || '--';
 
-                // REVEAL LOGIC
                 if (st.phase === 'REVEALED' && st.cardName) {
                     document.getElementById('card-title').innerText = st.cardName;
                     document.getElementById('card-desc').innerText = st.cardDesc;
@@ -244,10 +242,8 @@
                     document.getElementById('sold-stamp').classList.add('hidden');
                     document.getElementById('unsold-stamp').classList.add('hidden');
                 }
-
             } else if (['CHALLENGE', 'TARGETING'].includes(st.phase)) {
                 document.getElementById('view-action').classList.remove('hidden');
-                
                 if(st.phase === 'CHALLENGE') {
                     document.getElementById('action-title').innerText = "CHALLENGE";
                     document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
@@ -260,15 +256,7 @@
             }
         });
 
-        // --- REVEAL SYNC ---
-        onValue(ref(db, 'revealTrigger'), (snap) => {
-            if(snap.val()) {
-                document.getElementById('main-envelope').classList.add('is-open');
-                document.getElementById('sfx-gong').play();
-            }
-        });
-
-        // --- ROSTER SYNC ---
+        // ROSTER
         onValue(ref(db, 'teams'), (snap) => {
             const list = document.getElementById('roster-grid');
             list.innerHTML = '';
@@ -283,14 +271,11 @@
             });
         });
         
-        // --- BID LOG SYNC ---
+        // LOG
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
-            // Just for visual effect in log, logic handled by admin/cloud
             const req = snapshot.val();
             if(req) {
-               // We don't animate queue here to avoid stutter, we listen to gameState changes mostly
-               // But we can add to log visual
                const teams = (await get(ref(db, `teams/${req.teamId}`))).val();
                const log = document.getElementById('bids-list');
                const div = document.createElement('div');
@@ -300,16 +285,19 @@
             }
         });
 
-        // --- TIMER FIX ---
+        // REVEAL SOUND
+        onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
+
+        // TIMER VISUAL
         setInterval(() => {
-             get(ref(db, 'gameState/bidDeadline')).then(s => {
-                 const dl = s.val();
-                 if(dl && document.getElementById('status-text').innerText === 'BIDDING') {
-                     const diff = Math.max(0, dl - Date.now());
+             get(ref(db, 'gameState')).then(s => {
+                 const st = s.val();
+                 if(st && st.bidDeadline && st.phase === 'BIDDING') {
+                     const diff = Math.max(0, st.bidDeadline - Date.now());
                      const mins = Math.floor(diff/60000);
                      const secs = Math.floor((diff%60000)/1000);
                      document.getElementById('countdown-val').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
-                 } else if (document.getElementById('status-text').innerText === 'SOLD') {
+                 } else if (st && st.phase === 'SOLD') {
                      document.getElementById('countdown-val').innerText = "0:00";
                  }
              });
