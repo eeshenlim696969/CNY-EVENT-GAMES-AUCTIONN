@@ -7,13 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Playfair Display', serif; 
-            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
-            color: #FFD700; 
-            touch-action: manipulation; 
-            overflow: hidden;
-        }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; touch-action: manipulation; overflow: hidden; }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
         .btn-gold { background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); color: #2a0000; border: 1px solid #fff; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -131,12 +125,12 @@
             35: { name: "Forbidden City", desc: "Immunity Item" }, 36: { name: "Fool's Gold", desc: "Swap with Poorest" }
         };
 
-        // MINIGAME
+        // MINIGAME LOGIC
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const btnStrike = document.getElementById('btn-strike');
-        let barPos = 0, barDir = 1, barSpeed = 6, targetZone = { x: 130, w: 40 };
+        let barPos = 0, barDir = 1, barSpeed = 5, targetZone = { x: 120, w: 60 };
 
         window.openMinigame = () => { 
             // LOCKOUT CHECK
@@ -174,7 +168,8 @@
              e.preventDefault(); if(!gameActive) return;
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
-             if(barPos >= targetZone.x && barPos <= targetZone.x + targetZone.w) {
+             // IMPROVED HITBOX
+             if(barPos + 10 >= targetZone.x && barPos <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
@@ -190,7 +185,6 @@
             else { btn.disabled = false; btn.innerText = "⚒️ MANUAL LABOR (+200)"; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }
         }
 
-        // PARTICLES
         function createParticles() {
             const container = document.getElementById('particles');
             for(let i=0; i<20; i++) {
@@ -236,7 +230,7 @@
                     currentRoundNumber = st.round;
                     const done = localStorage.getItem(`labor_done_${myId}_${currentRoundNumber}`);
                     hasWorkedThisRound = (done === 'true');
-                    hasBidThisRound = false; // Reset Bid Lock
+                    hasBidThisRound = false; 
                     updateLaborButton();
                 }
 
