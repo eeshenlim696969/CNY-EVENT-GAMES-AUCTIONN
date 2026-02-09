@@ -14,6 +14,7 @@
         .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
+        .winning-glow { box-shadow: inset 0 0 50px #FFD700; border: 3px solid #FFD700; }
     </style>
 </head>
 <body class="h-screen flex flex-col p-4">
@@ -112,15 +113,16 @@
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
+                // ROUND SYNC & RESET
                 if(st.round !== currentRound) {
                     currentRound = st.round;
-                    // RESET LOCAL STATE ON NEW ROUND
+                    // Reset LocalStorage for New Round
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
                     hasBid = false;
                 } else {
-                    // PERSIST STATE ON REFRESH
+                    // PERSIST STATE ON REFRESH (Load from current round key)
                     hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
                     hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
@@ -150,7 +152,7 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            // LOGIC: Labor locks everything. Bid only locks labor.
+            // Logic: Labor locks Bid. Bid locks Labor.
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
@@ -217,7 +219,7 @@
 
         window.submitBid = async (isAllIn) => {
             let v = 0;
-            if(isAllIn) v = balance; 
+            if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
             
             if(!v || v > balance) return alert("Insufficient Funds");
@@ -226,7 +228,6 @@
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
             updateButtons();
             
-            // SEND ALL IN FLAG
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v, isAllIn: !!isAllIn });
         }
 
