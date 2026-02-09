@@ -7,7 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; touch-action: manipulation; overflow: hidden; }
+        body { 
+            font-family: 'Playfair Display', serif; 
+            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
+            color: #FFD700; 
+            touch-action: manipulation; 
+            overflow: hidden;
+        }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
         .btn-gold { background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); color: #2a0000; border: 1px solid #fff; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -63,7 +69,6 @@
         </div>
 
         <div class="flex-1 p-5 flex flex-col justify-center w-full max-w-lg mx-auto relative">
-            
             <div id="view-bidding" class="hidden flex-col gap-4 w-full">
                 <div class="glass-panel p-6 rounded-xl text-center border-t-4 border-t-[#FFD700]">
                     <p class="text-[#C5A059] text-xs uppercase tracking-[0.2em] mb-2">Current High Bid</p>
@@ -114,14 +119,14 @@
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
         let currentRoundNumber = 0, hasWorkedThisRound = false, hasBidThisRound = false; 
 
-        // 36 Cards Data Map
+        // 36 Cards Data Map (Sync with Host)
         const cardDataMap = {
-            1: { name: "The Magic Bowl", desc: "+2,000 Points" }, 2: { name: "Market Crash", desc: "Lose 50% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" }, 4: { name: "The Duel", desc: "Steal 20% from 2nd Place" }, 5: { name: "Golden Horse", desc: "Double Score (2x)" }, 6: { name: "Bandits", desc: "Lose 10% Points" },
-            7: { name: "Imperial Grant", desc: "+3,000 Points" }, 8: { name: "Blockade", desc: "BANNED from next round" }, 9: { name: "Robin Hood", desc: "Steal 15% from Random" }, 10: { name: "Broken Vase", desc: "Lose 5% Points" }, 11: { name: "Interest Rate", desc: "Gain 25% Interest" }, 12: { name: "God of Wealth", desc: "Jackpot! +6,888" },
-            13: { name: "Bad Omen", desc: "Lose 25% Points" }, 14: { name: "Twin Carp", desc: "+2,000 You & Ally" }, 15: { name: "Nian Monster", desc: "Lose 50% Balance" }, 16: { name: "The Spy", desc: "Item: Peek Next Card" }, 17: { name: "Phoenix", desc: "Reset to 3k if <1k" }, 18: { name: "False Friend", desc: "Donate 20% to Poorest" },
-            19: { name: "Shared Bill", desc: "Everyone loses 10%" }, 20: { name: "Jade Seal", desc: "Item: Auto-Block Bad Effect" }, 21: { name: "Mystery Box", desc: "Win 200% OR Lose 50%" }, 22: { name: "Bad Luck", desc: "Lose 15% Points" }, 23: { name: "Chaos Swap", desc: "Swap with Random Player" }, 24: { name: "Lucky Song", desc: "+3,000 Points" },
-            25: { name: "High Roller", desc: "Wager: Double or Nothing" }, 26: { name: "Dragon Ascension", desc: "Double Your Wealth" }, 27: { name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)" }, 28: { name: "THE 888", desc: "TRIPLE WEALTH (x3)" },
-            29: { name: "Iron Rice Bowl", desc: "+10% Interest" }, 30: { name: "Fireworks", desc: "Everyone +1,000" }, 31: { name: "Pickpocket", desc: "Steal 500 from All" }, 32: { name: "Ancestor's Debt", desc: "Lose 30% of Wealth" }, 33: { name: "Silk Road", desc: "Trade Route (x1.5)" }, 34: { name: "Tsunami", desc: "Everyone loses 30%" },
+            1: { name: "The Magic Bowl", desc: "+1,200 Points" }, 2: { name: "Market Crash", desc: "Lose 50% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" }, 4: { name: "The Duel", desc: "Steal 20% from 2nd Place" }, 5: { name: "Golden Horse", desc: "+2,500 Points" }, 6: { name: "Bandits", desc: "Lose 10% Points" },
+            7: { name: "Imperial Grant", desc: "+3,000 Points" }, 8: { name: "Blockade", desc: "BANNED from next round" }, 9: { name: "Robin Hood", desc: "Steal 15% from Random" }, 10: { name: "Broken Vase", desc: "Lose 5% Points" }, 11: { name: "Interest Rate", desc: "+500 Points" }, 12: { name: "God of Wealth", desc: "JACKPOT! +8,888" },
+            13: { name: "Bad Omen", desc: "Lose 25% Points" }, 14: { name: "Twin Carp", desc: "+1,000 You & Ally" }, 15: { name: "Nian Monster", desc: "Lose 50% Balance" }, 16: { name: "The Spy", desc: "Item: Peek Next Card" }, 17: { name: "Phoenix", desc: "Reset to 3k if <1k" }, 18: { name: "False Friend", desc: "Donate 20% to Poorest" },
+            19: { name: "Shared Bill", desc: "Everyone loses 10%" }, 20: { name: "Jade Seal", desc: "Item: Auto-Block Bad Effect" }, 21: { name: "Mystery Box", desc: "Win 200% OR Lose 50%" }, 22: { name: "Bad Luck", desc: "Lose 15% Points" }, 23: { name: "Chaos Swap", desc: "Swap with Random Player" }, 24: { name: "Lucky Song", desc: "+1,500 Points" },
+            25: { name: "High Roller", desc: "Wager: Double or Nothing" }, 26: { name: "Dragon Ascension", desc: "+4,000 Points" }, 27: { name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)" }, 28: { name: "THE 888", desc: "+888 Points" },
+            29: { name: "Iron Rice Bowl", desc: "+800 Points" }, 30: { name: "Fireworks", desc: "Everyone +1,000" }, 31: { name: "Pickpocket", desc: "Steal 500 from All" }, 32: { name: "Ancestor's Debt", desc: "Lose 30% of Wealth" }, 33: { name: "Silk Road", desc: "+1,200 Points" }, 34: { name: "Tsunami", desc: "Everyone loses 30%" },
             35: { name: "Forbidden City", desc: "Immunity Item" }, 36: { name: "Fool's Gold", desc: "Swap with Poorest" }
         };
 
@@ -246,91 +251,4 @@
             
             onValue(ref(db, 'teams'), (snap) => {
                 const teams = snap.val(); if(!teams) return;
-                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-                const rank = sorted.indexOf(myId) + 1;
-                const rText = document.getElementById('rank-display');
-                if(rank === 1) { rText.innerText = "👑 EMPEROR"; rText.style.color = "#FFD700"; }
-                else if(rank === 2) { rText.innerText = "⚔️ WARLORD"; rText.style.color = "#C0C0C0"; }
-                else { rText.innerText = `RANK #${rank}`; rText.style.color = "#C5A059"; }
-            });
-        }
-
-        function updateView(st) {
-            if(balance <= 0 && st.phase === 'GRID') {
-                ['view-bidding', 'view-wager', 'view-idle'].forEach(i => document.getElementById(i).classList.add('hidden'));
-                document.getElementById('view-bankrupt').classList.remove('hidden'); document.getElementById('view-bankrupt').classList.add('flex'); return;
-            } else {
-                document.getElementById('view-bankrupt').classList.add('hidden');
-            }
-
-            ['view-bidding', 'view-wager', 'view-idle'].forEach(i => { const el = document.getElementById(i); el.classList.add('hidden'); el.classList.remove('flex'); });
-            document.getElementById('spy-banner').classList.add('hidden');
-
-            if (st.phase === 'BIDDING') {
-                document.getElementById('view-bidding').classList.remove('hidden'); document.getElementById('view-bidding').classList.add('flex');
-                document.getElementById('bid-val').placeholder = `Min: ${highBid+50}`;
-                if(window.hasSpy && st.currentCard && cardDataMap[st.currentCard]) {
-                    document.getElementById('spy-banner').classList.remove('hidden');
-                    document.getElementById('spy-title').innerText = cardDataMap[st.currentCard].name;
-                    document.getElementById('spy-desc').innerText = cardDataMap[st.currentCard].desc;
-                }
-            } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
-                document.getElementById('view-wager').classList.remove('hidden'); document.getElementById('view-wager').classList.add('flex');
-            } else {
-                document.getElementById('view-idle').classList.remove('hidden'); document.getElementById('view-idle').classList.add('flex');
-                if(st.phase === 'SOLD') {
-                    const winnerName = st.leaderName || "No one";
-                    const winAmount = st.highestBid || 0;
-                    if(st.leaderId === myId) {
-                        document.getElementById('idle-msg').innerText = "VICTORY!";
-                        document.getElementById('idle-sub').innerText = `You paid RM ${winAmount}`;
-                    } else {
-                        document.getElementById('idle-msg').innerText = "SOLD";
-                        document.getElementById('idle-sub').innerText = `Winner: ${winnerName} (RM ${winAmount})`;
-                    }
-                } else if (st.phase === 'REVEALED') {
-                    document.getElementById('idle-msg').innerText = "DESTINY REVEALED";
-                    document.getElementById('idle-sub').innerText = "Check the Main Screen";
-                } else if (st.phase === 'SPIN') {
-                    document.getElementById('idle-msg').innerText = "WATCH THE WHEEL";
-                    document.getElementById('idle-sub').innerText = "Fate is spinning...";
-                } else {
-                    document.getElementById('idle-msg').innerText = "AWAITING EMPEROR";
-                    document.getElementById('idle-sub').innerText = "--";
-                }
-            }
-        }
-
-        window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p) + myCurrentBid; };
-
-        window.submit = async () => {
-            if(hasWorkedThisRound) return alert("You cannot bid after working!");
-            
-            const v = parseInt(document.getElementById('bid-val').value);
-            if(isNaN(v)) return;
-            const cost = v - myCurrentBid;
-            if(cost > balance) return feedback("Insufficient Funds");
-            if(v < highBid + 50) return feedback("Bid Too Low");
-            
-            const b = document.getElementById('btn-bid');
-            b.disabled = true; b.innerText = "SENDING...";
-            
-            // LOCK LABOR
-            hasBidThisRound = true;
-            updateLaborButton();
-            
-            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
-            setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
-        };
-
-        window.submitWager = async () => {
-             const v = parseInt(document.getElementById('wager-val').value);
-             if(!v || v > balance) return alert("Invalid Wager");
-             const isWin = Math.random() > 0.5;
-             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: v });
-        };
-
-        function feedback(t) { const f = document.getElementById('feedback'); f.innerText = t; setTimeout(() => f.innerText = '', 2000); }
-    </script>
-</body>
-</html>
+                const sorted = Object.keys(teams).sort((a,b) => teams[b].
