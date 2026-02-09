@@ -14,7 +14,6 @@
         .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
-        .winning-glow { box-shadow: inset 0 0 50px #FFD700; border: 3px solid #FFD700; }
     </style>
 </head>
 <body class="h-screen flex flex-col p-4">
@@ -57,7 +56,7 @@
                 <button onclick="quick(0.1)" class="btn-quick py-4 rounded-lg text-xs">+10%</button>
                 <button onclick="quick(0.25)" class="btn-quick py-4 rounded-lg text-xs">+25%</button>
                 <button onclick="quick(0.5)" class="btn-quick py-4 rounded-lg text-xs">+50%</button>
-                <button onclick="quick(1)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL IN</button>
+                <button onclick="submitBid(true)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL IN</button>
             </div>
 
             <button id="btn-labor" onclick="openMinigame()" class="w-full py-5 bg-blue-900/40 border border-blue-400 rounded-xl text-blue-200 font-bold tracking-widest hover:bg-blue-900/60 transition shadow-lg mt-2">⚒️ MANUAL LABOR (+200)</button>
@@ -67,7 +66,7 @@
                     <span class="absolute left-8 top-1/2 -translate-y-1/2 text-[#C5A059] text-2xl font-bold">RM</span>
                     <input id="bid-val" type="number" class="w-full glass-panel p-6 pl-20 text-center text-5xl text-white rounded-2xl font-black focus:outline-none focus:border-[#FFD700]" placeholder="0">
                 </div>
-                <button onclick="submitBid()" id="btn-bid" class="btn-gold w-full py-6 text-3xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
+                <button onclick="submitBid(false)" id="btn-bid" class="btn-gold w-full py-6 text-3xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
             </div>
         </div>
 
@@ -115,13 +114,13 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
-                    // New round: clear stored state for this round
+                    // RESET LOCAL STATE ON NEW ROUND
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
                     hasBid = false;
                 } else {
-                    // Same round: restore state on reload
+                    // PERSIST STATE ON REFRESH
                     hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
                     hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
@@ -151,7 +150,7 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            // Logic: Can't labor if bid. Can't bid if labored.
+            // LOGIC: Labor locks everything. Bid only locks labor.
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
@@ -164,11 +163,10 @@
             }
         }
 
-        // --- MINIGAME (EASIER) ---
+        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        // FIXED: Speed 5 (Very Easy), Target 100 (Very Wide)
         let barPos = 0, barDir = 1, barSpeed = 5, targetZone = { x: 100, w: 100 };
 
         window.openMinigame = () => { 
@@ -217,13 +215,19 @@
              }
         }
 
-        window.submitBid = async () => {
-            const v = parseInt(document.getElementById('bid-val').value);
+        window.submitBid = async (isAllIn) => {
+            let v = 0;
+            if(isAllIn) v = balance; 
+            else v = parseInt(document.getElementById('bid-val').value);
+            
             if(!v || v > balance) return alert("Insufficient Funds");
+            
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
             updateButtons();
-            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
+            
+            // SEND ALL IN FLAG
+            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v, isAllIn: !!isAllIn });
         }
 
         window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p); }
