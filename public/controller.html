@@ -115,10 +115,17 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
+                    // New round: clear stored state for this round
+                    localStorage.removeItem(`hasLabored_${st.round}`);
+                    localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
                     hasBid = false;
-                    updateButtons();
+                } else {
+                    // Same round: restore state on reload
+                    hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
+                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
+                updateButtons();
 
                 document.getElementById('view-bid').classList.add('hidden');
                 document.getElementById('view-target').classList.add('hidden');
@@ -199,7 +206,9 @@
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 hasLabored = true; updateButtons();
+                 hasLabored = true;
+                 localStorage.setItem(`hasLabored_${currentRound}`, 'true');
+                 updateButtons();
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
@@ -211,7 +220,9 @@
         window.submitBid = async () => {
             const v = parseInt(document.getElementById('bid-val').value);
             if(!v || v > balance) return alert("Insufficient Funds");
-            hasBid = true; updateButtons();
+            hasBid = true;
+            localStorage.setItem(`hasBid_${currentRound}`, 'true');
+            updateButtons();
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
         }
 
