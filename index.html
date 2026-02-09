@@ -27,11 +27,21 @@
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
 
         .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        
+        /* --- FIXED AUCTION LOG CSS --- */
         .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
+        
+        /* Highlight Latest Bid */
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        
+        /* HIDE CROWN BY DEFAULT */
+        .log-entry .crown-icon { display: none; margin-right: 8px; filter: drop-shadow(0 0 5px gold); font-size: 1.2em; }
+        
+        /* SHOW CROWN ONLY FOR LATEST */
+        .log-entry.latest .crown-icon { display: inline-block; animation: pulseCrown 1s infinite alternate; }
+        
         .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
         
-        .crown-icon { font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); animation: pulseCrown 1s infinite alternate; }
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
 
         .roster-item { padding: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; font-size: 0.9rem; }
@@ -41,7 +51,6 @@
         .roster-item.swap-target { background: #FFD700 !important; color: black !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #FFD700; }
         .roster-item.swap-source { background: #ff0000 !important; color: white !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #ff0000; }
 
-        /* 6x6 Grid Adjustment */
         .angpao { background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); border: 1px solid #600; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; position: relative; }
         .angpao.active { background: #FFD700; box-shadow: 0 0 40px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); }
@@ -103,7 +112,7 @@
                 <button onclick="adminAction('NEXT')" class="btn-admin bg-yellow-900">Next</button>
                 <button onclick="debugMoney()" class="btn-admin bg-green-900">+5k All</button>
             </div>
-            <button onclick="document.getElementById('debug-modal').classList.add('hidden')" class="mt-4 bg-gray-700 text-white py-2 rounded">CLOSE</button>
+            <button onclick="document.getElementById('debug-modal').classList.add('hidden')" class="mt-4 bg-gray-700 text-white py-2 rounded hover:bg-gray-600">CLOSE</button>
         </div>
     </div>
 
@@ -376,6 +385,10 @@
             if (snap.val() === true) {
                 update(ref(db), { revealTrigger: null }); 
                 const card = cardsData.find(c => c.id === gameState.currentCard);
+                
+                // SAFE EXECUTION CHECK
+                if(!card) return;
+
                 if(card.type === 'GAMBLE_AUTO' && gameState.leaderId) {
                     const isWin = Math.random() > 0.5;
                     update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: "MYSTERY" });
@@ -390,7 +403,15 @@
                 document.getElementById('btn-reveal').classList.add('hidden'); 
                 document.getElementById('card-title').innerText = card.name;
                 document.getElementById('card-desc').innerText = card.desc;
-                if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') executeCardEffect(card.id, gameState.leaderId);
+                
+                if(gameState.leaderId && card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') {
+                    try {
+                        executeCardEffect(card.id, gameState.leaderId);
+                    } catch (e) {
+                        console.error("Card Execution Failed", e);
+                    }
+                }
+                
                 if(card.type !== 'GAMBLE_WAGER' && card.type !== 'GAMBLE_AUTO') setTimeout(() => { document.getElementById('btn-next').classList.remove('hidden'); }, 4000); 
             }
         });
@@ -434,7 +455,7 @@
                         <div class="font-bold text-white text-lg">${t.name} ${idx===0?'👑':''} ${t.blockedRound === (gameState.round||0) ? '⛓️' : ''}</div>
                         <div class="text-sm font-imperial ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
                     </div>
-                    <div class="text-2xl">${t.items && t.items.jade_seal ? '🛡️' : ''}</div>`;
+                    <div class="text-2xl">${t.items?.jade_seal ? '🛡️' : ''}</div>`;
                 roster.appendChild(div);
             });
         });
@@ -493,7 +514,6 @@
 
         function renderGrid() {
             const g = document.getElementById('grid-container'); g.innerHTML = '';
-            // 36 Cards
             for(let i=1; i<=36; i++) {
                 const d = document.createElement('div'); d.id = `grid-cell-${i}`; d.className = 'angpao'; d.innerText = i; g.appendChild(d);
             }
@@ -546,10 +566,19 @@
             let newTime = state.bidDeadline; if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
+            // Clean up old 'latest' manually if needed, but CSS handles visual
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
-            const logDiv = document.createElement('div'); logDiv.className = "log-entry latest";
-            logDiv.innerHTML = `<div class="flex items-center"><span class="crown-icon">👑</span><span class="text-white font-bold">${team.name}</span></div><span class="text-[#FFD700] font-mono font-bold">RM ${req.amount.toLocaleString()}</span>`;
+            
+            const logDiv = document.createElement('div'); 
+            logDiv.className = "log-entry latest";
+            logDiv.innerHTML = `
+                <div class="flex items-center">
+                    <span class="crown-icon">👑</span>
+                    <span class="text-white font-bold">${team.name}</span>
+                </div>
+                <span class="text-[#FFD700] font-mono font-bold">RM ${req.amount.toLocaleString()}</span>`;
             document.getElementById('bids-list').prepend(logDiv);
+            
             await remove(ref(db, `bidQueue/${key}`));
         });
         
@@ -594,8 +623,13 @@
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== wid);
             
+            // SAFE SHIELD CHECK
             const checkShield = (tid) => {
-                if (teams[tid].items && teams[tid].items.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; }
+                const target = teams[tid];
+                if (target?.items?.jade_seal) { 
+                    updates[`teams/${tid}/items/jade_seal`] = null; 
+                    return true; 
+                }
                 return false;
             };
 
@@ -609,7 +643,7 @@
 
             const wRef = `teams/${wid}/balance`;
             const winBid = gameState.highestBid || 0;
-            const isHighStakes = winBid >= 2000; // Threshold for All-In logic
+            const isHighStakes = winBid >= 2000; 
 
             const applyPity = (tid, bal) => {
                 if (bal < 500) { logPity(teams[tid].name); return 800; }
@@ -617,10 +651,8 @@
             };
 
             if(card.type === 'ADD') {
-                // HIGH STAKES: If you bid >2000, fixed ADD cards become Percentage Multipliers
                 let gain = card.val;
-                if(isHighStakes && card.val > 0) gain = Math.floor(winBid * (card.val / 2000)); // Approx ratio
-                
+                if(isHighStakes && card.val > 0) gain = Math.floor(winBid * (card.val / 2000)); 
                 updates[wRef] = winner.balance + gain;
             }
             else if(card.type === 'MULTIPLY') {
@@ -639,7 +671,6 @@
             else if(card.type === 'SWAP' || card.type === 'SWAP_POOR') {
                 let targetId;
                 if(card.type === 'SWAP_POOR') {
-                    // Find poorest
                     const sorted = Object.keys(teams).sort((a,b) => teams[a].balance - teams[b].balance);
                     targetId = sorted.find(id => id !== wid);
                 } else {
@@ -670,7 +701,7 @@
                     others.forEach(vid => {
                         if(!checkShield(vid)) {
                             let stolen = Math.min(teams[vid].balance, card.val);
-                            updates[`teams/${vid}/balance`] = teams[vid].balance - stolen; // No pity for small steals
+                            updates[`teams/${vid}/balance`] = teams[vid].balance - stolen; 
                             updates[wRef] = (updates[wRef] || winner.balance) + stolen;
                         }
                     });
