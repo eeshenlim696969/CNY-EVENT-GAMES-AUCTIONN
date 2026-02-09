@@ -251,4 +251,91 @@
             
             onValue(ref(db, 'teams'), (snap) => {
                 const teams = snap.val(); if(!teams) return;
-                const sorted = Object.keys(teams).sort((a,b) => teams[b].
+                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+                const rank = sorted.indexOf(myId) + 1;
+                const rText = document.getElementById('rank-display');
+                if(rank === 1) { rText.innerText = "👑 EMPEROR"; rText.style.color = "#FFD700"; }
+                else if(rank === 2) { rText.innerText = "⚔️ WARLORD"; rText.style.color = "#C0C0C0"; }
+                else { rText.innerText = `RANK #${rank}`; rText.style.color = "#C5A059"; }
+            });
+        }
+
+        function updateView(st) {
+            if(balance <= 0 && st.phase === 'GRID') {
+                ['view-bidding', 'view-wager', 'view-idle'].forEach(i => document.getElementById(i).classList.add('hidden'));
+                document.getElementById('view-bankrupt').classList.remove('hidden'); document.getElementById('view-bankrupt').classList.add('flex'); return;
+            } else {
+                document.getElementById('view-bankrupt').classList.add('hidden');
+            }
+
+            ['view-bidding', 'view-wager', 'view-idle'].forEach(i => { const el = document.getElementById(i); el.classList.add('hidden'); el.classList.remove('flex'); });
+            document.getElementById('spy-banner').classList.add('hidden');
+
+            if (st.phase === 'BIDDING') {
+                document.getElementById('view-bidding').classList.remove('hidden'); document.getElementById('view-bidding').classList.add('flex');
+                document.getElementById('bid-val').placeholder = `Min: ${highBid+50}`;
+                if(window.hasSpy && st.currentCard && cardDataMap[st.currentCard]) {
+                    document.getElementById('spy-banner').classList.remove('hidden');
+                    document.getElementById('spy-title').innerText = cardDataMap[st.currentCard].name;
+                    document.getElementById('spy-desc').innerText = cardDataMap[st.currentCard].desc;
+                }
+            } else if (st.phase === 'WAGER' && st.wagerTeam === myId) {
+                document.getElementById('view-wager').classList.remove('hidden'); document.getElementById('view-wager').classList.add('flex');
+            } else {
+                document.getElementById('view-idle').classList.remove('hidden'); document.getElementById('view-idle').classList.add('flex');
+                if(st.phase === 'SOLD') {
+                    const winnerName = st.leaderName || "No one";
+                    const winAmount = st.highestBid || 0;
+                    if(st.leaderId === myId) {
+                        document.getElementById('idle-msg').innerText = "VICTORY!";
+                        document.getElementById('idle-sub').innerText = `You paid RM ${winAmount}`;
+                    } else {
+                        document.getElementById('idle-msg').innerText = "SOLD";
+                        document.getElementById('idle-sub').innerText = `Winner: ${winnerName} (RM ${winAmount})`;
+                    }
+                } else if (st.phase === 'REVEALED') {
+                    document.getElementById('idle-msg').innerText = "DESTINY REVEALED";
+                    document.getElementById('idle-sub').innerText = "Check the Main Screen";
+                } else if (st.phase === 'SPIN') {
+                    document.getElementById('idle-msg').innerText = "WATCH THE WHEEL";
+                    document.getElementById('idle-sub').innerText = "Fate is spinning...";
+                } else {
+                    document.getElementById('idle-msg').innerText = "AWAITING EMPEROR";
+                    document.getElementById('idle-sub').innerText = "--";
+                }
+            }
+        }
+
+        window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p) + myCurrentBid; };
+
+        window.submit = async () => {
+            if(hasWorkedThisRound) return alert("You cannot bid after working!");
+            
+            const v = parseInt(document.getElementById('bid-val').value);
+            if(isNaN(v)) return;
+            const cost = v - myCurrentBid;
+            if(cost > balance) return feedback("Insufficient Funds");
+            if(v < highBid + 50) return feedback("Bid Too Low");
+            
+            const b = document.getElementById('btn-bid');
+            b.disabled = true; b.innerText = "SENDING...";
+            
+            // LOCK LABOR
+            hasBidThisRound = true;
+            updateLaborButton();
+            
+            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
+            setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
+        };
+
+        window.submitWager = async () => {
+             const v = parseInt(document.getElementById('wager-val').value);
+             if(!v || v > balance) return alert("Invalid Wager");
+             const isWin = Math.random() > 0.5;
+             await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: v });
+        };
+
+        function feedback(t) { const f = document.getElementById('feedback'); f.innerText = t; setTimeout(() => f.innerText = '', 2000); }
+    </script>
+</body>
+</html>
