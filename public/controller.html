@@ -7,13 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Playfair Display', serif; 
-            background: radial-gradient(circle at center, #2a0000 0%, #000000 100%);
-            color: #FFD700; 
-            touch-action: manipulation; 
-            overflow: hidden;
-        }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; touch-action: manipulation; overflow: hidden; }
         .font-imp { font-family: 'Cinzel', serif; }
         .glass-panel { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
         .btn-gold { background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%); color: #2a0000; border: 1px solid #fff; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
@@ -135,7 +129,7 @@
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const btnStrike = document.getElementById('btn-strike');
-        let barPos = 0, barDir = 1, barSpeed = 5, targetZone = { x: 120, w: 60 };
+        let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 120, w: 80 }; // SLOWER AND WIDER
 
         window.openMinigame = () => { 
             // LOCKOUT CHECK
@@ -161,7 +155,12 @@
             if(!gameActive) return;
             ctx.clearRect(0,0,300,50);
             ctx.fillStyle = '#00ff00'; ctx.fillRect(targetZone.x, 0, targetZone.w, 50);
-            ctx.fillStyle = '#ff0000'; ctx.fillRect(barPos, 0, 10, 50);
+            
+            // White Feedback if Inside
+            const isInside = (barPos + 10 >= targetZone.x && barPos <= targetZone.x + targetZone.w);
+            ctx.fillStyle = isInside ? '#ffffff' : '#ff0000'; 
+            
+            ctx.fillRect(barPos, 0, 10, 50);
             barPos += barSpeed * barDir; if(barPos > 290 || barPos < 0) barDir *= -1;
             gameLoopId = requestAnimationFrame(gameLoop);
         }
