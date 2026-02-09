@@ -5,21 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imperial Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #1a0505; color: white; padding: 20px; font-family: sans-serif; }</style>
+    <style>
+        body { background: #1a0505; color: white; padding: 20px; font-family: sans-serif; }
+        .btn-action { transition: all 0.2s; }
+        .btn-action:active { transform: scale(0.98); }
+    </style>
 </head>
 <body class="max-w-md mx-auto flex flex-col gap-4 pb-20">
 
-    <div class="bg-gray-900 p-4 rounded border border-gray-700 text-center">
-        <h1 class="text-xl text-yellow-500 font-bold">ADMIN PANEL</h1>
-        <div class="text-xs text-gray-400 mt-1">
-            PHASE: <span id="phase-disp" class="text-white font-mono">--</span> | 
-            CARD: <span id="card-id-disp" class="text-white font-mono">--</span>
+    <div class="bg-[#2a0000] p-4 rounded-xl border border-[#FFD700] text-center shadow-lg">
+        <h1 class="text-2xl text-[#FFD700] font-bold tracking-widest">ADMIN PANEL</h1>
+        <div class="text-xs text-[#C5A059] mt-2 font-mono">
+            PHASE: <span id="phase-disp" class="text-white font-bold">--</span> | 
+            CARD: <span id="card-id-disp" class="text-white font-bold">--</span>
         </div>
     </div>
 
-    <div class="bg-gray-800 p-4 rounded border-2 border-yellow-700 shadow-xl flex flex-col gap-3">
+    <div class="bg-gray-900 p-6 rounded-xl border-2 border-[#FFD700] shadow-2xl flex flex-col gap-4">
         
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="w-full bg-yellow-600 hover:bg-yellow-500 p-4 rounded text-black font-bold text-lg shadow-lg mb-2">
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-[#FFD700] to-[#B8860B] text-black font-black text-xl p-5 rounded-lg shadow-lg border-2 border-white mb-2">
             1. DRAW CARD
         </button>
 
@@ -30,34 +34,34 @@
             <p id="secret-type" class="text-blue-400 text-xs mt-1 font-mono">--</p>
         </div>
         
-        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-900/50 border border-red-500 text-red-200 py-2 rounded text-sm hover:bg-red-900">
-            ⚠ FORCE END TIMER
+        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-600 border-2 border-red-400 text-white font-bold py-3 rounded animate-pulse shadow-red-900 shadow-lg">
+            ⚠ FORCE END TIMER ⚠
         </button>
 
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="w-full bg-blue-700 hover:bg-blue-600 p-4 rounded text-white font-bold text-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-800 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
             2. REVEAL CARD
         </button>
 
-        <div id="challenge-controls" class="hidden p-3 bg-purple-900/80 rounded border border-purple-500">
-            <p class="text-center text-xs text-purple-200 mb-2 font-bold uppercase">👨‍⚖️ JUDGE'S DECISION</p>
-            <div class="flex gap-2">
-                <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-500 p-3 rounded text-white font-bold text-sm">✅ PASS (+Reward)</button>
-                <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-500 p-3 rounded text-white font-bold text-sm">❌ FAIL (Punish)</button>
+        <div id="challenge-controls" class="hidden p-4 bg-purple-900/90 rounded border border-purple-400 shadow-lg">
+            <p class="text-center text-xs text-purple-200 mb-3 font-bold uppercase tracking-widest">👨‍⚖️ JUDGE'S DECISION</p>
+            <div class="flex gap-3">
+                <button onclick="resolveChallenge(true)" class="btn-action flex-1 bg-green-600 border border-green-400 p-3 rounded text-white font-bold text-sm shadow-md">✅ PASS (+Reward)</button>
+                <button onclick="resolveChallenge(false)" class="btn-action flex-1 bg-red-600 border border-red-400 p-3 rounded text-white font-bold text-sm shadow-md">❌ FAIL (Punish)</button>
             </div>
         </div>
 
-        <button onclick="adminAction('NEXT')" id="btn-next" class="w-full bg-gray-600 hover:bg-gray-500 p-4 rounded text-white font-bold text-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg shadow-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
             3. NEXT ROUND ➡
         </button>
     </div>
 
-    <div class="mt-8 border-t border-gray-700 pt-8">
-        <p class="text-xs text-red-500 font-bold mb-2 uppercase text-center">⚠ DANGER ZONE ⚠</p>
+    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 hover:opacity-100 transition">
+        <p class="text-xs text-red-500 font-bold mb-3 uppercase text-center tracking-widest">⚠ DANGER ZONE ⚠</p>
         <div class="grid grid-cols-2 gap-3">
-            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 hover:bg-red-800">
+            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 font-bold hover:bg-red-800">
                 🔄 FULL RESET GAME
             </button>
-            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 hover:bg-green-800">
+            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 font-bold hover:bg-green-800">
                 💰 +5000 ALL (DEBUG)
             </button>
         </div>
@@ -71,7 +75,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- 36 CARD DECK ---
+        // --- 36 CARD DECK CONFIGURATION ---
         const deck = [
             // 1-10: GOOD (Fixed)
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 },
@@ -122,30 +126,26 @@
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            // BUTTON LOGIC
             const btnReveal = document.getElementById('btn-reveal');
             const btnNext = document.getElementById('btn-next');
             const btnSkip = document.getElementById('btn-skip');
             const secretBox = document.getElementById('secret-preview');
             const challengeBox = document.getElementById('challenge-controls');
 
-            // 1. Reveal is only active if Sold
+            // Button States
             btnReveal.disabled = (gameState.phase !== 'SOLD');
-            
-            // 2. Next is active if Revealed OR Challenge Done
-            // (If targeting, we wait. If challenge, we wait for judge.)
             btnNext.disabled = (gameState.phase === 'GRID' || gameState.phase === 'BIDDING' || gameState.phase === 'SOLD' || gameState.phase === 'CHALLENGE' || gameState.phase === 'TARGETING');
-
-            // 3. Skip Timer only visible during Bidding
+            
+            // Skip Timer Logic
             if(gameState.phase === 'BIDDING') {
                 btnSkip.classList.remove('hidden');
-                secretBox.classList.remove('hidden'); // Keep secret visible during bidding
+                secretBox.classList.remove('hidden');
             } else {
                 btnSkip.classList.add('hidden');
                 if(gameState.phase === 'GRID') secretBox.classList.add('hidden');
             }
 
-            // 4. Challenge Controls
+            // Challenge Logic
             if (gameState.phase === 'CHALLENGE') {
                 challengeBox.classList.remove('hidden');
             } else {
@@ -160,12 +160,10 @@
             }
             
             if(action === 'DRAW') {
-                // Pick random unused card
                 const usedSnap = await get(ref(db, 'envelopes'));
                 const used = usedSnap.val() || {};
                 const available = deck.filter(c => !used[c.id]);
-                
-                if(available.length === 0) return alert("Deck is empty! Game Over.");
+                if(available.length === 0) return alert("Deck Empty!");
                 
                 const card = available[Math.floor(Math.random() * available.length)];
                 
@@ -174,27 +172,27 @@
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
+                // Push to DB with 90s Timer
                 await update(ref(db, 'gameState'), { 
                     phase: 'BIDDING', 
                     currentCard: card.id, 
                     highestBid: 0, 
                     leaderId: null, leaderName: null, 
-                    bidDeadline: Date.now() + 90000 // 90s Timer
+                    bidDeadline: Date.now() + 90000 
                 });
             }
 
             if(action === 'SKIP_TIMER') {
-                // Set deadline to past -> Triggers Sold instantly
+                // Set deadline to past -> Triggers Sold on Client
                 await update(ref(db, 'gameState/bidDeadline'), Date.now() - 1000);
             }
 
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                // Send text to projector
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
                 
-                // Trigger Logic
+                // Delay effect execution
                 setTimeout(() => processCardEffect(card), 2000);
             }
 
@@ -220,10 +218,9 @@
              alert("Granted +5000 to all.");
         };
 
-        // --- LOGIC CORE ---
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
-            if(!leaderId) return; // No winner, no effect
+            if(!leaderId) return; 
 
             if(card.type === 'CHALLENGE') {
                 await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc });
@@ -235,11 +232,9 @@
                 return;
             }
 
-            // Instant Effect
             executeEffect(card, leaderId, null);
         }
 
-        // Listener for Targets
         onValue(ref(db, 'gameState/targetId'), async (snap) => {
             if(gameState.phase === 'TARGETING' && snap.val()) {
                 const card = deck.find(c => c.id === gameState.currentCard);
@@ -251,16 +246,13 @@
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
-            const teamsSnap = await get(ref(db, `teams/${leaderId}`));
-            const team = teamsSnap.val();
+            const teamsSnap = await get(ref(db, 'teams'));
+            const teams = teamsSnap.val();
+            const currentBal = teams[leaderId].balance;
             
-            if(pass) {
-                // Reward: +2000
-                await update(ref(db, `teams/${leaderId}/balance`), team.balance + 2000);
-            } else {
-                // Punishment: -500
-                await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, team.balance - 500));
-            }
+            if(pass) await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
+            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
+            
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
@@ -280,7 +272,6 @@
 
             const wRef = `teams/${winnerId}/balance`;
 
-            // CARD LOGIC
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
             
             if(card.type === 'MULTIPLY') {
