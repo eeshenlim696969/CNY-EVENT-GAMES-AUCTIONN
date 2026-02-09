@@ -7,25 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        /* BASE THEME */
-        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #3a0000 0%, #050000 100%); color: #FFD700; overflow: hidden; cursor: none; }
+        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; overflow: hidden; cursor: none; }
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* LAYERS (Fixed Z-Index) */
+        /* LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 5; pointer-events: none; } 
         .layer-ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
 
-        /* LANTERN ANIMATION */
+        /* ANIMATIONS */
         .lantern { position: absolute; width: 50px; height: 70px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.9; }
-        @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 10% { opacity: 0.9; } 90% { opacity: 0.9; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
+        @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
 
-        /* PANELS */
-        .glass-panel { background: rgba(20, 0, 0, 0.9); border: 2px solid #C5A059; box-shadow: 0 0 50px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-
-        /* ENVELOPE (Resized & Centered) */
-        .envelope-container { perspective: 1200px; width: 280px; height: 380px; position: relative; margin: 0 auto; transition: all 0.5s; }
+        /* ENVELOPE */
+        .envelope-container { perspective: 1200px; width: 300px; height: 420px; position: relative; margin: 0 auto; transition: all 0.5s; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
         .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 15px; border: 6px double #b8860b; }
@@ -33,24 +29,37 @@
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; box-shadow: 0 0 80px rgba(255, 215, 0, 0.8); }
         .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
-        
         .shaking { animation: shake 2s infinite ease-in-out; }
         @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
 
-        /* GRID ITEMS */
+        /* GRID */
         .angpao { background: linear-gradient(135deg, #700 0%, #400 100%); border: 1px solid #900; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel'; font-weight: bold; font-size: 1.5rem; color: rgba(255,215,0,0.3); transition: all 0.2s; box-shadow: inset 0 0 20px #000; }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; }
-        .angpao.highlight { background: #ffaa00; color: #fff; transform: scale(1.1); box-shadow: 0 0 30px orange; }
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000 !important; opacity: 1; }
         .angpao.used { background: #000; opacity: 0.2; border: 1px solid #333; color: transparent; }
 
-        /* UI TRANSITIONS */
-        .info-panel { transition: transform 0.5s ease-in-out, opacity 0.5s; }
-        .info-panel.hidden-panel { transform: translateX(120%); opacity: 0; pointer-events: none; }
-        
-        .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.2rem; }
+        /* COIN */
+        .coin-container { perspective: 1000px; width: 350px; height: 350px; }
+        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .coin-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px rgba(255,215,0,0.6); border: 12px solid #FFD700; background: radial-gradient(circle, #B8860B, #553300); }
+        .coin-front { transform: rotateY(0deg); }
+        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
+        .coin-text { font-size: 6rem; font-weight: 900; font-family: 'Cinzel'; }
+
+        /* IMPACT LOG */
+        .glass-panel { background: rgba(0, 0, 0, 0.6); border: 2px solid #C5A059; backdrop-filter: blur(5px); border-radius: 15px; }
+        .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.3rem; }
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
-        .log-entry { font-size: 1rem; padding: 10px; margin-bottom: 5px; background: rgba(0,0,0,0.6); border-left: 2px solid #555; }
-        .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), transparent); }
+        
+        .log-entry { font-size: 1.1rem; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border-left: 2px solid #555; transition: all 0.5s; opacity: 0.7; }
+        .log-entry.latest { 
+            border-left: 6px solid #FFD700; 
+            background: linear-gradient(90deg, rgba(255,215,0,0.6), transparent); 
+            opacity: 1; 
+            transform: scale(1.05) translateX(10px); 
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden">
@@ -61,6 +70,7 @@
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
+    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 
     <div class="layer-ui p-8">
         <header class="h-24 flex justify-between items-center px-8 border-b-2 border-[#C5A059] mb-4 bg-[#1a0505]/90 rounded-2xl shadow-2xl backdrop-blur-md z-50">
@@ -75,9 +85,21 @@
         </header>
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
+            
             <div class="flex-1 relative flex items-center justify-center">
                 
                 <div id="view-grid" class="hidden grid grid-cols-6 gap-4 w-full max-w-[80vh] aspect-square p-8 glass-panel rounded-3xl"></div>
+
+                <div id="view-coin" class="hidden flex flex-col items-center">
+                    <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em] drop-shadow-[0_0_30px_gold]" id="coin-title">DESTINY FLIPPING...</div>
+                    <div class="coin-container">
+                        <div id="the-coin" class="coin">
+                            <div class="coin-face coin-front"><div class="coin-text text-[#553300]">福</div></div>
+                            <div class="coin-face coin-back"><div class="coin-text text-red-500">☠️</div></div>
+                        </div>
+                    </div>
+                    <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden drop-shadow-[0_0_80px_gold] animate-bounce">WINNER</div>
+                </div>
 
                 <div id="view-auction" class="hidden flex flex-col items-center justify-center w-full h-full">
                     <div id="timer-box" class="mb-8 text-center">
@@ -105,21 +127,23 @@
                 </div>
             </div>
 
-            <div id="info-panel" class="info-panel w-[450px] flex flex-col gap-6">
-                <div class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden">
+            <div id="info-panel" class="w-[450px] flex flex-col gap-6">
+                <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden transition-all duration-500">
                     <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
                     <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl h-1/3 flex flex-col overflow-hidden">
-                    <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">AUCTION LOG</h3>
+                
+                <div id="panel-log" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden hidden">
+                    <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">LIVE TRIBUTE FEED</h3>
                     <div class="text-center mb-4 bg-black/50 p-3 rounded-xl border border-[#C5A059]/50">
-                        <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">Current Leader</div>
-                        <div id="val-high-bid" class="text-4xl font-imp text-white drop-shadow-md">RM 0</div>
-                        <div id="val-leader-name" class="text-green-400 font-bold mt-1 uppercase tracking-widest text-lg">--</div>
+                        <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">Current Emperor</div>
+                        <div id="val-high-bid" class="text-5xl font-imp text-white drop-shadow-md">RM 0</div>
+                        <div id="val-leader-name" class="text-green-400 font-bold mt-2 uppercase tracking-widest text-lg">--</div>
                     </div>
-                    <div id="bids-list" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
+                    <div id="bids-list" class="overflow-y-auto pr-2 flex-1 space-y-3 scrollbar-hide"></div>
                 </div>
             </div>
+
         </main>
     </div>
 
@@ -151,8 +175,6 @@
             for(let i=1; i<=36; i++) { const el = document.getElementById(`cell-${i}`); if(used[i]) el.classList.add('used'); else el.classList.remove('used'); }
         });
 
-        const sfxTick = document.getElementById('sfx-tick');
-
         // MAIN LOOP
         onValue(ref(db, 'gameState'), async (snap) => {
             const st = snap.val();
@@ -161,75 +183,80 @@
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
 
-            // ANIMATION: GRID SELECTION (Restored Old Style)
-            if (st.phase === 'DRAWING') {
+            // HIDE ALL VIEWS
+            ['view-grid', 'view-auction', 'view-coin', 'view-action'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            
+            // SIDEBAR LOGIC (Grid = Rank, Auction = Log)
+            if(st.phase === 'GRID' || st.phase === 'DRAWING') {
+                document.getElementById('panel-rankings').classList.remove('hidden');
+                document.getElementById('panel-log').classList.add('hidden');
+            } else {
+                document.getElementById('panel-rankings').classList.add('hidden');
+                document.getElementById('panel-log').classList.remove('hidden');
+            }
+
+            if(st.phase === 'GRID') {
                 document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-auction').classList.add('hidden');
-                document.getElementById('view-action').classList.add('hidden');
-                
-                // Roulette Effect
-                let spins = 0;
-                const gridItems = document.querySelectorAll('.angpao:not(.used)');
-                if(gridItems.length > 0) {
-                    const interval = setInterval(() => {
-                        gridItems.forEach(el => el.classList.remove('highlight'));
-                        const r = gridItems[Math.floor(Math.random() * gridItems.length)];
-                        r.classList.add('highlight');
-                        sfxTick.currentTime = 0; sfxTick.play();
-                        spins++;
-                        if(spins > 15) clearInterval(interval);
-                    }, 100);
+                document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
+                document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
+                document.getElementById('coin-result').classList.add('hidden');
+            } 
+            else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(st.phase)) {
+                document.getElementById('view-coin').classList.remove('hidden');
+                if (st.phase === 'SPIN') {
+                    document.getElementById('coin-title').innerText = "DESTINY FLIPPING...";
+                    const isWin = st.spinResult === 'WIN';
+                    const rot = 1800 + (isWin ? 0 : 180); 
+                    if(!window.hasProcessedSpin) {
+                        window.hasProcessedSpin = true;
+                        document.getElementById('sfx-coin').currentTime = 0; document.getElementById('sfx-coin').play();
+                        document.getElementById('the-coin').style.transform = `rotateY(${rot}deg)`;
+                        setTimeout(() => {
+                            const res = document.getElementById('coin-result');
+                            res.innerText = isWin ? "WINNER!" : "LOSS";
+                            res.style.color = isWin ? '#00ff00' : '#ff0000';
+                            res.classList.remove('hidden');
+                        }, 4000);
+                    }
+                } else {
+                    window.hasProcessedSpin = false;
+                    document.getElementById('coin-title').innerText = "AWAITING WAGER...";
+                    document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
+                    document.getElementById('coin-result').classList.add('hidden');
                 }
             }
-            // STANDARD PHASES
-            else {
-                ['view-grid', 'view-auction', 'view-action'].forEach(id => document.getElementById(id).classList.add('hidden'));
-                const sidebar = document.getElementById('info-panel');
+            else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
+                document.getElementById('view-auction').classList.remove('hidden');
+                document.getElementById('val-high-bid').innerText = "RM " + (st.highestBid||0).toLocaleString();
+                document.getElementById('val-leader-name').innerText = st.leaderName || '--';
 
-                if (st.phase === 'GRID' || st.phase === 'DRAWING') {
-                    document.getElementById('view-grid').classList.remove('hidden');
-                    sidebar.classList.remove('hidden-panel');
-                    document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
+                if (st.phase === 'REVEALED' && st.cardName) {
+                    document.getElementById('card-title').innerText = st.cardName;
+                    document.getElementById('card-desc').innerText = st.cardDesc;
+                    document.getElementById('main-envelope').classList.add('is-open');
                 }
-                else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
-                    document.getElementById('view-auction').classList.remove('hidden');
-                    
-                    // Hide Sidebar during Bidding
-                    if(st.phase === 'BIDDING') sidebar.classList.add('hidden-panel');
-                    else sidebar.classList.remove('hidden-panel');
 
-                    document.getElementById('val-high-bid').innerText = "RM " + (st.highestBid||0).toLocaleString();
-                    document.getElementById('val-leader-name').innerText = st.leaderName || '--';
-
-                    if (st.phase === 'REVEALED' && st.cardName) {
-                        document.getElementById('card-title').innerText = st.cardName;
-                        document.getElementById('card-desc').innerText = st.cardDesc;
-                        document.getElementById('main-envelope').classList.add('is-open');
-                    }
-
-                    if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
-                    else document.getElementById('main-envelope').classList.remove('shaking');
-                    
-                    if(st.phase === 'SOLD') {
-                        if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
-                        else document.getElementById('unsold-stamp').classList.remove('hidden');
-                    } else {
-                        document.getElementById('sold-stamp').classList.add('hidden');
-                        document.getElementById('unsold-stamp').classList.add('hidden');
-                    }
-                } 
-                else if (['CHALLENGE', 'TARGETING'].includes(st.phase)) {
-                    document.getElementById('view-action').classList.remove('hidden');
-                    sidebar.classList.remove('hidden-panel');
-                    if(st.phase === 'CHALLENGE') {
-                        document.getElementById('action-title').innerText = "CHALLENGE";
-                        document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
-                        document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
-                    } else {
-                        document.getElementById('action-title').innerText = "SELECTING TARGET";
-                        document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
-                        document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
-                    }
+                if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
+                else document.getElementById('main-envelope').classList.remove('shaking');
+                
+                if(st.phase === 'SOLD') {
+                    if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
+                    else document.getElementById('unsold-stamp').classList.remove('hidden');
+                } else {
+                    document.getElementById('sold-stamp').classList.add('hidden');
+                    document.getElementById('unsold-stamp').classList.add('hidden');
+                }
+            } 
+            else if (['CHALLENGE', 'TARGETING'].includes(st.phase)) {
+                document.getElementById('view-action').classList.remove('hidden');
+                if(st.phase === 'CHALLENGE') {
+                    document.getElementById('action-title').innerText = "CHALLENGE";
+                    document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
+                    document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
+                } else {
+                    document.getElementById('action-title').innerText = "SELECTING TARGET";
+                    document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
+                    document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
                 }
             }
         });
@@ -249,6 +276,29 @@
             });
         });
         
+        // LOG (The Big Impact)
+        const bidQueueRef = ref(db, 'bidQueue');
+        onChildAdded(bidQueueRef, async (snapshot) => {
+            const req = snapshot.val();
+            if(req) {
+               const teams = (await get(ref(db, `teams/${req.teamId}`))).val();
+               const log = document.getElementById('bids-list');
+               
+               // Create Impact Entry
+               const div = document.createElement('div');
+               div.className = "log-entry latest";
+               div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold tracking-wider uppercase">${teams ? teams.name : 'Unknown'}</span> 
+                        <span class="text-[#FFD700] text-2xl font-black drop-shadow-md">RM ${req.amount.toLocaleString()}</span>
+                    </div>`;
+               log.prepend(div);
+               
+               // Remove "latest" class after animation
+               setTimeout(() => div.classList.remove('latest'), 1000);
+            }
+        });
+
         // REVEAL SOUND
         onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
