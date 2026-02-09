@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperial Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background: #1a0505; color: white; padding: 20px; font-family: sans-serif; }</style>
+</head>
+<body class="max-w-2xl mx-auto flex flex-col gap-4">
+
+    <div class="bg-gray-900 p-4 rounded border border-gray-700">
+        <h1 class="text-xl text-yellow-500 font-bold mb-2">GAME CONTROL</h1>
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="adminAction('START')" class="bg-green-700 p-4 rounded text-white font-bold">START NEW GAME</button>
+            <button onclick="adminAction('RESET_ROUND')" class="bg-red-900 p-4 rounded text-white">RESET ROUND</button>
+        </div>
+    </div>
+
+    <div class="bg-gray-800 p-4 rounded border border-yellow-700">
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-400">Current Phase: <strong id="phase-disp" class="text-white">--</strong></span>
+            <span class="text-gray-400">Card ID: <strong id="card-id-disp">--</strong></span>
+        </div>
+        
+        <div id="secret-preview" class="bg-black p-4 rounded mb-4 border border-dashed border-gray-600 hidden">
+            <p class="text-xs text-gray-500 uppercase">Secret Preview (Hidden from Screen)</p>
+            <h2 id="secret-title" class="text-2xl text-yellow-400 font-bold">--</h2>
+            <p id="secret-desc" class="text-white">--</p>
+            <p id="secret-type" class="text-blue-400 text-sm mt-1">--</p>
+        </div>
+
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="w-full bg-yellow-600 p-4 rounded text-black font-bold mb-2">1. DRAW CARD</button>
+        
+        <div class="flex gap-2 mb-2">
+            <button onclick="adminAction('SKIP_TIMER')" class="flex-1 bg-red-600 p-2 rounded text-white text-sm">SKIP TIMER (FORCE END)</button>
+        </div>
+
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="w-full bg-blue-700 p-4 rounded text-white font-bold mb-2 disabled:opacity-50" disabled>2. REVEAL CARD</button>
+
+        <div id="challenge-controls" class="hidden flex gap-2 mb-2 p-2 bg-purple-900 rounded">
+            <div class="text-center w-full">
+                <p class="text-xs mb-1">JUDGE DECISION</p>
+                <div class="flex gap-2">
+                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-500 p-3 rounded text-black font-bold">✅ PASS (+2000)</button>
+                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-500 p-3 rounded text-white font-bold">❌ FAIL (-500)</button>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="adminAction('NEXT')" id="btn-next" class="w-full bg-gray-700 p-4 rounded text-white font-bold disabled:opacity-50" disabled>3. NEXT ROUND</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, update, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97", storageBucket: "auction-ebc97.firebasestorage.app", messagingSenderId: "883038465804", appId: "1:883038465804:web:df2595623ca5276561a329", measurementId: "G-69HD10GML7" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- 36 CARD DECK CONFIGURATION ---
+        const deck = [
+            // 1-10: GOOD (Fixed)
+            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 },
+            { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 },
+            { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 },
+            { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 },
+            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
+            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
+            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
+            { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 },
+            { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 },
+            { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
+
+            // 11-20: BAD (%)
+            { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 },
+            { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 },
+            { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 },
+            { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
+            { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
+            { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 },
+            { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 },
+            { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
+
+            // 21-26: ACTION (Steal/Swap/Target)
+            { id: 21, name: "Tax Collector", desc: "Steal 30% (Targeted)", type: "STEAL_TGT", val: 0.30 },
+            { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 },
+            { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 },
+            { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 },
+            { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" },
+            { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
+
+            // 27-36: CHALLENGES (Dares)
+            { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" },
+            { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" },
+            { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" },
+            { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE" },
+            { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE" },
+            { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE" },
+            { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE" },
+            { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE" },
+            { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE" },
+            { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE" }
+        ];
+
+        let gameState = {};
+
+        onValue(ref(db, 'gameState'), (snap) => {
+            gameState = snap.val() || {};
+            document.getElementById('phase-disp').innerText = gameState.phase;
+            document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
+
+            // Button States
+            document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
+            document.getElementById('btn-next').disabled = (gameState.phase === 'GRID' || gameState.phase === 'BIDDING');
+            
+            // Challenge Mode
+            if (gameState.phase === 'CHALLENGE') {
+                document.getElementById('challenge-controls').classList.remove('hidden');
+                document.getElementById('btn-next').disabled = true; // Must judge first
+            } else {
+                document.getElementById('challenge-controls').classList.add('hidden');
+            }
+        });
+
+        // --- ACTIONS ---
+        window.adminAction = async (action) => {
+            if(action === 'START') {
+                await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+            }
+            
+            if(action === 'DRAW') {
+                // Find unused card
+                const usedSnap = await get(ref(db, 'envelopes'));
+                const used = usedSnap.val() || {};
+                const available = deck.filter(c => !used[c.id]);
+                if(available.length === 0) return alert("Deck Empty!");
+                
+                const card = available[Math.floor(Math.random() * available.length)];
+                
+                // Show Secret Preview on Admin Screen
+                document.getElementById('secret-preview').classList.remove('hidden');
+                document.getElementById('secret-title').innerText = card.name;
+                document.getElementById('secret-desc').innerText = card.desc;
+                document.getElementById('secret-type').innerText = card.type;
+
+                // Push to DB (but don't reveal details to projector yet)
+                // 90 Seconds Timer
+                await update(ref(db, 'gameState'), { 
+                    phase: 'BIDDING', 
+                    currentCard: card.id, 
+                    highestBid: 0, 
+                    leaderId: null, leaderName: null, 
+                    bidDeadline: Date.now() + 90000 
+                });
+            }
+
+            if(action === 'SKIP_TIMER') {
+                await update(ref(db, 'gameState/bidDeadline'), Date.now() - 1000);
+            }
+
+            if(action === 'REVEAL') {
+                // Send Card Details to DB so Projector can see them now
+                const card = deck.find(c => c.id === gameState.currentCard);
+                await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
+                await update(ref(db), { revealTrigger: true });
+                
+                // AUTO LOGIC TRIGGER
+                setTimeout(() => processCardEffect(card), 2000);
+            }
+
+            if(action === 'NEXT') {
+                document.getElementById('secret-preview').classList.add('hidden');
+                const updates = {};
+                if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
+                updates['gameState/phase'] = 'GRID'; 
+                updates['gameState/round'] = (gameState.round||1)+1;
+                updates['gameState/currentCard'] = null;
+                updates['gameState/highestBid'] = 0;
+                updates['gameState/leaderId'] = null;
+                await update(ref(db), updates);
+            }
+        };
+
+        // --- CARD LOGIC ENGINE ---
+        async function processCardEffect(card) {
+            const leaderId = gameState.leaderId;
+            if(!leaderId) return; // Unsold
+
+            // If Challenge -> Switch Phase -> Wait for Admin
+            if(card.type === 'CHALLENGE') {
+                await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc });
+                return;
+            }
+
+            // If Targeted -> Switch Phase -> Wait for Player Input
+            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') {
+                await update(ref(db, 'gameState'), { phase: 'TARGETING' });
+                // We wait for controller to update 'gameState/targetId'
+                // Listener below handles execution once target is picked
+                return;
+            }
+
+            // Immediate Effects
+            executeEffect(card, leaderId, null);
+        }
+
+        // Listener for Targeted Selection
+        onValue(ref(db, 'gameState/targetId'), async (snap) => {
+            if(gameState.phase === 'TARGETING' && snap.val()) {
+                const card = deck.find(c => c.id === gameState.currentCard);
+                await executeEffect(card, gameState.leaderId, snap.val());
+                // Reset target for next time
+                await update(ref(db, 'gameState/targetId'), null);
+                await update(ref(db, 'gameState'), { phase: 'REVEALED' }); // Go back to reveal state so Next button works
+            }
+        });
+
+        // Resolve Challenge
+        window.resolveChallenge = async (pass) => {
+            const leaderId = gameState.leaderId;
+            const teamsSnap = await get(ref(db, 'teams'));
+            const teams = teamsSnap.val();
+            const currentBal = teams[leaderId].balance;
+            
+            if(pass) {
+                // +2000 Reward
+                await update(ref(db, `teams/${leaderId}/balance`), currentBal + 2000);
+            } else {
+                // -500 Penalty
+                await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, currentBal - 500));
+            }
+            
+            // Allow Next Round
+            await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
+        };
+
+        async function executeEffect(card, winnerId, targetId) {
+            const teamsSnap = await get(ref(db, 'teams'));
+            const teams = teamsSnap.val();
+            const winner = teams[winnerId];
+            const updates = {};
+            const others = Object.keys(teams).filter(id => id !== winnerId);
+
+            // Safety Shield
+            const checkShield = (tid) => {
+                if(teams[tid]?.items?.jade_seal) {
+                    updates[`teams/${tid}/items/jade_seal`] = null; return true;
+                }
+                return false;
+            };
+
+            const wRef = `teams/${winnerId}/balance`;
+
+            if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
+            if(card.type === 'MULTIPLY') {
+                let val = Math.floor(winner.balance * card.val);
+                if(card.val < 1 && checkShield(winnerId)) {} 
+                else updates[wRef] = val;
+            }
+            
+            if(card.type === 'STEAL_RND') {
+                const victim = others[Math.floor(Math.random()*others.length)];
+                if(victim && !checkShield(victim)) {
+                    const amt = Math.floor(teams[victim].balance * card.val);
+                    updates[wRef] = winner.balance + amt;
+                    updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
+                }
+            }
+
+            if(card.type === 'STEAL_TGT' && targetId) {
+                if(!checkShield(targetId)) {
+                    const amt = Math.floor(teams[targetId].balance * card.val);
+                    updates[wRef] = winner.balance + amt;
+                    updates[`teams/${targetId}/balance`] = teams[targetId].balance - amt;
+                }
+            }
+
+            if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
+                let tid = targetId || others[Math.floor(Math.random()*others.length)];
+                if(tid && !checkShield(tid)) {
+                    updates[wRef] = teams[tid].balance;
+                    updates[`teams/${tid}/balance`] = winner.balance;
+                }
+            }
+
+            if(card.type === 'ITEM') {
+                updates[`teams/${winnerId}/items/${card.item}`] = true;
+            }
+
+            // Imperial Pity Check (Applied after calculations)
+            // Note: This simple version applies updates directly. Pity logic is best done by checking final values.
+            // For now, raw math is applied.
+            
+            await update(ref(db), updates);
+        }
+    </script>
+</body>
+</html>
