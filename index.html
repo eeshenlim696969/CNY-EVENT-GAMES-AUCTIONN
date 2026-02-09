@@ -19,7 +19,7 @@
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
         
-        /* LOG & CROWN */
+        /* AUCTION LOG */
         .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .log-entry .crown-icon { display: none; margin-right: 8px; filter: drop-shadow(0 0 5px gold); font-size: 1.2em; }
@@ -27,7 +27,6 @@
         .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
 
-        /* ROSTER */
         .roster-item { padding: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; font-size: 0.9rem; }
         .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5)); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
         .roster-item.richest { border: 1px solid #00ff00; background: linear-gradient(90deg, rgba(0,255,0,0.15), rgba(0,0,0,0.5)); box-shadow: 0 0 10px rgba(0,255,0,0.2); }
@@ -35,7 +34,6 @@
         .roster-item.swap-target { background: #FFD700 !important; color: black !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #FFD700; }
         .roster-item.swap-source { background: #ff0000 !important; color: white !important; transform: scale(1.05); z-index: 50; box-shadow: 0 0 30px #ff0000; }
 
-        /* CARDS */
         .angpao { background: linear-gradient(135deg, #8a0000 0%, #4a0000 100%); border: 1px solid #600; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); font-family: 'Cinzel', serif; font-weight: 900; color: rgba(255,215,0,0.3); font-size: 1.5rem; display: flex; align-items: center; justify-content: center; position: relative; }
         .angpao.active { background: #FFD700; box-shadow: 0 0 40px #FFD700; transform: scale(1.2); z-index: 50; border-color: #fff; color: #000; opacity: 1; }
         .angpao.used { background: #0a0000; border-color: #333; opacity: 0.3; filter: grayscale(1); }
@@ -44,6 +42,7 @@
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(to bottom, #900, #600); border: 2px solid #FFD700; border-radius: 6px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 1s; }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, #700, #500); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s; border-top: 2px solid #FFD700; }
         .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 24px; border: 8px solid transparent; border-image: linear-gradient(to bottom right, #b8860b, #ffeebb, #b8860b) 1; }
+        
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-45%) scale(1.1); z-index: 100 !important; box-shadow: 0 30px 80px rgba(0,0,0,0.8); }
         .is-open .envelope-body { transform: translateY(50%); opacity: 0; }
@@ -112,6 +111,7 @@
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_white] z-20"></div>
             </div>
             <div class="absolute top-[calc(50%-220px)] left-[50%] -translate-x-1/2 w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[50px] border-t-white z-[220] drop-shadow-lg"></div>
+            
             <div id="wheel-result" class="mt-8 text-8xl font-black font-imperial text-white hidden drop-shadow-[0_0_40px_gold] z-[250]">RESULT</div>
             <div class="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-[300]">
                 <button onclick="adminAction('SPIN')" id="btn-spin-trigger" class="hidden btn-admin text-3xl bg-red-800 border-red-500 shadow-[0_0_30px_red]">SPIN</button>
@@ -186,7 +186,7 @@
 
         window.toggleAudio = () => { if(bgm.paused) { bgm.play(); document.getElementById('btn-audio').innerText = '🔊'; } else { bgm.pause(); document.getElementById('btn-audio').innerText = '🔈'; } };
 
-        // CARD DATA
+        // --- 36 CARD DATA (Balanced: Fixed Add, % Minus) ---
         const cardsData = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Points", type: "ADD", val: 1200 },
             { id: 2, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
@@ -555,7 +555,7 @@
             let newTime = state.bidDeadline; if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // FIXED: REMOVE OLD CROWN ELEMENTS MANUALLY
+            // FIXED: REMOVE OLD CROWN ELEMENTS FROM PREVIOUS LOGS MANUALLY
             document.querySelectorAll('.log-entry .crown-icon').forEach(el => el.remove());
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             
