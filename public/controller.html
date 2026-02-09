@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Controller</title>
+    <title>Imperial Controller</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -48,8 +48,6 @@
                 <button onclick="quick(1)" class="bg-red-900/50 border border-red-800 py-3 rounded text-xs text-red-200">ALL</button>
             </div>
 
-            <button id="btn-labor" onclick="doLabor()" class="w-full py-4 bg-blue-900/30 border border-blue-500 rounded text-blue-200">⚒️ MANUAL LABOR (+200)</button>
-
             <div class="relative">
                 <input id="bid-val" type="number" class="w-full p-4 text-center text-3xl text-black rounded font-bold" placeholder="0">
             </div>
@@ -70,7 +68,7 @@
         const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app" });
         const db = getDatabase(app);
         
-        let myId, myName, balance, currentRound = 0, hasWorked = false;
+        let myId, myName, balance, currentRound = 0;
 
         window.login = async () => {
             const n = document.getElementById('inp-name').value;
@@ -100,14 +98,6 @@
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
-                // ROUND RESET
-                if(st.round !== currentRound) {
-                    currentRound = st.round;
-                    // ANTI-CHEESE: Check disk for labor receipt
-                    hasWorked = (localStorage.getItem(`labor_${myId}_${st.round}`) === 'true');
-                    updateLaborBtn();
-                }
-
                 // VIEW ROUTING
                 document.getElementById('view-bid').classList.add('hidden');
                 document.getElementById('view-target').classList.add('hidden');
@@ -123,24 +113,6 @@
                     document.getElementById('status-banner').innerText = "Leader is choosing a target...";
                 }
             });
-        }
-
-        function updateLaborBtn() {
-            const btn = document.getElementById('btn-labor');
-            if(hasWorked) { btn.disabled = true; btn.innerText = "✅ EXHAUSTED"; btn.classList.add('opacity-50'); }
-            else { btn.disabled = false; btn.innerText = "⚒️ MANUAL LABOR (+200)"; btn.classList.remove('opacity-50'); }
-        }
-
-        window.doLabor = async () => {
-            if(hasWorked) return;
-            // INSTANTLY SAVE TO DISK TO PREVENT REFRESH ABUSE
-            hasWorked = true;
-            localStorage.setItem(`labor_${myId}_${currentRound}`, 'true');
-            updateLaborBtn();
-            
-            // Simple logic: Free money, 1x per round
-            await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
-            alert("Hard work pays off! +200 Gold");
         }
 
         window.submitBid = async () => {
