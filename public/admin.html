@@ -66,7 +66,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, update, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getDatabase, ref, update, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
         const app = initializeApp(firebaseConfig);
@@ -113,7 +113,9 @@
 
         window.adminAction = async (action) => {
             if(action === 'START') {
-                if(confirm("⚠ RESET GAME?")) await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {} });
+                if(confirm("⚠ RESET GAME?")) {
+                    await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
+                }
             }
             if(action === 'DRAW') {
                 const used = (await get(ref(db, 'envelopes'))).val() || {};
@@ -125,19 +127,24 @@
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // Animation Phase
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
-                
                 setTimeout(async () => {
-                    await update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: card.id, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 90000 });
+                    // RESET BID QUEUE FOR NEW ROUND
+                    await remove(ref(db, 'bidQueue'));
+                    
+                    await update(ref(db, 'gameState'), { 
+                        phase: 'BIDDING', 
+                        currentCard: card.id, 
+                        highestBid: 0, 
+                        leaderId: null, leaderName: null, 
+                        bidDeadline: Date.now() + 90000 
+                    });
                 }, 2000);
             }
-            
             if(action === 'SKIP_TIMER') {
-                // FORCE END IMMEDIATELY
+                // Force Phase Change
                 await update(ref(db, 'gameState'), { phase: 'SOLD' });
             }
-            
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
