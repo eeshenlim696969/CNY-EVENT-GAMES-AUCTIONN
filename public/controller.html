@@ -14,6 +14,7 @@
         .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
+        .winning-glow { box-shadow: inset 0 0 50px #FFD700; border: 3px solid #FFD700; }
     </style>
 </head>
 <body class="h-screen flex flex-col p-4">
@@ -155,7 +156,8 @@
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        let barPos = 0, barDir = 1, barSpeed = 10, targetZone = { x: 125, w: 50 };
+        // FIXED: Speed 6 (Easy), Target 80 (Wide)
+        let barPos = 0, barDir = 1, barSpeed = 6, targetZone = { x: 110, w: 80 };
 
         window.openMinigame = () => { 
             if(hasActed) return;
