@@ -11,31 +11,19 @@
         body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #400000 0%, #000000 100%); color: var(--gold); overflow: hidden; }
         .font-imperial { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
-        
         .bg-pattern { position: absolute; inset: 0; opacity: 0.15; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); z-index: 0; pointer-events: none; }
-        
-        /* God Rays */
-        .god-rays {
-            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255, 215, 0, 0.05) 20deg, transparent 40deg, rgba(255, 215, 0, 0.05) 60deg, transparent 80deg);
-            animation: rotateRays 60s linear infinite; pointer-events: none; z-index: 0;
-        }
+        .god-rays { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255, 215, 0, 0.05) 20deg, transparent 40deg, rgba(255, 215, 0, 0.05) 60deg, transparent 80deg); animation: rotateRays 60s linear infinite; pointer-events: none; z-index: 0; }
         @keyframes rotateRays { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Lanterns */
         .lantern { position: absolute; width: 40px; height: 50px; background: radial-gradient(circle, #ff0000 0%, #500000 100%); border-radius: 10px; border-top: 2px solid #333; border-bottom: 2px solid gold; box-shadow: 0 0 20px rgba(255, 100, 0, 0.5); animation: rise 20s linear infinite; z-index: 1; opacity: 0.6; }
         @keyframes rise { 0% { transform: translateY(110vh) scale(0.8); opacity: 0; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
-
         .glass-panel { background: rgba(10, 0, 0, 0.9); border: 1px solid var(--gold-dim); box-shadow: 0 0 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
         
-        /* --- FIXED AUCTION LOG CSS --- */
+        /* AUCTION LOG */
         .log-entry { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); padding: 8px 12px; margin-bottom: 6px; border-left: 3px solid #555; transition: all 0.3s; font-size: 0.9rem; }
         .log-entry.latest { border-left: 4px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(0,0,0,0.4)); transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .log-entry .crown-icon { display: none; margin-right: 8px; filter: drop-shadow(0 0 5px gold); font-size: 1.2em; }
-        .log-entry.latest .crown-icon { display: inline-block; animation: pulseCrown 1s infinite alternate; }
-        .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
-        
+        .crown-icon { font-size: 1.2em; margin-right: 8px; filter: drop-shadow(0 0 5px gold); animation: pulseCrown 1s infinite alternate; }
         @keyframes pulseCrown { from { transform: scale(1); } to { transform: scale(1.2); } }
+        .log-entry.pity-log { border-left: 4px solid #10b981; background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(0,0,0,0.4)); }
 
         .roster-item { padding: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; font-size: 0.9rem; }
         .roster-item.leader { border: 2px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5)); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
@@ -196,48 +184,43 @@
 
         window.toggleAudio = () => { if(bgm.paused) { bgm.play(); document.getElementById('btn-audio').innerText = '🔊'; } else { bgm.pause(); document.getElementById('btn-audio').innerText = '🔈'; } };
 
-        // --- BALANCED FIXED AMOUNT CARD DATA (6x6) ---
+        // CARD DATA (36 Cards)
         const cardsData = [
-            // WINNERS (FIXED AMOUNTS)
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Points", type: "ADD", val: 1200 },
-            { id: 2, name: "Golden Horse", desc: "+2,500 Points", type: "ADD", val: 2500 },
-            { id: 3, name: "Imperial Grant", desc: "+3,000 Points", type: "ADD", val: 3000 },
-            { id: 4, name: "Interest Rate", desc: "+500 Points", type: "ADD", val: 500 },
-            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
-            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
-            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
-            { id: 8, name: "Lucky Song", desc: "+1,500 Points", type: "ADD", val: 1500 },
-            { id: 9, name: "Dragon Ascension", desc: "+4,000 Points", type: "ADD", val: 4000 },
-            { id: 10, name: "THE 888", desc: "+888 Points", type: "ADD", val: 888 },
-            { id: 11, name: "Iron Rice Bowl", desc: "+800 Points", type: "ADD", val: 800 },
-            { id: 12, name: "Fireworks", desc: "Everyone +1,000", type: "GLOBAL_ADD", val: 1000 },
-            { id: 13, name: "Silk Road", desc: "+1,200 Points", type: "ADD", val: 1200 },
-            { id: 14, name: "Jade Garden", desc: "+600 Points", type: "ADD", val: 600 },
-            { id: 15, name: "Lion Dance", desc: "+2,000 Points", type: "ADD", val: 2000 },
-            { id: 16, name: "Red Packet", desc: "+500 Points", type: "ADD", val: 500 },
-            
-            // LOSERS (PERCENTAGE) - ONLY 8 BAD CARDS
-            { id: 17, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
-            { id: 18, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
-            { id: 19, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
-            { id: 20, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
-            { id: 21, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
-            { id: 22, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
-            { id: 23, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
-            { id: 24, name: "Ancestor's Debt", desc: "Lose 30% of Wealth", type: "MULTIPLY", val: 0.70 },
-
-            // CHAOS & ITEMS (12 CARDS)
-            { id: 25, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
-            { id: 26, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
-            { id: 27, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
-            { id: 28, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
-            { id: 29, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
-            { id: 30, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
-            { id: 31, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
-            { id: 32, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
-            { id: 33, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
-            { id: 34, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
-            { id: 35, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 },
+            { id: 2, name: "Market Crash", desc: "Lose 50% of Wealth", type: "MULTIPLY", val: 0.5 },
+            { id: 3, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 },
+            { id: 4, name: "The Duel", desc: "Steal 20% from 2nd Place", type: "STEAL_RIVAL", val: 0.20 },
+            { id: 5, name: "Golden Horse", desc: "+2,500 Points", type: "ADD", val: 2500 },
+            { id: 6, name: "Bandits", desc: "Lose 10% Points", type: "MULTIPLY", val: 0.90 },
+            { id: 7, name: "Imperial Grant", desc: "+3,000 Points", type: "ADD", val: 3000 },
+            { id: 8, name: "Blockade", desc: "BANNED from next round", type: "BLOCK", val: 0 },
+            { id: 9, name: "Robin Hood", desc: "Steal 15% from Random", type: "STEAL_CHOICE", val: 0.15 },
+            { id: 10, name: "Broken Vase", desc: "Lose 5% Points", type: "MULTIPLY", val: 0.95 },
+            { id: 11, name: "Interest Rate", desc: "+500 Points", type: "ADD", val: 500 },
+            { id: 12, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 },
+            { id: 13, name: "Bad Omen", desc: "Lose 25% Points", type: "MULTIPLY", val: 0.75 },
+            { id: 14, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 },
+            { id: 15, name: "Nian Monster", desc: "Lose 50% Balance", type: "MULTIPLY", val: 0.5 },
+            { id: 16, name: "The Spy", desc: "Item: Peek Next Card", type: "ITEM", item: "spy_active" },
+            { id: 17, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 },
+            { id: 18, name: "False Friend", desc: "Donate 20% to Poorest", type: "GIVE_LOW", val: 0.2 },
+            { id: 19, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 },
+            { id: 20, name: "Jade Seal", desc: "Item: Auto-Block Bad Effect", type: "ITEM", item: "jade_seal" },
+            { id: 21, name: "Mystery Box", desc: "Win 200% OR Lose 50%", type: "GAMBLE_AUTO", val: 0 }, 
+            { id: 22, name: "Bad Luck", desc: "Lose 15% Points", type: "MULTIPLY", val: 0.85 },
+            { id: 23, name: "Chaos Swap", desc: "Swap with Random Player", type: "SWAP", val: 0 }, 
+            { id: 24, name: "Lucky Song", desc: "+1,500 Points", type: "ADD", val: 1500 },
+            { id: 25, name: "High Roller", desc: "Wager: Double or Nothing", type: "GAMBLE_WAGER", val: 0 },
+            { id: 26, name: "Dragon Ascension", desc: "+4,000 Points", type: "ADD", val: 4000 },
+            { id: 27, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 },
+            { id: 28, name: "THE 888", desc: "+888 Points", type: "ADD", val: 888 },
+            { id: 29, name: "Iron Rice Bowl", desc: "+800 Points", type: "ADD", val: 800 },
+            { id: 30, name: "Fireworks", desc: "Everyone gets +1,000", type: "GLOBAL_ADD", val: 1000 },
+            { id: 31, name: "Pickpocket", desc: "Steal 500 from Everyone", type: "STEAL_ALL_FLAT", val: 500 },
+            { id: 32, name: "Ancestor's Debt", desc: "Lose 30% of Wealth", type: "MULTIPLY", val: 0.70 },
+            { id: 33, name: "Silk Road", desc: "+1,200 Points", type: "ADD", val: 1200 },
+            { id: 34, name: "Tsunami", desc: "Everyone loses 30%", type: "GLOBAL_HIT", val: 0.70 },
+            { id: 35, name: "Forbidden City", desc: "Immunity (Auto-Block)", type: "ITEM", item: "jade_seal" },
             { id: 36, name: "Fool's Gold", desc: "Swap with Poorest Player", type: "SWAP_POOR", val: 0 }
         ];
 
@@ -422,9 +405,10 @@
                 const team = s.val();
                 await update(tRef, { balance: team.balance + data.amount });
                 
-                // FIXED: Clear all 'latest' then add new one
-                document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
-                const logDiv = document.createElement('div'); logDiv.className = "log-entry latest";
+                // FIXED: REMOVE OLD CROWN ELEMENTS FROM PREVIOUS LOGS MANUALLY
+                document.querySelectorAll('.log-entry .crown-icon').forEach(el => el.remove());
+                
+                const logDiv = document.createElement('div'); logDiv.className = "log-entry";
                 logDiv.innerHTML = `<span class="text-xs text-gray-400">Labor</span> <span class="text-white">${team.name} +${data.amount}</span>`;
                 document.getElementById('bids-list').prepend(logDiv);
             }
@@ -456,7 +440,7 @@
                         <div class="font-bold text-white text-lg">${t.name} ${idx===0?'👑':''} ${t.blockedRound === (gameState.round||0) ? '⛓️' : ''}</div>
                         <div class="text-sm font-imperial ${isDead ? 'text-red-600' : 'text-[#C5A059]'}">${isDead ? 'ELIMINATED' : 'RM ' + t.balance.toLocaleString()}</div>
                     </div>
-                    <div class="text-2xl">${t.items?.jade_seal ? '🛡️' : ''}</div>`;
+                    <div class="text-2xl">${(t.items && t.items.jade_seal) ? '🛡️' : ''}</div>`;
                 roster.appendChild(div);
             });
         });
@@ -567,7 +551,8 @@
             let newTime = state.bidDeadline; if (newTime - Date.now() < 8000) newTime = Date.now() + 8000;
             await update(ref(db, 'gameState'), { highestBid: req.amount, leaderId: req.teamId, leaderName: team.name, bidDeadline: newTime });
             
-            // FIXED: Remove all 'latest' markers before adding new one
+            // FIXED CROWN LOGIC: REMOVE CROWN HTML FROM ALL ENTRIES
+            document.querySelectorAll('.log-entry .crown-icon').forEach(el => el.remove());
             document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('latest'));
             
             const logDiv = document.createElement('div'); 
@@ -620,13 +605,18 @@
             const card = cardsData.find(c => c.id === cid);
             const tSnap = await get(ref(db, 'teams'));
             const teams = tSnap.val();
+            
+            // Safety Check
+            if(!teams || !teams[wid]) return;
+            
             const winner = teams[wid];
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== wid);
             
+            // SAFE SHIELD CHECK
             const checkShield = (tid) => {
                 const target = teams[tid];
-                if (target?.items?.jade_seal) { 
+                if (target && target.items && target.items.jade_seal) { 
                     updates[`teams/${tid}/items/jade_seal`] = null; 
                     return true; 
                 }
@@ -657,19 +647,21 @@
             }
             else if(card.type === 'STEAL_PCT') {
                 let richestId = others[0];
-                others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
-                if(richestId && !checkShield(richestId)) {
-                    const stolen = Math.floor(teams[richestId].balance * card.val);
-                    updates[wRef] = winner.balance + stolen;
-                    updates[`teams/${richestId}/balance`] = applyPity(richestId, Math.max(0, teams[richestId].balance - stolen));
+                if(others.length > 0) {
+                    others.forEach(id => { if(teams[id].balance > teams[richestId].balance) richestId = id; });
+                    if(richestId && !checkShield(richestId)) {
+                        const stolen = Math.floor(teams[richestId].balance * card.val);
+                        updates[wRef] = winner.balance + stolen;
+                        updates[`teams/${richestId}/balance`] = applyPity(richestId, Math.max(0, teams[richestId].balance - stolen));
+                    }
                 }
             }
             else if(card.type === 'SWAP' || card.type === 'SWAP_POOR') {
                 let targetId;
-                if(card.type === 'SWAP_POOR') {
+                if(card.type === 'SWAP_POOR' && others.length > 0) {
                     const sorted = Object.keys(teams).sort((a,b) => teams[a].balance - teams[b].balance);
                     targetId = sorted.find(id => id !== wid);
-                } else {
+                } else if(others.length > 0) {
                     targetId = others[Math.floor(Math.random() * others.length)];
                 }
 
@@ -701,7 +693,7 @@
                             updates[wRef] = (updates[wRef] || winner.balance) + stolen;
                         }
                     });
-                } else {
+                } else if(others.length > 0) {
                     const victimId = others[Math.floor(Math.random() * others.length)];
                     if(victimId && !checkShield(victimId)) {
                         const amt = Math.floor(teams[victimId].balance * card.val);
@@ -734,8 +726,10 @@
             }
             else if(card.type === 'GIVE_CHOICE') {
                 updates[wRef] = winner.balance + card.val;
-                const allyId = others[Math.floor(Math.random() * others.length)];
-                if(allyId) updates[`teams/${allyId}/balance`] = teams[allyId].balance + card.val;
+                if(others.length > 0) {
+                    const allyId = others[Math.floor(Math.random() * others.length)];
+                    if(allyId) updates[`teams/${allyId}/balance`] = teams[allyId].balance + card.val;
+                }
             }
             
             if(Object.keys(updates).length) await update(ref(db), updates);
