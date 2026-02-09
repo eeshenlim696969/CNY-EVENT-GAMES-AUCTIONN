@@ -57,7 +57,7 @@
                 <button onclick="quick(0.1)" class="btn-quick py-4 rounded-lg text-xs">+10%</button>
                 <button onclick="quick(0.25)" class="btn-quick py-4 rounded-lg text-xs">+25%</button>
                 <button onclick="quick(0.5)" class="btn-quick py-4 rounded-lg text-xs">+50%</button>
-                <button onclick="quick(1)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL</button>
+                <button onclick="quick(1)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL IN</button>
             </div>
 
             <button id="btn-labor" onclick="openMinigame()" class="w-full py-5 bg-blue-900/40 border border-blue-400 rounded-xl text-blue-200 font-bold tracking-widest hover:bg-blue-900/60 transition shadow-lg mt-2">⚒️ MANUAL LABOR (+200)</button>
@@ -84,7 +84,7 @@
         const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app" });
         const db = getDatabase(app);
         
-        let myId, myName, balance, currentRound = 0, hasActed = false;
+        let myId, myName, balance, currentRound = 0, hasLabored = false, hasBid = false;
 
         window.login = async () => {
             const n = document.getElementById('inp-name').value;
@@ -115,7 +115,8 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
-                    hasActed = false; // Reset on new round
+                    hasLabored = false; 
+                    hasBid = false;
                     updateButtons();
                 }
 
@@ -143,24 +144,28 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            if(hasActed) {
+            // Logic: Can't labor if bid. Can't bid if labored.
+            if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
-                btnBid.disabled = true; btnBid.innerText = "WAITING..."; btnBid.classList.add('opacity-50');
+                btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
+            } else if (hasBid) {
+                btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
+                btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
             } else {
                 btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
             }
         }
 
-        // --- MINIGAME ---
+        // --- MINIGAME (EASIER) ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        // FIXED: Speed 6 (Easy), Target 80 (Wide)
-        let barPos = 0, barDir = 1, barSpeed = 5, targetZone = { x: 110, w: 80 };
+        // FIXED: Speed 5 (Very Easy), Target 100 (Very Wide)
+        let barPos = 0, barDir = 1, barSpeed = 5, targetZone = { x: 100, w: 100 };
 
         window.openMinigame = () => { 
-            if(hasActed) return;
+            if(hasLabored || hasBid) return;
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
             gameActive = true; barPos = 0; gameLoop(); 
@@ -194,7 +199,7 @@
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 hasActed = true; updateButtons();
+                 hasLabored = true; updateButtons();
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
@@ -204,10 +209,9 @@
         }
 
         window.submitBid = async () => {
-            if(hasActed) return;
             const v = parseInt(document.getElementById('bid-val').value);
             if(!v || v > balance) return alert("Insufficient Funds");
-            hasActed = true; updateButtons();
+            hasBid = true; updateButtons();
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
         }
 
