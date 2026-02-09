@@ -112,8 +112,9 @@
         const db = getDatabase(app);
         let myId = localStorage.getItem('id'), myName = localStorage.getItem('name'), balance = 1000, highBid = 0, myCurrentBid = 0;
         let currentRoundNumber = 0, hasWorkedThisRound = false, hasBidThisRound = false; 
+        
+        let lossStreak = 0;
 
-        // 36 CARD DATA
         const cardDataMap = {
             1: { name: "The Magic Bowl", desc: "+1,200 Points" }, 2: { name: "Market Crash", desc: "Lose 50% of Wealth" }, 3: { name: "Tax Collector", desc: "Steal 30% from Richest" }, 4: { name: "The Duel", desc: "Steal 20% from 2nd Place" }, 5: { name: "Golden Horse", desc: "+2,500 Points" }, 6: { name: "Bandits", desc: "Lose 10% Points" },
             7: { name: "Imperial Grant", desc: "+3,000 Points" }, 8: { name: "Blockade", desc: "BANNED from next round" }, 9: { name: "Robin Hood", desc: "Steal 15% from Random" }, 10: { name: "Broken Vase", desc: "Lose 5% Points" }, 11: { name: "Interest Rate", desc: "+500 Points" }, 12: { name: "God of Wealth", desc: "JACKPOT! +8,888" },
@@ -124,19 +125,17 @@
             35: { name: "Forbidden City", desc: "Immunity Item" }, 36: { name: "Fool's Gold", desc: "Swap with Poorest" }
         };
 
-        // --- MINIGAME FIX ---
+        // MINIGAME
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const btnStrike = document.getElementById('btn-strike');
-        // SLOWER SPEED (4) + WIDER ZONE (80)
         let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 120, w: 80 };
 
         window.openMinigame = () => { 
             if(hasWorkedThisRound || hasBidThisRound) return;
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
-            // ANTI-CHEESE: MARK AS DONE IMMEDIATELY
             hasWorkedThisRound = true;
             localStorage.setItem(`labor_done_${myId}_${currentRoundNumber}`, 'true');
             updateLaborButton(); 
@@ -153,9 +152,8 @@
             ctx.clearRect(0,0,300,50);
             ctx.fillStyle = '#00ff00'; ctx.fillRect(targetZone.x, 0, targetZone.w, 50);
             
-            // VISUAL FEEDBACK: BAR TURNS WHITE WHEN INSIDE GREEN
             const isInside = (barPos + 10 >= targetZone.x && barPos <= targetZone.x + targetZone.w);
-            ctx.fillStyle = isInside ? '#ffffff' : '#ff0000';
+            ctx.fillStyle = isInside ? '#ffffff' : '#ff0000'; 
             ctx.fillRect(barPos, 0, 10, 50);
             
             barPos += barSpeed * barDir; if(barPos > 290 || barPos < 0) barDir *= -1;
@@ -169,7 +167,6 @@
              e.preventDefault(); if(!gameActive) return;
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
-             // HITBOX CHECK
              if(barPos + 10 >= targetZone.x && barPos <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
@@ -313,16 +310,22 @@
             if(v < highBid + 50) return feedback("Bid Too Low");
             const b = document.getElementById('btn-bid');
             b.disabled = true; b.innerText = "SENDING...";
+            
             hasBidThisRound = true; updateLaborButton();
+            
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v });
             setTimeout(() => { b.disabled = false; b.innerText = "OFFER TRIBUTE"; }, 1000);
         };
 
-        // RIGGED WAGER (80% Win)
+        // RIGGED WAGER (80% Base)
         window.submitWager = async () => {
              const v = parseInt(document.getElementById('wager-val').value);
              if(!v || v > balance) return alert("Invalid Wager");
-             const isWin = Math.random() < 0.8;
+             
+             const winRate = 0.8 + (lossStreak * 0.15);
+             const isWin = Math.random() < winRate;
+             if(isWin) lossStreak = 0; else lossStreak++;
+             
              await update(ref(db, 'gameState'), { phase: 'READY_TO_SPIN', spinResult: isWin ? 'WIN' : 'LOSE', wagerAmount: v });
         };
 
