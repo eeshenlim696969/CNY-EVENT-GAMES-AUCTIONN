@@ -24,7 +24,6 @@
         <p class="text-xs text-gray-400 mb-8">Tap STOP when bar is in GREEN</p>
         <canvas id="game-canvas" width="300" height="50" class="mb-8 border-2 border-yellow-500 rounded"></canvas>
         <button id="btn-strike" class="btn-gold px-12 py-6 rounded-full text-2xl shadow-[0_0_30px_gold]">STRIKE</button>
-        <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">GIVE UP</button>
     </div>
 
     <div id="login" class="flex flex-col items-center justify-center h-full gap-6">
@@ -113,16 +112,13 @@
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
-                // ROUND RESET LOGIC
                 if(st.round !== currentRound) {
                     currentRound = st.round;
-                    // Reset Logic: New round, new chances
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
                     hasBid = false;
                 } else {
-                    // Persist Logic
                     hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
                     hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
@@ -152,7 +148,6 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            // Logic: Labor locks Bid. Bid locks Labor.
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
@@ -165,11 +160,11 @@
             }
         }
 
-        // --- MINIGAME ---
+        // --- MINIGAME (FIXED REWARD) ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 125, w: 50 };
+        let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 125, w: 50 }; // Speed 4, Size 50
 
         window.openMinigame = () => { 
             if(hasLabored || hasBid) return;
@@ -204,19 +199,22 @@
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
              const center = barPos + 5;
-             // ONE CHANCE LOGIC: Whether win or lose, you are marked as "hasLabored"
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
+                 
+                 // DIRECT UPDATE TO FIX "NOT INCREASING" BUG
+                 await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
+                 
+                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
-                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red"; 
+                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
+                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              }
              
+             // Lock for round
              hasLabored = true;
              localStorage.setItem(`hasLabored_${currentRound}`, 'true');
              updateButtons();
-             
-             setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
         }
 
         window.submitBid = async (isAllIn) => {
@@ -224,7 +222,7 @@
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
             
-            if(!v || v > balance) return alert("Insufficient Funds");
+            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
             
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
