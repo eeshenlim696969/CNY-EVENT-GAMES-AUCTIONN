@@ -23,6 +23,7 @@
     </div>
 
     <div class="glass-panel p-6 shadow-2xl flex flex-col gap-4">
+        
         <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-black font-black text-xl p-5 rounded-lg border-2 border-yellow-400 mb-2">1. DRAW CARD</button>
 
         <div id="secret-preview" class="hidden bg-black p-4 rounded border border-dashed border-[#C5A059] font-sans">
@@ -85,17 +86,19 @@
                 document.getElementById('secret-preview').classList.remove('hidden');
             } else {
                 document.getElementById('btn-skip').classList.add('hidden');
-                if(gameState.phase === 'GRID' || gameState.phase === 'DRAWING' || gameState.phase === 'FOCUSED') document.getElementById('secret-preview').classList.add('hidden');
+                if(['GRID', 'DRAWING', 'HIGHLIGHT'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             }
 
             if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
             else document.getElementById('challenge-controls').classList.add('hidden');
         });
 
-        // AUTO-SOLD
+        // AUTO-SOLD TIMER
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                if (Date.now() > gameState.bidDeadline) update(ref(db, 'gameState'), { phase: 'SOLD' });
+                if (Date.now() > gameState.bidDeadline) {
+                    update(ref(db, 'gameState'), { phase: 'SOLD' });
+                }
             }
         }, 500);
 
@@ -114,24 +117,25 @@
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // 1. DRAWING PHASE (SPIN) - 5 SECONDS
+                // 1. SPIN (4s)
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
                 
                 setTimeout(async () => {
-                    // 2. FOCUSED PHASE (ZOOM) - 2 SECONDS
-                    await update(ref(db, 'gameState'), { phase: 'FOCUSED', currentCard: card.id });
+                    // 2. PAUSE (2s)
+                    await update(ref(db, 'gameState'), { phase: 'HIGHLIGHT', currentCard: card.id });
                     
                     setTimeout(async () => {
-                        // 3. BIDDING PHASE
+                        // 3. START BIDDING
                         await remove(ref(db, 'bidQueue'));
                         await update(ref(db, 'gameState'), { 
                             phase: 'BIDDING', 
+                            currentCard: card.id, 
                             highestBid: 0, 
                             leaderId: null, leaderName: null, 
                             bidDeadline: Date.now() + 90000 
                         });
                     }, 2000);
-                }, 5000);
+                }, 4000);
             }
             if(action === 'SKIP_TIMER') {
                 await update(ref(db, 'gameState'), { phase: 'SOLD' });
