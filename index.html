@@ -11,41 +11,50 @@
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* Z-INDEX STACKING (Crucial) */
+        /* BACKGROUND & LANTERNS (Lowest Z-Index) */
         .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
-        .layer-lanterns { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; } 
+        .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
+        
+        /* UI (High Z-Index) */
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
         .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
 
-        /* LANTERN */
-        .lantern { position: absolute; width: 50px; height: 70px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.9; top: 110%; }
-        @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.9; } 90% { opacity: 0.9; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
+        /* LANTERN ANIMATION */
+        .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.8; top: 110%; }
+        @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
 
-        /* GRID (Floating Style) */
+        /* GRID ITEMS (Original Clean Design) */
         .angpao { 
             background: linear-gradient(135deg, #900 0%, #600 100%); 
             border: 2px solid #b8860b; 
             border-radius: 6px; 
             display: flex; align-items: center; justify-content: center; 
-            font-family: 'Cinzel'; font-weight: 900; font-size: 1.5rem; color: rgba(255,215,0,0.4); 
-            transition: all 0.2s; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            /* Z-INDEX HIGHER THAN LANTERNS */
-            z-index: 55; 
+            font-family: 'Cinzel'; font-weight: 900; font-size: 1.8rem; color: rgba(255,215,0,0.4); 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
         }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
-        .angpao.highlight { background: #ffaa00 !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 40px orange; border-color: white; z-index: 60; }
-        .angpao.used { background: #1a0505; opacity: 0.3; border: 1px solid #444; color: transparent; box-shadow: none; }
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
+        
+        /* ZOOM EFFECT FOR CHOSEN CARD */
+        .angpao.focused { 
+            transform: scale(1.8); 
+            z-index: 100; 
+            background: #FFD700 !important; 
+            color: black !important;
+            box-shadow: 0 0 100px gold;
+            border-color: white;
+        }
+        .dimmed { opacity: 0.2; filter: grayscale(0.8); }
 
         /* PANELS */
-        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 60px rgba(0,0,0,0.9); backdrop-filter: blur(10px); border-radius: 16px; }
+        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 16px; }
 
         /* ENVELOPE */
-        .envelope-container { perspective: 1200px; width: 300px; height: 420px; position: relative; margin: 0 auto; transition: all 0.5s; }
-        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
+        .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; }
+        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
-        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 15px; border: 6px double #b8860b; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 15px; border: 6px double #b8860b; }
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; }
         .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
@@ -53,11 +62,13 @@
         @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
 
         /* VIEW CONTAINERS */
-        .view-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         /* MEGA SLAM */
         @keyframes slamIn { 0% { transform: scale(5); opacity: 0; } 50% { transform: scale(1); opacity: 1; } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .slam-text { animation: slamIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .slam-text { animation: slamIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        /* ALL IN FX */
         .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
         @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; } 50% { text-shadow: 0 0 100px red; transform: scale(1.05); } 100% { text-shadow: 0 0 50px red; } }
         
@@ -71,11 +82,6 @@
         .coin-front { transform: rotateY(0deg); }
         .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
         .coin-text { font-size: 6rem; font-weight: 900; font-family: 'Cinzel'; }
-
-        /* LOG ENTRY */
-        .log-entry { font-size: 1.1rem; padding: 12px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border-left: 2px solid #555; transition: all 0.5s; opacity: 0.7; display: flex; justify-content: space-between; align-items: center; }
-        .log-entry.latest { border-left: 6px solid #FFD700; background: linear-gradient(90deg, rgba(255,215,0,0.8), transparent); opacity: 1; transform: scale(1.05); font-weight: bold; animation: slideIn 0.5s ease-out; }
-        @keyframes slideIn { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.3rem; }
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
@@ -109,10 +115,10 @@
             <div class="flex-1 relative flex items-center justify-center">
                 
                 <div id="view-grid" class="view-container hidden">
-                    <div id="grid-container" class="grid grid-cols-6 gap-4 w-full h-full max-h-[70vh] aspect-square p-4"></div>
+                    <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[75vh] aspect-square p-4"></div>
                 </div>
 
-                <div id="view-coin" class="view-container hidden flex-col">
+                <div id="view-coin" class="view-container hidden">
                     <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em] drop-shadow-[0_0_30px_gold]" id="coin-title">DESTINY FLIPPING...</div>
                     <div class="coin-container">
                         <div id="the-coin" class="coin">
@@ -123,8 +129,8 @@
                     <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden drop-shadow-[0_0_80px_gold] animate-bounce">WINNER</div>
                 </div>
 
-                <div id="view-auction" class="view-container hidden flex-col">
-                    <div id="timer-box" class="mb-8 text-center">
+                <div id="view-auction" class="view-container hidden">
+                    <div id="timer-box" class="mb-8 text-center transition-all duration-300">
                         <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
                         <div id="countdown-val" class="text-[10rem] leading-none font-black font-imp text-white drop-shadow-[0_0_40px_rgba(0,0,0,1)] tabular-nums">1:30</div>
                     </div>
@@ -142,14 +148,14 @@
                     </div>
                 </div>
 
-                <div id="view-action" class="view-container hidden flex-col text-center">
+                <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059] shadow-[0_0_80px_rgba(255,215,0,0.3)] leading-relaxed" id="action-desc">--</div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
             </div>
 
-            <div id="info-panel" class="w-[450px] flex flex-col gap-6 transition-all duration-500 h-full">
+            <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full">
                 
                 <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden">
                     <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
@@ -161,11 +167,6 @@
                     <div id="val-leader-name" class="text-white font-black uppercase tracking-widest text-6xl text-center leading-tight mb-6 drop-shadow-[0_0_40px_gold] transition-all">--</div>
                     <div class="text-[#C5A059] text-sm uppercase tracking-widest mb-2">OFFERING</div>
                     <div id="val-high-bid" class="text-8xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
-                </div>
-                
-                <div id="panel-log" class="glass-panel p-6 rounded-2xl h-1/3 flex flex-col overflow-hidden hidden">
-                    <h3 class="font-imp text-center text-xl text-[#FFD700] border-b border-[#C5A059] pb-2 mb-2 tracking-[0.2em]">FEED</h3>
-                    <div id="bids-list" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
                 </div>
             </div>
 
@@ -180,7 +181,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // LANTERNS (Foreground)
+        // BACKGROUND LANTERNS
         const lanternContainer = document.getElementById('lantern-container');
         for(let i=0; i<15; i++) {
             const l = document.createElement('div');
@@ -191,7 +192,7 @@
             lanternContainer.appendChild(l);
         }
 
-        // GRID GEN
+        // GRID GENERATION
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
@@ -204,7 +205,7 @@
         let currentDeadline = 0;
         let lastLeader = "";
 
-        // MAIN LOOP
+        // MAIN GAME LOOP
         onValue(ref(db, 'gameState'), async (snap) => {
             const st = snap.val();
             if(!st) return;
@@ -213,49 +214,58 @@
             document.getElementById('status-text').innerText = st.phase;
             currentDeadline = st.bidDeadline || 0;
 
-            // VIEW TOGGLE
+            // TOGGLE VIEWS
             ['view-grid', 'view-coin', 'view-auction', 'view-action'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex'); // Remove flex
+                document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC (Rank vs Leader)
-            if(st.phase === 'GRID' || st.phase === 'DRAWING') {
+            // SIDEBAR LOGIC (Rankings vs Leader Display)
+            if(st.phase === 'GRID' || st.phase === 'DRAWING' || st.phase === 'FOCUSED') {
                 document.getElementById('panel-rankings').classList.remove('hidden');
                 document.getElementById('panel-leader').classList.add('hidden');
-                document.getElementById('panel-log').classList.add('hidden');
             } else {
                 document.getElementById('panel-rankings').classList.add('hidden');
                 document.getElementById('panel-leader').classList.remove('hidden');
-                document.getElementById('panel-log').classList.remove('hidden');
             }
 
-            // --- ANIMATION: ROULETTE ---
-            if (st.phase === 'DRAWING') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                
-                const gridItems = document.querySelectorAll('.angpao:not(.used)');
-                if(gridItems.length > 0) {
-                    let spins = 0;
-                    const interval = setInterval(() => {
-                        gridItems.forEach(el => el.classList.remove('highlight'));
-                        const r = gridItems[Math.floor(Math.random() * gridItems.length)];
-                        r.classList.add('highlight');
-                        sfxTick.currentTime = 0; sfxTick.play();
-                        spins++;
-                        if(spins > 28) clearInterval(interval); // 3 Seconds
-                    }, 100);
-                }
-            }
-            // --- GRID PHASE ---
-            else if (st.phase === 'GRID') {
+            // 1. GRID & ANIMATIONS
+            if (st.phase === 'GRID') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
                 document.getElementById('coin-result').classList.add('hidden');
-            } 
-            // --- COIN PHASE ---
+            }
+            // 2. DRAWING (Roulette Spin - 5s)
+            else if (st.phase === 'DRAWING') {
+                document.getElementById('view-grid').classList.remove('hidden');
+                document.getElementById('view-grid').classList.add('flex');
+                const gridItems = document.querySelectorAll('.angpao:not(.used)');
+                if(gridItems.length > 0) {
+                    let spins = 0;
+                    const interval = setInterval(() => {
+                        gridItems.forEach(el => el.classList.remove('active'));
+                        const r = gridItems[Math.floor(Math.random() * gridItems.length)];
+                        r.classList.add('active');
+                        sfxTick.currentTime = 0; sfxTick.play();
+                        spins++;
+                        if(spins > 45) clearInterval(interval);
+                    }, 100);
+                }
+            }
+            // 3. FOCUSED (Zoom Effect - 2s)
+            else if (st.phase === 'FOCUSED') {
+                document.getElementById('view-grid').classList.remove('hidden');
+                document.getElementById('view-grid').classList.add('flex');
+                
+                // Highlight Specific Card
+                const all = document.querySelectorAll('.angpao');
+                all.forEach(el => {
+                    if(el.id === `cell-${st.currentCard}`) el.classList.add('focused');
+                    else el.classList.add('dimmed');
+                });
+            }
+            // 4. COIN FLIP
             else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(st.phase)) {
                 document.getElementById('view-coin').classList.remove('hidden');
                 document.getElementById('view-coin').classList.add('flex');
@@ -280,12 +290,12 @@
                     document.getElementById('coin-result').classList.add('hidden');
                 }
             }
-            // --- AUCTION PHASE ---
+            // 5. AUCTION
             else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
                 document.getElementById('view-auction').classList.remove('hidden');
                 document.getElementById('view-auction').classList.add('flex');
 
-                // MEGA SLAM LOGIC
+                // MEGA SLAM
                 const leaderName = st.leaderName || "NO ONE";
                 const leaderEl = document.getElementById('val-leader-name');
                 const bidEl = document.getElementById('val-high-bid');
@@ -297,6 +307,10 @@
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
+                    
+                    document.getElementById('main-body').classList.add('shake-screen');
+                    setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 500);
+                    
                     lastLeader = leaderName;
                 } else {
                     if(leaderEl.innerText !== leaderName) leaderEl.innerText = leaderName;
@@ -322,7 +336,7 @@
                     document.getElementById('unsold-stamp').classList.add('hidden');
                 }
             } 
-            // --- ACTION PHASE ---
+            // 6. ACTION (Challenge/Target)
             else if (['CHALLENGE', 'TARGETING'].includes(st.phase)) {
                 document.getElementById('view-action').classList.remove('hidden');
                 document.getElementById('view-action').classList.add('flex');
@@ -354,36 +368,21 @@
             });
         });
         
-        // ALL IN EFFECT (COIN RAIN)
+        // ALL IN EFFECT (Coin Rain)
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
-            if(req) {
-               const teams = (await get(ref(db, `teams/${req.teamId}`))).val();
-               const log = document.getElementById('bids-list');
-               
-               const div = document.createElement('div');
-               div.className = `log-entry latest`;
-               div.innerHTML = `<span class="uppercase font-bold">${teams ? teams.name : 'Unknown'}</span> <span class="text-[#FFD700]">${req.isAllIn ? 'ALL IN' : 'RM ' + req.amount}</span>`;
-               
-               log.prepend(div);
-               if(log.children.length > 5) log.lastChild.remove();
-               
-               if(req.isAllIn) {
-                   const container = document.getElementById('fx-container');
-                   for(let i=0; i<30; i++) {
-                       const c = document.createElement('div');
-                       c.className = 'falling-coin';
-                       c.style.left = Math.random() * 100 + '%';
-                       c.style.animationDuration = (1 + Math.random()) + 's';
-                       container.appendChild(c);
-                       setTimeout(() => c.remove(), 2000);
-                   }
-                   document.getElementById('val-leader-name').classList.add('all-in-glow');
-               } else {
-                   document.getElementById('val-leader-name').classList.remove('all-in-glow');
+            if(req && req.isAllIn) {
+               const container = document.getElementById('fx-container');
+               for(let i=0; i<30; i++) {
+                   const c = document.createElement('div');
+                   c.className = 'falling-coin';
+                   c.style.left = Math.random() * 100 + '%';
+                   c.style.animationDuration = (1 + Math.random()) + 's';
+                   container.appendChild(c);
+                   setTimeout(() => c.remove(), 2000);
                }
-               setTimeout(() => div.classList.remove('latest'), 1000);
+               document.getElementById('val-leader-name').classList.add('all-in-glow');
             }
         });
 
