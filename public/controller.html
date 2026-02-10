@@ -14,7 +14,6 @@
         .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
-        .winning-glow { box-shadow: inset 0 0 50px #FFD700; border: 3px solid #FFD700; }
         .safe-h { height: 100dvh; }
     </style>
 </head>
@@ -85,7 +84,7 @@
         const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" });
         const db = getDatabase(app);
         
-        let myId, myName, balance = 0, currentRound = 0, hasLabored = false;
+        let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
 
         window.login = async () => {
             const n = document.getElementById('inp-name').value;
@@ -114,12 +113,18 @@
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
+                // ROUND RESET LOGIC
                 if(st.round !== currentRound) {
                     currentRound = st.round;
+                    // Reset Logic: New round, new chances
                     localStorage.removeItem(`hasLabored_${st.round}`);
+                    localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
+                    hasBid = false;
                 } else {
+                    // Persist Logic
                     hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
+                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
                 updateButtons();
 
@@ -147,25 +152,27 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            // Logic: Labor locks everything. Bidding allows re-bidding.
+            // Logic: Labor locks Bid. Bid locks Labor.
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
+            } else if (hasBid) {
+                btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
+                btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
             } else {
                 btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
             }
         }
 
-        // --- EASIER MINIGAME ---
+        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        // FIXED: Speed 4, Target 50
         let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 125, w: 50 };
 
         window.openMinigame = () => { 
-            if(hasLabored) return;
+            if(hasLabored || hasBid) return;
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
             gameActive = true; barPos = 0; gameLoop(); 
@@ -197,17 +204,19 @@
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
              const center = barPos + 5;
+             // ONE CHANCE LOGIC: Whether win or lose, you are marked as "hasLabored"
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 hasLabored = true;
-                 localStorage.setItem(`hasLabored_${currentRound}`, 'true');
-                 updateButtons();
                  await push(ref(db, 'minigameWins'), { teamId: myId, amount: 200 });
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
-                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red"; btnStrike.disabled = true;
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; btnStrike.disabled = false; }, 1000);
+                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red"; 
              }
+             
+             hasLabored = true;
+             localStorage.setItem(`hasLabored_${currentRound}`, 'true');
+             updateButtons();
+             
+             setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
         }
 
         window.submitBid = async (isAllIn) => {
@@ -215,12 +224,11 @@
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
             
-            // FIXED VALIDATION: You CAN bid your exact balance
-            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
+            if(!v || v > balance) return alert("Insufficient Funds");
             
-            // Don't lock buttons, allow re-bidding
-            const btnLabor = document.getElementById('btn-labor');
-            btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
+            hasBid = true;
+            localStorage.setItem(`hasBid_${currentRound}`, 'true');
+            updateButtons();
             
             await push(ref(db, 'bidQueue'), { teamId: myId, amount: v, isAllIn: !!isAllIn });
         }
