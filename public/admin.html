@@ -72,7 +72,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // FULL CARD DECK
+        // CARD DECK
         const deck = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 }, { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
             { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
@@ -82,17 +82,14 @@
 
         let gameState = {};
 
-        // SYNC GAME STATE
         onValue(ref(db, 'gameState'), (snap) => {
             gameState = snap.val() || {};
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            // Button Logic
             document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
             document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
             
-            // Skip Button Visibility
             if(gameState.phase === 'BIDDING') {
                 document.getElementById('btn-skip').classList.remove('hidden');
                 document.getElementById('secret-preview').classList.remove('hidden');
@@ -101,7 +98,6 @@
                 if(gameState.phase === 'GRID' || gameState.phase === 'DRAWING') document.getElementById('secret-preview').classList.add('hidden');
             }
 
-            // Challenge Controls
             if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
             else document.getElementById('challenge-controls').classList.add('hidden');
         });
@@ -115,17 +111,12 @@
             }
         }, 500);
 
-        // --- CONTROLS ---
         window.adminAction = async (action) => {
-            
-            // RESET GAME
             if(action === 'START') {
-                if(confirm("⚠ RESET GAME? This will clear all money and teams.")) {
+                if(confirm("⚠ RESET GAME?")) {
                     await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
                 }
             }
-            
-            // DRAW CARD (With 5s Animation)
             if(action === 'DRAW') {
                 const used = (await get(ref(db, 'envelopes'))).val() || {};
                 const available = deck.filter(c => !used[c.id]);
@@ -133,43 +124,35 @@
                 
                 const card = available[Math.floor(Math.random() * available.length)];
                 
-                // Show Host Preview
                 document.getElementById('secret-title').innerText = card.name;
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // 1. Trigger Animation Phase
+                // 3 SECOND ANIMATION
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
                 
-                // 2. Wait 5 Seconds, then Start Bidding
                 setTimeout(async () => {
-                    await remove(ref(db, 'bidQueue')); // Clear old bids
+                    await remove(ref(db, 'bidQueue'));
                     await update(ref(db, 'gameState'), { 
                         phase: 'BIDDING', 
                         currentCard: card.id, 
                         highestBid: 0, 
                         leaderId: null, leaderName: null, 
-                        bidDeadline: Date.now() + 90000 // 90s Timer
+                        bidDeadline: Date.now() + 90000 
                     });
-                }, 5000);
+                }, 3000);
             }
             
-            // SKIP TIMER
             if(action === 'SKIP_TIMER') {
                 await update(ref(db, 'gameState'), { phase: 'SOLD' });
             }
             
-            // REVEAL CARD
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
-                
-                // Trigger Logic Delay
                 setTimeout(() => processCardEffect(card), 2000);
             }
-            
-            // NEXT ROUND
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -184,7 +167,6 @@
             }
         };
 
-        // DEBUG MONEY
         window.debugMoney = async () => {
              const s = await get(ref(db, 'teams'));
              const t = s.val(); if(!t) return;
@@ -192,25 +174,14 @@
              await update(ref(db), up);
         };
 
-        // LOGIC ENGINE
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
             if(!leaderId) return; 
-            
-            if(card.type === 'CHALLENGE') { 
-                await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc }); 
-                return; 
-            }
-            
-            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { 
-                await update(ref(db, 'gameState'), { phase: 'TARGETING' }); 
-                return; 
-            }
-            
+            if(card.type === 'CHALLENGE') { await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc }); return; }
+            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { await update(ref(db, 'gameState'), { phase: 'TARGETING' }); return; }
             executeEffect(card, leaderId, null);
         }
 
-        // TARGET LISTENER
         onValue(ref(db, 'gameState/targetId'), async (snap) => {
             if(gameState.phase === 'TARGETING' && snap.val()) {
                 const card = deck.find(c => c.id === gameState.currentCard);
@@ -220,30 +191,20 @@
             }
         });
 
-        // CHALLENGE RESOLVER
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
             const t = (await get(ref(db, `teams/${leaderId}`))).val();
-            
             if(pass) await update(ref(db, `teams/${leaderId}/balance`), t.balance + 2000);
             else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, t.balance - 500));
-            
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
-        // EFFECT EXECUTION
         async function executeEffect(card, winnerId, targetId) {
             const teams = (await get(ref(db, 'teams'))).val();
             const winner = teams[winnerId];
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== winnerId);
-            
-            const checkShield = (tid) => { 
-                if(teams[tid]?.items?.jade_seal) { 
-                    updates[`teams/${tid}/items/jade_seal`] = null; return true; 
-                } return false; 
-            };
-            
+            const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             const wRef = `teams/${winnerId}/balance`;
 
             if(card.type === 'ADD') updates[wRef] = winner.balance + card.val;
