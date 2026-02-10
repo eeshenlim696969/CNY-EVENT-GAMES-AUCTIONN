@@ -11,32 +11,31 @@
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* BACKGROUND & LANTERNS (Lowest Z-Index) */
+        /* LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
-        
-        /* UI (High Z-Index) */
-        .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
-        .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
+        .layer-ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
+        .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; } /* ON TOP OF EVERYTHING */
 
         /* LANTERN ANIMATION */
         .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.8; top: 110%; }
         @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
 
-        /* GRID ITEMS (Original Clean Design) */
+        /* CLEAN GRID (NO GLASS BOX) */
+        .grid-wrapper { padding: 20px; } /* Just padding, no background */
         .angpao { 
             background: linear-gradient(135deg, #900 0%, #600 100%); 
             border: 2px solid #b8860b; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; 
             font-family: 'Cinzel'; font-weight: 900; font-size: 1.8rem; color: rgba(255,215,0,0.4); 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
         
-        /* ZOOM EFFECT FOR CHOSEN CARD */
+        /* ZOOM EFFECT */
         .angpao.focused { 
             transform: scale(1.8); 
             z-index: 100; 
@@ -51,7 +50,7 @@
         .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 16px; }
 
         /* ENVELOPE */
-        .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; }
+        .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; z-index: 30; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
         .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 15px; border: 6px double #b8860b; }
@@ -66,9 +65,7 @@
 
         /* MEGA SLAM */
         @keyframes slamIn { 0% { transform: scale(5); opacity: 0; } 50% { transform: scale(1); opacity: 1; } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .slam-text { animation: slamIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        /* ALL IN FX */
+        .slam-text { animation: slamIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
         @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; } 50% { text-shadow: 0 0 100px red; transform: scale(1.05); } 100% { text-shadow: 0 0 50px red; } }
         
@@ -212,6 +209,8 @@
 
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
+            
+            // TIMER FIX: Store deadline globally
             currentDeadline = st.bidDeadline || 0;
 
             // TOGGLE VIEWS
@@ -236,7 +235,7 @@
                 document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
                 document.getElementById('coin-result').classList.add('hidden');
             }
-            // 2. DRAWING (Roulette Spin - 5s)
+            // 2. DRAWING (Roulette Spin - 3s)
             else if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
@@ -249,7 +248,7 @@
                         r.classList.add('active');
                         sfxTick.currentTime = 0; sfxTick.play();
                         spins++;
-                        if(spins > 45) clearInterval(interval);
+                        if(spins > 28) clearInterval(interval);
                     }, 100);
                 }
             }
@@ -389,7 +388,7 @@
         // REVEAL SOUND
         onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
-        // TIMER
+        // TIMER LOGIC (Independent Loop)
         setInterval(() => {
              const status = document.getElementById('status-text').innerText;
              if(status === 'BIDDING' && currentDeadline > 0) {
