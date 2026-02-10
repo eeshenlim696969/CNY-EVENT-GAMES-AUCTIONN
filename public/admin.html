@@ -23,10 +23,7 @@
     </div>
 
     <div class="glass-panel p-6 shadow-2xl flex flex-col gap-4">
-        
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-black font-black text-xl p-5 rounded-lg border-2 border-yellow-400 mb-2">
-            1. DRAW CARD
-        </button>
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-black font-black text-xl p-5 rounded-lg border-2 border-yellow-400 mb-2">1. DRAW CARD</button>
 
         <div id="secret-preview" class="hidden bg-black p-4 rounded border border-dashed border-[#C5A059] font-sans">
             <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">HOST PREVIEW</p>
@@ -35,13 +32,9 @@
             <p id="secret-type" class="text-blue-400 text-xs mt-1 font-mono">--</p>
         </div>
         
-        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-600 border-2 border-red-400 text-white font-bold py-3 rounded animate-pulse shadow-lg">
-            ⚠ FORCE END AUCTION ⚠
-        </button>
+        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-600 border-2 border-red-400 text-white font-bold py-3 rounded animate-pulse shadow-lg">⚠ FORCE END AUCTION ⚠</button>
 
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-900 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
-            2. REVEAL CARD
-        </button>
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-900 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>2. REVEAL CARD</button>
 
         <div id="challenge-controls" class="hidden p-4 bg-purple-900/90 rounded border border-purple-400 shadow-lg">
             <p class="text-center text-xs text-purple-200 mb-3 font-bold uppercase tracking-widest font-sans">JUDGE'S DECISION</p>
@@ -51,9 +44,7 @@
             </div>
         </div>
 
-        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
-            3. NEXT ROUND ➡
-        </button>
+        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>3. NEXT ROUND ➡</button>
     </div>
 
     <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 hover:opacity-100 transition">
@@ -72,7 +63,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // CARD DECK
         const deck = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 }, { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
             { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
@@ -95,27 +85,23 @@
                 document.getElementById('secret-preview').classList.remove('hidden');
             } else {
                 document.getElementById('btn-skip').classList.add('hidden');
-                if(gameState.phase === 'GRID' || gameState.phase === 'DRAWING') document.getElementById('secret-preview').classList.add('hidden');
+                if(gameState.phase === 'GRID' || gameState.phase === 'DRAWING' || gameState.phase === 'FOCUSED') document.getElementById('secret-preview').classList.add('hidden');
             }
 
             if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
             else document.getElementById('challenge-controls').classList.add('hidden');
         });
 
-        // AUTO-SOLD TIMER
+        // AUTO-SOLD
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                if (Date.now() > gameState.bidDeadline) {
-                    update(ref(db, 'gameState'), { phase: 'SOLD' });
-                }
+                if (Date.now() > gameState.bidDeadline) update(ref(db, 'gameState'), { phase: 'SOLD' });
             }
         }, 500);
 
         window.adminAction = async (action) => {
             if(action === 'START') {
-                if(confirm("⚠ RESET GAME?")) {
-                    await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
-                }
+                if(confirm("⚠ RESET GAME?")) await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
             }
             if(action === 'DRAW') {
                 const used = (await get(ref(db, 'envelopes'))).val() || {};
@@ -128,25 +114,28 @@
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // 3 SECOND ANIMATION
+                // 1. DRAWING PHASE (SPIN) - 5 SECONDS
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
                 
                 setTimeout(async () => {
-                    await remove(ref(db, 'bidQueue'));
-                    await update(ref(db, 'gameState'), { 
-                        phase: 'BIDDING', 
-                        currentCard: card.id, 
-                        highestBid: 0, 
-                        leaderId: null, leaderName: null, 
-                        bidDeadline: Date.now() + 90000 
-                    });
-                }, 3000);
+                    // 2. FOCUSED PHASE (ZOOM) - 2 SECONDS
+                    await update(ref(db, 'gameState'), { phase: 'FOCUSED', currentCard: card.id });
+                    
+                    setTimeout(async () => {
+                        // 3. BIDDING PHASE
+                        await remove(ref(db, 'bidQueue'));
+                        await update(ref(db, 'gameState'), { 
+                            phase: 'BIDDING', 
+                            highestBid: 0, 
+                            leaderId: null, leaderName: null, 
+                            bidDeadline: Date.now() + 90000 
+                        });
+                    }, 2000);
+                }, 5000);
             }
-            
             if(action === 'SKIP_TIMER') {
                 await update(ref(db, 'gameState'), { phase: 'SOLD' });
             }
-            
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
@@ -156,13 +145,9 @@
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
-                updates['gameState/phase'] = 'GRID'; 
-                updates['gameState/round'] = (gameState.round||1)+1;
-                updates['gameState/currentCard'] = null; 
-                updates['gameState/highestBid'] = 0; 
-                updates['gameState/leaderId'] = null;
-                updates['gameState/cardName'] = null; 
-                updates['gameState/cardDesc'] = null;
+                updates['gameState/phase'] = 'GRID'; updates['gameState/round'] = (gameState.round||1)+1;
+                updates['gameState/currentCard'] = null; updates['gameState/highestBid'] = 0; updates['gameState/leaderId'] = null;
+                updates['gameState/cardName'] = null; updates['gameState/cardDesc'] = null;
                 await update(ref(db), updates);
             }
         };
