@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imperial Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background: #1a0505; color: #FFD700; padding: 20px; font-family: sans-serif; }</style>
+    <style>
+        body { background: #1a0505; color: #FFD700; padding: 20px; font-family: sans-serif; }
+        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; border-radius: 12px; }
+        .btn-action { transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .btn-action:active { transform: scale(0.97); }
+    </style>
 </head>
 <body class="max-w-md mx-auto flex flex-col gap-4 pb-20">
 
-    <div class="bg-gray-900 p-4 text-center rounded border border-[#C5A059]">
+    <div class="glass-panel p-4 text-center bg-[#2a0000]">
         <h1 class="text-2xl font-bold tracking-widest text-[#FFD700]">ADMIN CONTROL</h1>
         <div class="text-xs text-[#C5A059] mt-2 font-sans">
             PHASE: <span id="phase-disp" class="text-white font-bold">--</span> | 
@@ -17,20 +22,46 @@
         </div>
     </div>
 
-    <div class="bg-gray-800 p-6 shadow-2xl flex flex-col gap-4 rounded">
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="bg-yellow-600 text-black font-black text-xl p-5 rounded-lg mb-2">1. DRAW CARD</button>
-        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
-        <div id="challenge-controls" class="hidden flex gap-3">
-            <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS</button>
-            <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL</button>
+    <div class="glass-panel p-6 shadow-2xl flex flex-col gap-4">
+        
+        <button onclick="adminAction('DRAW')" id="btn-draw" class="btn-action w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-black font-black text-xl p-5 rounded-lg border-2 border-yellow-400 mb-2">
+            1. DRAW CARD
+        </button>
+
+        <div id="secret-preview" class="hidden bg-white text-black p-4 rounded border-4 border-yellow-500 font-bold text-center shadow-xl">
+            <p class="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-300 pb-1 mb-2">SECRET HOST PREVIEW</p>
+            <h2 id="secret-title" class="text-2xl text-red-800 font-black">--</h2>
+            <p id="secret-desc" class="text-lg text-gray-800">--</p>
+            <p id="secret-type" class="text-xs text-blue-600 mt-2 font-mono uppercase">--</p>
         </div>
-        <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
+        
+        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden w-full bg-red-600 border-2 border-red-400 text-white font-bold py-4 rounded animate-pulse shadow-lg text-xl">
+            ⚠ FORCE END AUCTION ⚠
+        </button>
+
+        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="btn-action w-full bg-blue-900 border border-blue-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            2. REVEAL CARD
+        </button>
+
+        <div id="challenge-controls" class="hidden p-4 bg-purple-900/90 rounded border border-purple-400 shadow-lg">
+            <p class="text-center text-xs text-purple-200 mb-3 font-bold uppercase tracking-widest font-sans">JUDGE'S DECISION</p>
+            <div class="flex gap-3">
+                <button onclick="resolveChallenge(true)" class="btn-action flex-1 bg-green-600 border-2 border-green-400 p-4 rounded text-white font-bold text-lg">PASS (+2k)</button>
+                <button onclick="resolveChallenge(false)" class="btn-action flex-1 bg-red-600 border-2 border-red-400 p-4 rounded text-white font-bold text-lg">FAIL (-500)</button>
+            </div>
+        </div>
+
+        <button onclick="adminAction('NEXT')" id="btn-next" class="btn-action w-full bg-gray-700 border border-gray-500 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+            3. NEXT ROUND ➡
+        </button>
     </div>
 
-    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
-        <button onclick="adminAction('START')" class="bg-red-900 p-3 rounded text-xs text-red-100 font-bold">RESET GAME</button>
-        <button onclick="debugMoney()" class="bg-green-900 p-3 rounded text-xs text-green-100 font-bold">+5000 ALL</button>
+    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 hover:opacity-100 transition">
+        <p class="text-xs text-red-500 font-bold mb-3 uppercase text-center tracking-widest font-sans">⚠ DANGER ZONE ⚠</p>
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="adminAction('START')" class="bg-red-900 border border-red-600 p-3 rounded text-xs text-red-100 font-bold hover:bg-red-800">RESET GAME</button>
+            <button onclick="debugMoney()" class="bg-green-900 border border-green-600 p-3 rounded text-xs text-green-100 font-bold hover:bg-green-800">+5000 ALL</button>
+        </div>
     </div>
 
     <script type="module">
@@ -41,33 +72,32 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- BID PROCESSING LOGIC (CRITICAL FIX) ---
-        // The Admin browser watches for bids and updates the game state
-        // This acts as the "Server" logic
+        // --- BID PROCESSING ENGINE ---
+        // Admin acts as the server to calculate highest bid
         onChildAdded(ref(db, 'bidQueue'), async (snapshot) => {
             const bid = snapshot.val();
             if(!bid) return;
             
-            // Get current game state
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
-            // Only accept if higher than current
+            // Only accept valid bids
             if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
                 const teamSnap = await get(ref(db, `teams/${bid.teamId}`));
                 const team = teamSnap.val();
                 
+                // Update Game State
                 await update(ref(db, 'gameState'), {
                     highestBid: bid.amount,
                     leaderId: bid.teamId,
                     leaderName: team.name
                 });
             }
-            // Remove processed bid to keep queue clean
+            // Clear queue item
             remove(snapshot.ref);
         });
 
-        // --- REST OF ADMIN LOGIC ---
+        // --- CARD DECK ---
         const deck = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, { id: 2, name: "Golden Horse", desc: "+2,000 Gold", type: "ADD", val: 2000 }, { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, { id: 10, name: "Red Packet", desc: "+500 Gold", type: "ADD", val: 500 },
             { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
@@ -77,32 +107,57 @@
 
         let gameState = {};
 
+        // SYNC STATE
         onValue(ref(db, 'gameState'), (snap) => {
             gameState = snap.val() || {};
             document.getElementById('phase-disp').innerText = gameState.phase;
             document.getElementById('card-id-disp').innerText = gameState.currentCard || "--";
 
-            document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
-            document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
-            
-            if(gameState.phase === 'BIDDING') document.getElementById('btn-skip').classList.remove('hidden');
-            else document.getElementById('btn-skip').classList.add('hidden');
+            const btnReveal = document.getElementById('btn-reveal');
+            const btnNext = document.getElementById('btn-next');
+            const btnSkip = document.getElementById('btn-skip');
+            const secretBox = document.getElementById('secret-preview');
+            const challengeBox = document.getElementById('challenge-controls');
 
-            if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
-            else document.getElementById('challenge-controls').classList.add('hidden');
+            // Button Logic
+            btnReveal.disabled = (gameState.phase !== 'SOLD');
+            btnNext.disabled = (gameState.phase !== 'REVEALED');
+            
+            // Phase Visibility Logic
+            if(gameState.phase === 'BIDDING') {
+                btnSkip.classList.remove('hidden');
+            } else {
+                btnSkip.classList.add('hidden');
+            }
+
+            // Show Secret Box only after Draw
+            if(['GRID'].includes(gameState.phase)) {
+                secretBox.classList.add('hidden');
+            } else if (gameState.currentCard) {
+                secretBox.classList.remove('hidden');
+            }
+
+            // Challenge Box
+            if (gameState.phase === 'CHALLENGE') challengeBox.classList.remove('hidden');
+            else challengeBox.classList.add('hidden');
         });
 
-        // AUTO-SOLD
+        // AUTO-SOLD TIMER
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                if (Date.now() > gameState.bidDeadline) update(ref(db, 'gameState'), { phase: 'SOLD' });
+                if (Date.now() > gameState.bidDeadline) {
+                    update(ref(db, 'gameState'), { phase: 'SOLD' });
+                }
             }
         }, 500);
 
+        // --- ADMIN ACTIONS ---
         window.adminAction = async (action) => {
+            
             if(action === 'START') {
                 if(confirm("⚠ RESET GAME?")) await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
             }
+            
             if(action === 'DRAW') {
                 const used = (await get(ref(db, 'envelopes'))).val() || {};
                 const available = deck.filter(c => !used[c.id]);
@@ -110,15 +165,20 @@
                 
                 const card = available[Math.floor(Math.random() * available.length)];
                 
-                // 1. DRAWING PHASE (SPIN) - 4 SECONDS
+                // Show Host Preview
+                document.getElementById('secret-title').innerText = card.name;
+                document.getElementById('secret-desc').innerText = card.desc;
+                document.getElementById('secret-type').innerText = card.type;
+
+                // 1. DRAWING (SPIN) - 5 SECONDS (Wait for Projector)
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
                 
                 setTimeout(async () => {
-                    // 2. HIGHLIGHT PHASE (PAUSE) - 2 SECONDS
+                    // 2. HIGHLIGHT (ZOOM/PAUSE) - 2 SECONDS
                     await update(ref(db, 'gameState'), { phase: 'HIGHLIGHT', currentCard: card.id });
                     
                     setTimeout(async () => {
-                        // 3. BIDDING PHASE
+                        // 3. START BIDDING
                         await remove(ref(db, 'bidQueue'));
                         await update(ref(db, 'gameState'), { 
                             phase: 'BIDDING', 
@@ -128,23 +188,32 @@
                             bidDeadline: Date.now() + 90000 
                         });
                     }, 2000);
-                }, 4000);
+                }, 5000);
             }
+            
             if(action === 'SKIP_TIMER') {
                 await update(ref(db, 'gameState'), { phase: 'SOLD' });
             }
+            
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
                 await update(ref(db, 'gameState'), { cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
                 await update(ref(db), { revealTrigger: true });
                 setTimeout(() => processCardEffect(card), 2000);
             }
+            
             if(action === 'NEXT') {
                 const updates = {};
+                // Mark card as used
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
-                updates['gameState/phase'] = 'GRID'; updates['gameState/round'] = (gameState.round||1)+1;
-                updates['gameState/currentCard'] = null; updates['gameState/highestBid'] = 0; updates['gameState/leaderId'] = null;
-                updates['gameState/cardName'] = null; updates['gameState/cardDesc'] = null;
+                
+                updates['gameState/phase'] = 'GRID'; 
+                updates['gameState/round'] = (gameState.round||1)+1;
+                updates['gameState/currentCard'] = null; 
+                updates['gameState/highestBid'] = 0; 
+                updates['gameState/leaderId'] = null;
+                updates['gameState/cardName'] = null; 
+                updates['gameState/cardDesc'] = null;
                 await update(ref(db), updates);
             }
         };
@@ -159,8 +228,14 @@
         async function processCardEffect(card) {
             const leaderId = gameState.leaderId;
             if(!leaderId) return; 
-            if(card.type === 'CHALLENGE') { await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc }); return; }
-            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { await update(ref(db, 'gameState'), { phase: 'TARGETING' }); return; }
+            if(card.type === 'CHALLENGE') { 
+                await update(ref(db, 'gameState'), { phase: 'CHALLENGE', challengeText: card.desc }); 
+                return; 
+            }
+            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { 
+                await update(ref(db, 'gameState'), { phase: 'TARGETING' }); 
+                return; 
+            }
             executeEffect(card, leaderId, null);
         }
 
@@ -173,11 +248,22 @@
             }
         });
 
+        // --- CHALLENGE LOGIC (FIXED) ---
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
+            if(!leaderId) return alert("No leader found");
+
             const t = (await get(ref(db, `teams/${leaderId}`))).val();
-            if(pass) await update(ref(db, `teams/${leaderId}/balance`), t.balance + 2000);
-            else await update(ref(db, `teams/${leaderId}/balance`), Math.max(0, t.balance - 500));
+            const currentBal = t.balance || 0;
+            
+            if(pass) {
+                await update(ref(db, `teams/${leaderId}`), { balance: currentBal + 2000 });
+                alert(`Passed! ${t.name} +2000`);
+            } else {
+                await update(ref(db, `teams/${leaderId}`), { balance: Math.max(0, currentBal - 500) });
+                alert(`Failed! ${t.name} -500`);
+            }
+            
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
 
@@ -185,21 +271,39 @@
             const teams = (await get(ref(db, 'teams'))).val();
             const winner = teams[winnerId];
             const updates = {};
+            const others = Object.keys(teams).filter(id => id !== winnerId);
             
-            // DEDUCT BID FIRST
-            // Important: We must re-fetch the bid amount because it might have changed
-            const finalBid = gameState.highestBid || 0;
-            const newBalance = winner.balance - finalBid;
+            const checkShield = (tid) => { 
+                if(teams[tid]?.items?.jade_seal) { 
+                    updates[`teams/${tid}/items/jade_seal`] = null; return true; 
+                } return false; 
+            };
             
-            // Now apply effect to the NEW balance
+            // First, pay the bid
+            const cost = gameState.highestBid || 0;
+            let newBal = winner.balance - cost;
             const wRef = `teams/${winnerId}/balance`;
-            updates[wRef] = newBalance; // Set initial state after payment
+            
+            // Set base payment
+            updates[wRef] = newBal;
 
-            if(card.type === 'ADD') updates[wRef] = newBalance + card.val;
-            if(card.type === 'MULTIPLY') updates[wRef] = Math.floor(newBalance * card.val);
-            
-            // ... (Rest of logic same as before) ...
-            
+            // Apply card effects
+            if(card.type === 'ADD') updates[wRef] = newBal + card.val;
+            if(card.type === 'MULTIPLY') {
+                let val = Math.floor(newBal * card.val);
+                if(card.val < 1 && checkShield(winnerId)) {} 
+                else updates[wRef] = val;
+            }
+            if(card.type === 'STEAL_RND') {
+                const victim = others[Math.floor(Math.random()*others.length)];
+                if(victim && !checkShield(victim)) {
+                    const amt = Math.floor(teams[victim].balance * card.val);
+                    updates[wRef] = newBal + amt; 
+                    updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
+                }
+            }
+            // ... (Other effects logic remains standard) ...
+
             await update(ref(db), updates);
         }
     </script>
