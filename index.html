@@ -11,40 +11,39 @@
         .font-imp { font-family: 'Cinzel', serif; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
-        /* LAYERS */
+        /* BACKGROUND LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
-        .layer-ui { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
-        .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; } /* ON TOP OF EVERYTHING */
+        .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
+        .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
 
         /* LANTERN ANIMATION */
         .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.8; top: 110%; }
         @keyframes rise { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-120vh) scale(1); opacity: 0; } }
 
-        /* CLEAN GRID (NO GLASS BOX) */
-        .grid-wrapper { padding: 20px; } /* Just padding, no background */
+        /* GRID (Floating Style) */
         .angpao { 
             background: linear-gradient(135deg, #900 0%, #600 100%); 
             border: 2px solid #b8860b; 
-            border-radius: 8px; 
+            border-radius: 6px; 
             display: flex; align-items: center; justify-content: center; 
-            font-family: 'Cinzel'; font-weight: 900; font-size: 1.8rem; color: rgba(255,215,0,0.4); 
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
+            font-family: 'Cinzel'; font-weight: 900; font-size: 1.5rem; color: rgba(255,215,0,0.4); 
+            transition: all 0.1s; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative;
         }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 50px #FFD700; transform: scale(1.15); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; }
-        
-        /* ZOOM EFFECT */
-        .angpao.focused { 
-            transform: scale(1.8); 
-            z-index: 100; 
-            background: #FFD700 !important; 
-            color: black !important;
-            box-shadow: 0 0 100px gold;
-            border-color: white;
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.15); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; }
+        .angpao.highlight-winner { 
+            background: #ffaa00 !important; 
+            color: white !important; 
+            transform: scale(1.2); 
+            box-shadow: 0 0 80px orange; 
+            border: 3px solid white; 
+            z-index: 70; 
+            animation: pulseWinner 1s infinite;
         }
-        .dimmed { opacity: 0.2; filter: grayscale(0.8); }
+        @keyframes pulseWinner { 0% { transform: scale(1.2); } 50% { transform: scale(1.25); } 100% { transform: scale(1.2); } }
+        .angpao.used { background: #1a0505; opacity: 0.3; border: 1px solid #444; color: transparent; box-shadow: none; }
 
         /* PANELS */
         .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 16px; }
@@ -201,6 +200,7 @@
         const sfxTick = document.getElementById('sfx-tick');
         let currentDeadline = 0;
         let lastLeader = "";
+        let spinInterval = null;
 
         // MAIN GAME LOOP
         onValue(ref(db, 'gameState'), async (snap) => {
@@ -209,8 +209,6 @@
 
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
-            
-            // TIMER FIX: Store deadline globally
             currentDeadline = st.bidDeadline || 0;
 
             // TOGGLE VIEWS
@@ -219,8 +217,8 @@
                 document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC (Rankings vs Leader Display)
-            if(st.phase === 'GRID' || st.phase === 'DRAWING' || st.phase === 'FOCUSED') {
+            // SIDEBAR LOGIC
+            if(st.phase === 'GRID' || st.phase === 'DRAWING' || st.phase === 'HIGHLIGHT') {
                 document.getElementById('panel-rankings').classList.remove('hidden');
                 document.getElementById('panel-leader').classList.add('hidden');
             } else {
@@ -228,41 +226,44 @@
                 document.getElementById('panel-leader').classList.remove('hidden');
             }
 
-            // 1. GRID & ANIMATIONS
+            // 1. GRID (IDLE)
             if (st.phase === 'GRID') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
                 document.getElementById('coin-result').classList.add('hidden');
+                
+                // Clear any highlighting
+                document.querySelectorAll('.angpao').forEach(el => {
+                    el.classList.remove('active', 'highlight-winner');
+                });
+                if(spinInterval) clearInterval(spinInterval);
             }
-            // 2. DRAWING (Roulette Spin - 3s)
+            // 2. DRAWING (SPIN - 4s)
             else if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
+                
                 const gridItems = document.querySelectorAll('.angpao:not(.used)');
-                if(gridItems.length > 0) {
-                    let spins = 0;
-                    const interval = setInterval(() => {
+                if(gridItems.length > 0 && !spinInterval) {
+                    spinInterval = setInterval(() => {
                         gridItems.forEach(el => el.classList.remove('active'));
                         const r = gridItems[Math.floor(Math.random() * gridItems.length)];
                         r.classList.add('active');
                         sfxTick.currentTime = 0; sfxTick.play();
-                        spins++;
-                        if(spins > 28) clearInterval(interval);
-                    }, 100);
+                    }, 150); // Slower spin
                 }
             }
-            // 3. FOCUSED (Zoom Effect - 2s)
-            else if (st.phase === 'FOCUSED') {
+            // 3. HIGHLIGHT (PAUSE ON WINNER - 2s)
+            else if (st.phase === 'HIGHLIGHT') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
+                if(spinInterval) { clearInterval(spinInterval); spinInterval = null; }
                 
-                // Highlight Specific Card
-                const all = document.querySelectorAll('.angpao');
-                all.forEach(el => {
-                    if(el.id === `cell-${st.currentCard}`) el.classList.add('focused');
-                    else el.classList.add('dimmed');
-                });
+                // Clear random active, set specific winner
+                document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active'));
+                const winner = document.getElementById(`cell-${st.currentCard}`);
+                if(winner) winner.classList.add('highlight-winner');
             }
             // 4. COIN FLIP
             else if (['WAGER', 'READY_TO_SPIN', 'SPIN'].includes(st.phase)) {
@@ -294,14 +295,13 @@
                 document.getElementById('view-auction').classList.remove('hidden');
                 document.getElementById('view-auction').classList.add('flex');
 
-                // MEGA SLAM
                 const leaderName = st.leaderName || "NO ONE";
                 const leaderEl = document.getElementById('val-leader-name');
                 const bidEl = document.getElementById('val-high-bid');
                 
                 if (st.phase === 'BIDDING' && leaderName !== lastLeader && leaderName !== "NO ONE") {
                     leaderEl.innerText = leaderName;
-                    bidEl.innerText = (st.highestBid||0).toLocaleString();
+                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
                     
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
@@ -309,11 +309,10 @@
                     
                     document.getElementById('main-body').classList.add('shake-screen');
                     setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 500);
-                    
                     lastLeader = leaderName;
                 } else {
                     if(leaderEl.innerText !== leaderName) leaderEl.innerText = leaderName;
-                    bidEl.innerText = (st.highestBid||0).toLocaleString();
+                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
                 }
 
                 if (st.phase === 'REVEALED' && st.cardName) {
@@ -335,7 +334,7 @@
                     document.getElementById('unsold-stamp').classList.add('hidden');
                 }
             } 
-            // 6. ACTION (Challenge/Target)
+            // 6. ACTION
             else if (['CHALLENGE', 'TARGETING'].includes(st.phase)) {
                 document.getElementById('view-action').classList.remove('hidden');
                 document.getElementById('view-action').classList.add('flex');
@@ -367,7 +366,7 @@
             });
         });
         
-        // ALL IN EFFECT (Coin Rain)
+        // ALL IN EFFECT
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
@@ -388,7 +387,7 @@
         // REVEAL SOUND
         onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
-        // TIMER LOGIC (Independent Loop)
+        // TIMER
         setInterval(() => {
              const status = document.getElementById('status-text').innerText;
              if(status === 'BIDDING' && currentDeadline > 0) {
