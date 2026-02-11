@@ -161,10 +161,12 @@
             }
         }
 
+        // --- MINIGAME FIX ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 125, w: 50 };
+        // FIXED: Speed 3.5, Target 50
+        let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 125, w: 50 };
 
         window.openMinigame = () => { 
             if(hasLabored || hasBid) return;
@@ -201,12 +203,14 @@
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
+                 // DIRECT DB UPDATE
                  await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
                  btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              }
+             
              hasLabored = true;
              localStorage.setItem(`hasLabored_${currentRound}`, 'true');
              updateButtons();
