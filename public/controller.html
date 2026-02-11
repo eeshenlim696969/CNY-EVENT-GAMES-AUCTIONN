@@ -15,9 +15,11 @@
         .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
         .btn-quick:active { background: #FFD700; color: black; }
         .safe-h { height: 100dvh; }
+        .flash-red { animation: flashRed 1s infinite; }
+        @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
     </style>
 </head>
-<body class="safe-h flex flex-col p-4 overflow-hidden">
+<body class="safe-h flex flex-col p-4 overflow-hidden" id="body-main">
 
     <div id="minigame-overlay" class="absolute inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center hidden">
         <h2 class="text-3xl text-[#FFD700] mb-4 drop-shadow-[0_0_10px_gold]">JADE CUTTER</h2>
@@ -25,6 +27,12 @@
         <canvas id="game-canvas" width="300" height="50" class="mb-8 border-2 border-yellow-500 rounded"></canvas>
         <button id="btn-strike" class="btn-gold px-12 py-6 rounded-full text-2xl shadow-[0_0_30px_gold]">STRIKE</button>
         <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">GIVE UP</button>
+    </div>
+
+    <div id="alert-overlay" class="absolute inset-0 z-[200] bg-red-900/90 flex flex-col items-center justify-center hidden p-6 text-center">
+        <h1 class="text-4xl text-white font-black mb-4">⚠ ALERT ⚠</h1>
+        <p id="alert-msg" class="text-2xl text-yellow-300 font-bold">--</p>
+        <button onclick="dismissAlert()" class="mt-8 bg-black border border-white px-6 py-3 rounded text-white">OK</button>
     </div>
 
     <div id="login" class="flex flex-col items-center justify-center h-full gap-6">
@@ -72,14 +80,14 @@
         </div>
 
         <div id="view-target" class="hidden flex-col h-full bg-[#1a0505] absolute inset-0 z-50 p-6">
-            <h2 class="text-center text-4xl text-red-500 mb-2 animate-pulse font-black">⚔️ ATTACK ⚔️</h2>
+            <h2 class="text-center text-4xl text-red-500 mb-2 animate-pulse font-black">⚔️ CHOOSE VICTIM ⚔️</h2>
             <div id="rivals-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, set, push, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getDatabase, ref, onValue, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
         const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" });
         const db = getDatabase(app);
@@ -103,8 +111,22 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
+            // LISTEN FOR BALANCE & ALERTS
             onValue(ref(db, `teams/${myId}`), s => {
-                if(s.val()) { balance = Number(s.val().balance); document.getElementById('balance').innerText = balance.toLocaleString(); }
+                const data = s.val();
+                if(data) { 
+                    balance = Number(data.balance); 
+                    document.getElementById('balance').innerText = balance.toLocaleString(); 
+                    
+                    // ALERT SYSTEM
+                    if(data.alert) {
+                        document.getElementById('alert-msg').innerText = data.alert;
+                        document.getElementById('alert-overlay').classList.remove('hidden');
+                        document.getElementById('body-main').classList.add('flash-red');
+                        // Clear alert so it doesn't stick
+                        // Note: We handle clear in dismiss
+                    }
+                }
             });
 
             onValue(ref(db, 'gameState'), s => {
@@ -115,7 +137,6 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
-                    // RESET LABOR AND BID FLAGS ON NEW ROUND
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
@@ -146,6 +167,12 @@
             });
         }
 
+        window.dismissAlert = async () => {
+            document.getElementById('alert-overlay').classList.add('hidden');
+            document.getElementById('body-main').classList.remove('flash-red');
+            await remove(ref(db, `teams/${myId}/alert`));
+        }
+
         function updateButtons() {
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
@@ -162,11 +189,9 @@
             }
         }
 
-        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        // SPEED 3.5, TARGET 40 (As requested in previous interaction, confirmed)
         let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
 
         window.openMinigame = () => { 
@@ -204,17 +229,13 @@
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 
-                 // DIRECT UPDATE
                  await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
-                 
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              } else {
                  btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              }
              
-             // Lock for this round
              hasLabored = true;
              localStorage.setItem(`hasLabored_${currentRound}`, 'true');
              updateButtons();
@@ -227,9 +248,6 @@
             
             if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
             
-            // Allow re-bidding, so don't set hasBid true yet if we want to allow multiple bids?
-            // The user said "the player can choose between bid and labor again" at the start of new round.
-            // But within a round, usually bidding locks labor.
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
             updateButtons();
@@ -248,7 +266,8 @@
                     if(tid !== myId) {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
-                        btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-70">RM ${teams[tid].balance}</span>`;
+                        // HIDDEN BALANCE - BLIND STEAL
+                        btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
                         btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) update(ref(db, 'gameState'), { targetId: tid }); };
                         list.appendChild(btn);
                     }
