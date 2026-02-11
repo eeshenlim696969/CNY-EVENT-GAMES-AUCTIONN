@@ -5,89 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Imperial Projector</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Playfair Display', serif; background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; overflow: hidden; cursor: none; }
-        .font-imp { font-family: 'Cinzel', serif; }
+        body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #2a0000 0%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         
         /* BACKGROUND */
-        .layer-bg { position: absolute; inset: 0; z-index: 0; background-image: url('https://www.transparenttextures.com/patterns/chinese-scales.png'); opacity: 0.3; }
+        .layer-bg-art { 
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; 
+            background: url('https://img.freepik.com/premium-vector/chinese-palace-vector-illustration-flat-style_199628-199.jpg?w=2000') no-repeat bottom center; 
+            background-size: cover; 
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%);
+            opacity: 0.4; z-index: 0; filter: sepia(0.8) hue-rotate(-20deg) saturate(1.5) brightness(0.6);
+        }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
         .layer-fx { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
 
         /* LANTERN */
-        .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 30s linear infinite; opacity: 0.8; top: 110%; }
+        .lantern { position: absolute; width: 50px; height: 70px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.8; top: 110%; }
         @keyframes rise { 0% { transform: translateY(0) scale(0.8); } 100% { transform: translateY(-120vh) scale(1); } }
 
-        /* GRID (Tighter Fit) */
+        /* GRID (Smaller & Fits Screen) */
         .angpao { 
-            background: linear-gradient(135deg, #900 0%, #600 100%); 
-            border: 2px solid #b8860b; 
+            background: rgba(100, 0, 0, 0.5); /* Transparent for cleaner look */
+            border: 1px solid #b8860b; 
             border-radius: 6px; 
             display: flex; align-items: center; justify-content: center; 
-            font-family: 'Cinzel'; font-weight: 700; font-size: 1.2rem; color: rgba(255,215,0,0.4); 
+            font-weight: 700; font-size: 1.2rem; color: rgba(255,215,0,0.5); 
             transition: all 0.1s; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 40px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; font-weight: 900; }
-        .angpao.highlight-winner { background: #ffaa00 !important; color: white !important; transform: scale(1.15); box-shadow: 0 0 60px orange; border: 2px solid white; z-index: 70; opacity: 1; }
+        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 40px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; font-weight: 900; }
+        .angpao.highlight-winner { background: #ffaa00 !important; color: white !important; transform: scale(1.2); box-shadow: 0 0 80px orange; border: 3px solid white; z-index: 70; opacity: 1; }
         .angpao.gone { opacity: 0; pointer-events: none; visibility: hidden; }
 
         /* PANELS */
         .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 12px; }
 
-        /* EMPEROR SLAM EFFECT */
+        /* SLAM EFFECT */
         @keyframes slamIn { 
             0% { transform: scale(5); opacity: 0; } 
             40% { transform: scale(1); opacity: 1; } 
             50% { transform: scale(1.2); color: #fff; text-shadow: 0 0 50px white; } 
             100% { transform: scale(1); color: #FFD700; } 
         }
-        .slam-text { animation: slamIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        .emperor-glow {
-            text-shadow: 0 0 20px #FFD700, 0 0 40px #b8860b;
-            filter: drop-shadow(0 0 10px gold);
-        }
+        .slam-text { animation: slamIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .emperor-glow { text-shadow: 0 0 20px #FFD700, 0 0 40px #b8860b; filter: drop-shadow(0 0 10px gold); }
 
-        /* SCREEN SHAKE */
+        /* SHAKE */
         .shake-screen { animation: shakeScreen 0.4s ease-in-out; }
-        @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px) rotate(-1deg); } 75% { transform: translateX(15px) rotate(1deg); } }
+        @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
         /* ENVELOPE */
-        .envelope-container { perspective: 1200px; width: 280px; height: 400px; position: relative; transition: all 0.5s; z-index: 30; }
+        .envelope-container { perspective: 1200px; width: 260px; height: 360px; position: relative; transition: all 0.5s; z-index: 30; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #8a0000 0%, #500 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
-        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 15px; border: 6px double #b8860b; }
+        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 10px; border: 4px double #b8860b; }
         .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
         .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; }
         .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
         .shaking { animation: shake 2s infinite ease-in-out; }
         @keyframes shake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } }
 
-        /* COIN */
-        .coin-container { perspective: 1000px; width: 350px; height: 350px; }
-        .coin { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .coin-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 60px rgba(255,215,0,0.6); border: 12px solid #FFD700; background: radial-gradient(circle, #B8860B, #553300); }
-        .coin-front { transform: rotateY(0deg); }
-        .coin-back { transform: rotateY(180deg); background: radial-gradient(circle, #550000, #220000); border-color: #880000; }
-        .coin-text { font-size: 6rem; font-weight: 900; }
-
-        /* ALL IN FX */
-        .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
-        @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; } 50% { text-shadow: 0 0 100px red; transform: scale(1.05); } 100% { text-shadow: 0 0 50px red; } }
-        .falling-coin { position: absolute; width: 30px; height: 30px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px gold; animation: fall 2s linear forwards; z-index: 100; }
-        @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
-
+        .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .roster-item { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.1rem; }
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 3px solid #FFD700; }
+        
+        .falling-coin { position: absolute; width: 30px; height: 30px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 10px gold; animation: fall 2s linear forwards; z-index: 100; }
+        @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden" id="main-body">
 
-    <div class="layer-bg"></div>
+    <div class="layer-bg-art"></div>
     <div class="layer-lanterns" id="lantern-container"></div>
     <div class="layer-fx" id="fx-container"></div>
 
@@ -100,11 +92,11 @@
         <header class="h-20 flex justify-between items-center px-8 border-b-2 border-[#C5A059] mb-4 bg-[#1a0505]/90 rounded-2xl shadow-2xl backdrop-blur-md z-50">
             <div class="flex items-center gap-4">
                 <span class="text-5xl drop-shadow-[0_0_15px_gold]">🐎</span>
-                <h1 class="font-imp text-4xl font-black tracking-[0.2em] text-[#FFD700] text-shadow-md">IMPERIAL AUCTION</h1>
+                <h1 class="text-4xl font-black tracking-[0.2em] text-[#FFD700] text-shadow-md">IMPERIAL AUCTION</h1>
             </div>
-            <div class="font-imp text-xl tracking-widest text-[#C5A059]">
-                ROUND <span id="round-num" class="text-white font-bold ml-2 text-2xl">1</span>
-                <span id="status-text" class="text-[#FFD700] font-bold ml-6 border-l-2 border-[#C5A059] pl-6">WAITING</span>
+            <div class="text-xl tracking-widest text-[#C5A059] font-bold">
+                ROUND <span id="round-num" class="text-white text-2xl mx-2">1</span>
+                <span id="status-text" class="text-[#FFD700] ml-6 border-l border-[#C5A059] pl-6">WAITING</span>
             </div>
         </header>
 
@@ -112,29 +104,23 @@
             
             <div class="flex-1 relative flex items-center justify-center">
                 
-                <div id="view-grid" class="flex flex-col items-center justify-center w-full h-full hidden">
-                    <div id="grid-container" class="grid grid-cols-6 gap-3 w-full h-full max-h-[75vh] max-w-[75vh] aspect-square p-2"></div>
+                <div id="view-grid" class="view-container hidden">
+                    <div id="grid-container" class="grid grid-cols-6 gap-3 w-full h-full max-h-[65vh] aspect-square p-2"></div>
                 </div>
 
-                <div id="view-coin" class="hidden flex-col items-center">
-                    <div class="text-[#FFD700] text-6xl font-imp mb-10 tracking-[0.2em]" id="coin-title">DESTINY FLIPPING...</div>
-                    <div class="coin-container">
-                        <div id="the-coin" class="coin">
-                            <div class="coin-face coin-front"><div class="coin-text text-[#553300]">福</div></div>
-                            <div class="coin-face coin-back"><div class="coin-text text-red-500">☠️</div></div>
-                        </div>
-                    </div>
-                    <div id="coin-result" class="mt-12 text-[7rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
+                <div id="view-coin" class="view-container hidden">
+                    <div class="text-[#FFD700] text-6xl mb-10 tracking-[0.2em]" id="coin-title">DESTINY FLIPPING...</div>
+                    <div style="font-size: 8rem;" id="coin-result" class="text-white font-black animate-bounce drop-shadow-[0_0_50px_gold] hidden">WINNER</div>
                 </div>
 
-                <div id="view-auction" class="hidden flex-col items-center justify-center w-full">
+                <div id="view-auction" class="view-container hidden">
                     <div id="timer-box" class="mb-6 text-center">
                         <p class="text-[#C5A059] text-xl tracking-[0.6em] uppercase font-bold mb-1">BIDDING ENDS IN</p>
-                        <div id="countdown-val" class="text-[9rem] leading-none font-black font-imp text-white drop-shadow-[0_0_40px_rgba(255,0,0,0.6)] tabular-nums">1:30</div>
+                        <div id="countdown-val" class="text-[9rem] leading-none font-black text-white drop-shadow-[0_0_40px_rgba(255,0,0,0.6)] tabular-nums">1:30</div>
                     </div>
                     <div class="envelope-container" id="main-envelope">
                         <div class="card-insert">
-                            <h3 id="card-title" class="font-imp text-[#8a0000] text-2xl font-black mb-2 uppercase border-b-2 border-[#8a0000] w-full pb-2 text-center">Item</h3>
+                            <h3 id="card-title" class="text-[#8a0000] text-2xl font-black mb-2 uppercase border-b-2 border-[#8a0000] w-full pb-2 text-center">Item</h3>
                             <p id="card-desc" class="font-serif text-2xl font-bold text-black leading-tight text-center">Effect</p>
                         </div>
                         <div class="envelope-body">
@@ -146,28 +132,28 @@
                     </div>
                 </div>
 
-                <div id="view-action" class="hidden flex-col items-center text-center">
-                    <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
-                    <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059] shadow-[0_0_80px_rgba(255,215,0,0.3)] leading-relaxed" id="action-desc">--</div>
+                <div id="view-action" class="view-container hidden text-center">
+                    <h2 id="action-title" class="text-7xl font-bold text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
+                    <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
                     
-                    <div class="mt-8 text-2xl font-bold bg-black/60 px-6 py-3 rounded-lg border border-[#C5A059]">
+                    <div class="mt-8 text-2xl font-bold bg-black/70 px-6 py-3 rounded-lg border border-[#C5A059]">
                         <span class="text-green-400">SUCCESS: +2,000</span> <span class="text-white mx-2">|</span> <span class="text-red-500">FAIL: -500</span>
                     </div>
 
-                    <div id="action-status" class="mt-8 text-3xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
+                    <div id="action-status" class="mt-8 text-3xl text-gray-400 animate-pulse tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
             </div>
 
             <div id="info-panel" class="w-[400px] flex flex-col gap-4 h-full z-50">
                 <div id="panel-rankings" class="glass-panel p-4 rounded-xl flex-1 flex flex-col overflow-hidden">
-                    <h3 class="font-imp text-center text-xl text-[#FFD700] border-b border-[#C5A059] pb-2 mb-2 tracking-[0.2em]">DYNASTY RANKINGS</h3>
+                    <h3 class="text-center text-xl text-[#FFD700] border-b border-[#C5A059] pb-2 mb-2 tracking-[0.2em]">DYNASTY RANKINGS</h3>
                     <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-1 scrollbar-hide"></div>
                 </div>
                 <div id="panel-leader" class="glass-panel p-6 rounded-xl flex-1 flex flex-col items-center justify-center hidden border-2 border-[#FFD700]">
                     <div class="text-[#C5A059] text-xl uppercase tracking-widest mb-4">CURRENT EMPEROR</div>
-                    <div id="val-leader-name" class="text-white font-black uppercase tracking-widest text-5xl text-center leading-tight mb-4 drop-shadow-[0_0_30px_gold] emperor-glow">--</div>
+                    <div id="val-leader-name" class="text-white font-black uppercase tracking-widest text-6xl text-center leading-tight mb-6 transition-all emperor-glow">--</div>
                     <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">OFFERING</div>
-                    <div id="val-high-bid" class="text-7xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
+                    <div id="val-high-bid" class="text-7xl font-black text-[#FFD700] drop-shadow-lg">0</div>
                 </div>
             </div>
 
@@ -182,9 +168,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // LANTERNS (Background)
+        // LANTERNS
         const lanternContainer = document.getElementById('lantern-container');
-        for(let i=0; i<15; i++) {
+        for(let i=0; i<12; i++) {
             const l = document.createElement('div');
             l.className = 'lantern';
             l.style.left = Math.random() * 95 + '%';
@@ -197,7 +183,6 @@
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
-        // CARD GONE
         onValue(ref(db, 'envelopes'), (snap) => {
             const used = snap.val() || {};
             for(let i=1; i<=36; i++) { 
@@ -212,7 +197,7 @@
         let lastLeader = "";
         let spinInterval = null;
 
-        // MAIN LOOP
+        // --- GAME LOOP ---
         onValue(ref(db, 'gameState'), async (snap) => {
             const st = snap.val();
             if(!st) return;
@@ -221,14 +206,14 @@
             document.getElementById('status-text').innerText = st.phase;
             currentDeadline = st.bidDeadline || 0;
 
-            // HIDE ALL VIEWS
+            // RESET
             ['view-grid', 'view-coin', 'view-auction', 'view-action'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
             
             // SIDEBAR LOGIC
-            if(['GRID', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
+            if(st.phase === 'GRID' || st.phase === 'DRAWING' || st.phase === 'HIGHLIGHT') {
                 document.getElementById('panel-rankings').classList.remove('hidden');
                 document.getElementById('panel-leader').classList.add('hidden');
             } else {
@@ -236,14 +221,14 @@
                 document.getElementById('panel-leader').classList.remove('hidden');
             }
 
-            // --- ANIMATION: PHYSICS SPIN (Fast to Slow) ---
+            // --- ANIMATION: PHYSICS SPIN (Fast -> Slow) ---
             if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 
                 const gridItems = document.querySelectorAll('.angpao:not(.gone)');
                 if(gridItems.length > 0 && !spinInterval) {
-                    let speed = 50; // Start fast
+                    let speed = 50; 
                     let steps = 0;
                     
                     const spin = () => {
@@ -253,11 +238,9 @@
                         sfxTick.currentTime = 0; sfxTick.play();
                         
                         steps++;
-                        // Slow down logic
                         if(steps > 20) speed += 10;
-                        if(steps > 40) speed += 20;
+                        if(steps > 40) speed += 30;
                         
-                        // Keep spinning unless phase changes (Admin controls stop via HIGHLIGHT phase)
                         if(document.getElementById('status-text').innerText === 'DRAWING') {
                             spinInterval = setTimeout(spin, speed);
                         }
@@ -292,24 +275,22 @@
                 const leaderEl = document.getElementById('val-leader-name');
                 const bidEl = document.getElementById('val-high-bid');
                 
-                // SLAM LOGIC
+                // SLAM EFFECT CHECK
                 if (st.phase === 'BIDDING' && leaderName !== lastLeader && leaderName !== "NO ONE") {
                     leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
+                    bidEl.innerText = (st.highestBid||0).toLocaleString();
                     
-                    // Reset animation
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
                     
-                    // Shake
                     document.getElementById('main-body').classList.add('shake-screen');
                     setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 500);
                     
                     lastLeader = leaderName;
                 } else {
                     if(leaderEl.innerText !== leaderName) leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
+                    bidEl.innerText = (st.highestBid||0).toLocaleString();
                 }
 
                 if (st.phase === 'REVEALED' && st.cardName) {
@@ -371,6 +352,7 @@
             }
         });
 
+        // ROSTER
         onValue(ref(db, 'teams'), (snap) => {
             const list = document.getElementById('roster-grid');
             list.innerHTML = '';
@@ -385,6 +367,7 @@
             });
         });
         
+        // ALL IN EFFECT
         const bidQueueRef = ref(db, 'bidQueue');
         onChildAdded(bidQueueRef, async (snapshot) => {
             const req = snapshot.val();
@@ -404,6 +387,7 @@
 
         onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
+        // TIMER LOOP
         setInterval(() => {
              const status = document.getElementById('status-text').innerText;
              if(status === 'BIDDING' && currentDeadline > 0) {
