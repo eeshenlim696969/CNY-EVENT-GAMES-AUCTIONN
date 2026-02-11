@@ -58,9 +58,11 @@
             const stateSnap = await get(ref(db, 'gameState'));
             const state = stateSnap.val();
             
+            // Allow bids higher than current highest (or first bid)
             if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
                 const teamSnap = await get(ref(db, `teams/${bid.teamId}`));
                 const team = teamSnap.val();
+                
                 await update(ref(db, 'gameState'), {
                     highestBid: bid.amount,
                     leaderId: bid.teamId,
@@ -80,7 +82,6 @@
 
         let gameState = {};
 
-        // STATE SYNC
         onValue(ref(db, 'gameState'), (snap) => {
             gameState = snap.val() || {};
             document.getElementById('phase-disp').innerText = gameState.phase;
@@ -89,22 +90,28 @@
             document.getElementById('btn-reveal').disabled = (gameState.phase !== 'SOLD');
             document.getElementById('btn-next').disabled = (gameState.phase !== 'REVEALED');
             
-            if(gameState.phase === 'BIDDING') document.getElementById('btn-skip').classList.remove('hidden');
-            else document.getElementById('btn-skip').classList.add('hidden');
+            if(gameState.phase === 'BIDDING') {
+                document.getElementById('btn-skip').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-skip').classList.add('hidden');
+            }
 
-            // PREVIEW LOGIC
-            if(['GRID'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
-            else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
+            if(['GRID'].includes(gameState.phase)) {
+                document.getElementById('secret-preview').classList.add('hidden');
+            } else if (gameState.currentCard) {
+                document.getElementById('secret-preview').classList.remove('hidden');
+            }
 
-            // CHALLENGE LOGIC
             if (gameState.phase === 'CHALLENGE') document.getElementById('challenge-controls').classList.remove('hidden');
             else document.getElementById('challenge-controls').classList.add('hidden');
         });
 
-        // AUTO-SOLD TIMER
+        // AUTO-SOLD
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                if (Date.now() > gameState.bidDeadline) update(ref(db, 'gameState'), { phase: 'SOLD' });
+                if (Date.now() > gameState.bidDeadline) {
+                    update(ref(db, 'gameState'), { phase: 'SOLD' });
+                }
             }
         }, 500);
 
@@ -116,19 +123,22 @@
                 const used = (await get(ref(db, 'envelopes'))).val() || {};
                 const available = deck.filter(c => !used[c.id]);
                 if(available.length === 0) return alert("Deck Empty!");
+                
                 const card = available[Math.floor(Math.random() * available.length)];
                 
                 document.getElementById('secret-title').innerText = card.name;
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                // SEQUENCE: DRAW(5s) -> HIGHLIGHT(2s) -> BID
+                // 1. SPIN (5 SECONDS)
                 await update(ref(db, 'gameState'), { phase: 'DRAWING' });
                 
                 setTimeout(async () => {
+                    // 2. HIGHLIGHT (2 SECONDS)
                     await update(ref(db, 'gameState'), { phase: 'HIGHLIGHT', currentCard: card.id });
                     
                     setTimeout(async () => {
+                        // 3. START BIDDING
                         await remove(ref(db, 'bidQueue'));
                         await update(ref(db, 'gameState'), { 
                             phase: 'BIDDING', 
@@ -183,18 +193,18 @@
             }
         });
 
-        // CHALLENGE RESOLVER
+        // CHALLENGE FIX
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
             if(!leaderId) return alert("No leader found");
             const t = (await get(ref(db, `teams/${leaderId}`))).val();
             
             if(pass) {
-                await update(ref(db, `teams/${leaderId}`), { balance: (t.balance||0) + 2000 });
-                alert(`Passed: +2000`);
+                await update(ref(db, `teams/${leaderId}`), { balance: t.balance + 2000 });
+                alert("Passed: +2000");
             } else {
-                await update(ref(db, `teams/${leaderId}`), { balance: Math.max(0, (t.balance||0) - 500) });
-                alert(`Failed: -500`);
+                await update(ref(db, `teams/${leaderId}`), { balance: Math.max(0, t.balance - 500) });
+                alert("Failed: -500");
             }
             await update(ref(db, 'gameState'), { phase: 'REVEALED' }); 
         };
@@ -206,7 +216,6 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            // Payment first
             let newBal = winner.balance - (gameState.highestBid || 0);
             const wRef = `teams/${winnerId}/balance`;
             updates[wRef] = newBal;
@@ -216,7 +225,25 @@
                 let val = Math.floor(newBal * card.val);
                 if(card.val < 1 && checkShield(winnerId)) {} else updates[wRef] = val;
             }
-            // ... (Rest of logic standard) ...
+            if(card.type === 'STEAL_RND') {
+                const victim = others[Math.floor(Math.random()*others.length)];
+                if(victim && !checkShield(victim)) {
+                    const amt = Math.floor(teams[victim].balance * card.val);
+                    updates[wRef] = newBal + amt; updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
+                }
+            }
+            if(card.type === 'STEAL_TGT' && targetId) {
+                if(!checkShield(targetId)) {
+                    const amt = Math.floor(teams[targetId].balance * card.val);
+                    updates[wRef] = newBal + amt; updates[`teams/${targetId}/balance`] = teams[targetId].balance - amt;
+                }
+            }
+            if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
+                let tid = targetId || others[Math.floor(Math.random()*others.length)];
+                if(tid && !checkShield(tid)) { updates[wRef] = teams[tid].balance; updates[`teams/${tid}/balance`] = newBal; }
+            }
+            if(card.type === 'ITEM') updates[`teams/${winnerId}/items/${card.item}`] = true;
+
             await update(ref(db), updates);
         }
     </script>
