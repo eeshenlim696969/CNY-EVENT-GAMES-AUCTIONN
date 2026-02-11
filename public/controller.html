@@ -111,13 +111,12 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
-            // LISTEN FOR BALANCE & ALERTS
+            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
                 if(data) { 
                     balance = Number(data.balance); 
                     document.getElementById('balance').innerText = balance.toLocaleString(); 
-                    
                     if(data.alert) {
                         document.getElementById('alert-msg').innerText = data.alert;
                         document.getElementById('alert-overlay').classList.remove('hidden');
@@ -126,36 +125,30 @@
                 }
             });
 
+            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
-                // --- RESET HANDLER ---
-                // If round went back to 1 (Admin hit Reset), wipe everything
-                if(st.round === 1 && currentRound !== 1) {
-                    localStorage.clear();
-                    // Re-save ID/Name so we don't log out
-                    localStorage.setItem('id', myId); 
-                    localStorage.setItem('name', myName);
-                    hasLabored = false;
-                    hasBid = false;
-                    currentRound = 1;
-                }
+                // --- ROBUST ROUND RESET LOGIC ---
+                // 1. Update the current round tracking
+                currentRound = st.round;
                 
-                // Normal Round Progression
-                if(st.round !== currentRound) {
-                    currentRound = st.round;
-                    localStorage.removeItem(`hasLabored_${st.round}`);
-                    localStorage.removeItem(`hasBid_${st.round}`);
-                    hasLabored = false; 
-                    hasBid = false;
-                } else {
-                    // Sync state from storage in case of refresh
-                    hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
-                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
+                // 2. HARD RESET: If Round 1 is detected, wipe everything cleanly
+                if(st.round === 1 && !sessionStorage.getItem('gameStarted')) {
+                     localStorage.clear();
+                     localStorage.setItem('id', myId); 
+                     localStorage.setItem('name', myName);
+                     sessionStorage.setItem('gameStarted', 'true');
                 }
+
+                // 3. STATELESS CHECK: Always read from the key specific to THIS round
+                // This automatically "resets" when round number changes because the key changes.
+                hasLabored = localStorage.getItem(`hasLabored_${st.round}`) === 'true';
+                hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
+
                 updateButtons();
 
                 document.getElementById('view-bid').classList.add('hidden');
@@ -190,30 +183,26 @@
             
             // STRICT LOCKING
             if(hasLabored) {
-                // If Labored: LOCK EVERYTHING
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
             } else if (hasBid) {
-                // If Bid: LOCK LABOR, ALLOW RE-BID
                 btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
             } else {
-                // If Fresh: UNLOCK ALL
                 btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
             }
         }
 
+        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
 
         window.openMinigame = () => { 
-            // PREVENT OPENING IF BIDDING ACTIVE
-            if(hasBid) return alert("You already chose to Bid this round!");
+            if(hasBid) return alert("You already chose to Bid!");
             if(hasLabored) return;
-            
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
             gameActive = true; barPos = 0; gameLoop(); 
@@ -246,12 +235,26 @@
              
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
-                 btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 await db.ref(`teams/${myId}`).update({ balance: balance + 200 });
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
+                 // INSTANT VISUAL FEEDBACK
+                 btnStrike.innerText = "SUCCESS!"; 
+                 btnStrike.style.background = "green";
+                 
+                 // DB UPDATE IN BACKGROUND
+                 db.ref(`teams/${myId}`).update({ balance: balance + 200 });
+                 
+                 setTimeout(() => { 
+                    closeMinigame(); 
+                    btnStrike.innerText = "STRIKE"; 
+                    btnStrike.style.background = ""; 
+                 }, 500); // Faster close
              } else {
-                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
+                 btnStrike.innerText = "MISSED"; 
+                 btnStrike.style.background = "red";
+                 setTimeout(() => { 
+                    closeMinigame(); 
+                    btnStrike.innerText = "STRIKE"; 
+                    btnStrike.style.background = ""; 
+                 }, 500);
              }
              
              hasLabored = true;
@@ -260,9 +263,8 @@
         }
 
         window.submitBid = async (isAllIn) => {
-            // PREVENT BIDDING IF LABORED
-            if(hasLabored) return alert("You already Labored this round!");
-
+            if(hasLabored) return alert("You already Labored!");
+            
             let v = 0;
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
@@ -287,7 +289,6 @@
                     if(tid !== myId) {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
-                        // HIDDEN BALANCE - BLIND STEAL
                         btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
                         btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) db.ref('gameState').update({ targetId: tid }); };
                         list.appendChild(btn);
