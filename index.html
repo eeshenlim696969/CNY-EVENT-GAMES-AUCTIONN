@@ -189,7 +189,7 @@
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
-        // CARD GONE
+        // CARD GONE LOGIC
         onValue(ref(db, 'envelopes'), (snap) => {
             const used = snap.val() || {};
             for(let i=1; i<=36; i++) { 
@@ -451,7 +451,7 @@
 </html>
 
 ### 3. `public/controller.html` (The Player)
-* **Changes:** Added "Alert" system for players getting robbed. Implemented Blind Stealing list.
+* **New:** Blind Stealing ("???" displayed), Victim Alerts, and Reset Labor fix.
 
 ```html
 <!DOCTYPE html>
@@ -579,8 +579,6 @@
                         document.getElementById('alert-msg').innerText = data.alert;
                         document.getElementById('alert-overlay').classList.remove('hidden');
                         document.getElementById('body-main').classList.add('flash-red');
-                        // Clear alert so it doesn't stick
-                        // Note: We handle clear in dismiss
                     }
                 }
             });
@@ -593,6 +591,7 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
+                    // RESET LABOR AND BID FLAGS ON NEW ROUND
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
