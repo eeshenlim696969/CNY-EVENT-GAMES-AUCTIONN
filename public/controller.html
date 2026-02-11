@@ -115,6 +115,7 @@
                 
                 if(st.round !== currentRound) {
                     currentRound = st.round;
+                    // RESET LABOR AND BID FLAGS ON NEW ROUND
                     localStorage.removeItem(`hasLabored_${st.round}`);
                     localStorage.removeItem(`hasBid_${st.round}`);
                     hasLabored = false; 
@@ -161,10 +162,12 @@
             }
         }
 
+        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        let barPos = 0, barDir = 1, barSpeed = 4, targetZone = { x: 125, w: 50 };
+        // SPEED 3.5, TARGET 40 (As requested in previous interaction, confirmed)
+        let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
 
         window.openMinigame = () => { 
             if(hasLabored || hasBid) return;
@@ -202,7 +205,7 @@
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
                  btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
                  
-                 // FIX: DIRECT UPDATE TO BALANCE
+                 // DIRECT UPDATE
                  await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
                  
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
@@ -211,6 +214,7 @@
                  setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
              }
              
+             // Lock for this round
              hasLabored = true;
              localStorage.setItem(`hasLabored_${currentRound}`, 'true');
              updateButtons();
@@ -223,6 +227,9 @@
             
             if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
             
+            // Allow re-bidding, so don't set hasBid true yet if we want to allow multiple bids?
+            // The user said "the player can choose between bid and labor again" at the start of new round.
+            // But within a round, usually bidding locks labor.
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
             updateButtons();
