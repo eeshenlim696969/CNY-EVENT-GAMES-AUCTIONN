@@ -132,6 +132,19 @@
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
+                // --- RESET HANDLER ---
+                // If round went back to 1 (Admin hit Reset), wipe everything
+                if(st.round === 1 && currentRound !== 1) {
+                    localStorage.clear();
+                    // Re-save ID/Name so we don't log out
+                    localStorage.setItem('id', myId); 
+                    localStorage.setItem('name', myName);
+                    hasLabored = false;
+                    hasBid = false;
+                    currentRound = 1;
+                }
+                
+                // Normal Round Progression
                 if(st.round !== currentRound) {
                     currentRound = st.round;
                     localStorage.removeItem(`hasLabored_${st.round}`);
@@ -139,6 +152,7 @@
                     hasLabored = false; 
                     hasBid = false;
                 } else {
+                    // Sync state from storage in case of refresh
                     hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
                     hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
@@ -160,9 +174,6 @@
                 } else if (st.phase === 'TARGETING' && st.leaderId === myId) {
                     document.getElementById('view-target').classList.remove('hidden'); document.getElementById('view-target').classList.add('flex');
                     loadRivals();
-                } else {
-                    document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
-                    document.getElementById('status-banner').innerText = st.phase;
                 }
             });
         }
@@ -177,13 +188,17 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
+            // STRICT LOCKING
             if(hasLabored) {
+                // If Labored: LOCK EVERYTHING
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
             } else if (hasBid) {
+                // If Bid: LOCK LABOR, ALLOW RE-BID
                 btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
             } else {
+                // If Fresh: UNLOCK ALL
                 btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
                 btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
             }
@@ -195,7 +210,10 @@
         let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
 
         window.openMinigame = () => { 
-            if(hasLabored || hasBid) return;
+            // PREVENT OPENING IF BIDDING ACTIVE
+            if(hasBid) return alert("You already chose to Bid this round!");
+            if(hasLabored) return;
+            
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
             gameActive = true; barPos = 0; gameLoop(); 
@@ -242,6 +260,9 @@
         }
 
         window.submitBid = async (isAllIn) => {
+            // PREVENT BIDDING IF LABORED
+            if(hasLabored) return alert("You already Labored this round!");
+
             let v = 0;
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
@@ -266,6 +287,7 @@
                     if(tid !== myId) {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
+                        // HIDDEN BALANCE - BLIND STEAL
                         btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
                         btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) db.ref('gameState').update({ targetId: tid }); };
                         list.appendChild(btn);
