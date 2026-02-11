@@ -49,7 +49,6 @@
     </div>
 
     <script type="module">
-        // VITE FIX
         (async () => {
             const { initializeApp } = await import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js");
             const { getDatabase, ref, update, set, get, onValue, remove, onChildAdded } = await import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js");
@@ -58,37 +57,21 @@
             const app = initializeApp(firebaseConfig);
             const db = getDatabase(app);
 
-            // --- BID ENGINE ---
             onChildAdded(ref(db, 'bidQueue'), async (snapshot) => {
                 const bid = snapshot.val();
                 if(!bid) return;
                 const stateSnap = await get(ref(db, 'gameState'));
                 const state = stateSnap.val();
-                
                 if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
                     const teamSnap = await get(ref(db, `teams/${bid.teamId}`));
                     const team = teamSnap.val();
-                    await update(ref(db, 'gameState'), {
-                        highestBid: bid.amount,
-                        leaderId: bid.teamId,
-                        leaderName: team.name
-                    });
+                    await update(ref(db, 'gameState'), { highestBid: bid.amount, leaderId: bid.teamId, leaderName: team.name });
                 }
                 remove(snapshot.ref);
             });
 
-            // --- DECK ---
             const deck = [
-                { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, 
-                { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000 }, 
-                { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, 
-                { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, 
-                { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, 
-                { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, 
-                { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, 
-                { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, 
-                { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, 
-                { id: 10, name: "Small Rain", desc: "+200 TO EVERYONE", type: "GLOBAL_ADD", val: 200 },
+                { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000 }, { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, { id: 10, name: "Small Rain", desc: "+200 TO EVERYONE", type: "GLOBAL_ADD", val: 200 },
                 { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
                 { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 }, { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 }, { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 }, { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 }, { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" }, { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
                 { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" }, { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" }, { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" }, { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE" }, { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE" }, { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE" }, { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE" }, { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE" }, { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE" }, { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE" }
@@ -109,7 +92,6 @@
                 const gameControls = document.getElementById('gameplay-controls');
                 const leaderControls = document.getElementById('leaderboard-controls');
 
-                // View Switch
                 if(gameState.phase === 'LEADERBOARD') {
                     gameControls.classList.add('hidden');
                     leaderControls.classList.remove('hidden');
@@ -133,16 +115,12 @@
                 else challengeBox.classList.add('hidden');
             });
 
-            // TIMER
             setInterval(() => {
                 if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
-                    if (Date.now() > gameState.bidDeadline) {
-                        update(ref(db, 'gameState'), { phase: 'SOLD' });
-                    }
+                    if (Date.now() > gameState.bidDeadline) update(ref(db, 'gameState'), { phase: 'SOLD' });
                 }
             }, 500);
 
-            // ACTIONS
             window.adminAction = async (action, param) => {
                 if(action === 'START') {
                     if(confirm("⚠ RESET GAME?")) await set(ref(db), { gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
@@ -150,29 +128,21 @@
                 if(action === 'END_GAME') {
                     if(confirm("👑 END GAME?")) await update(ref(db, 'gameState'), { phase: 'LEADERBOARD', revealRank: 4 });
                 }
-                if(action === 'REVEAL_RANK') {
-                    await update(ref(db, 'gameState'), { revealRank: param });
-                }
+                if(action === 'REVEAL_RANK') await update(ref(db, 'gameState'), { revealRank: param });
                 if(action === 'DRAW') {
                     const used = (await get(ref(db, 'envelopes'))).val() || {};
                     const available = deck.filter(c => !used[c.id]);
                     if(available.length === 0) return alert("Deck Empty!");
                     const card = available[Math.floor(Math.random() * available.length)];
-                    
                     document.getElementById('secret-title').innerText = card.name;
                     document.getElementById('secret-desc').innerText = card.desc;
                     document.getElementById('secret-type').innerText = card.type;
-
                     await update(ref(db, 'gameState'), { phase: 'DRAWING' });
-                    
                     setTimeout(async () => {
                         await update(ref(db, 'gameState'), { phase: 'HIGHLIGHT', currentCard: card.id });
                         setTimeout(async () => {
                             await remove(ref(db, 'bidQueue'));
-                            await update(ref(db, 'gameState'), { 
-                                phase: 'BIDDING', currentCard: card.id, highestBid: 0, leaderId: null, leaderName: null, 
-                                bidDeadline: Date.now() + 90000 
-                            });
+                            await update(ref(db, 'gameState'), { phase: 'BIDDING', currentCard: card.id, highestBid: 0, leaderId: null, leaderName: null, bidDeadline: Date.now() + 90000 });
                         }, 2000);
                     }, 5000);
                 }
@@ -213,6 +183,7 @@
                     const card = deck.find(c => c.id === gameState.currentCard);
                     await executeEffect(card, gameState.leaderId, snap.val());
                     await update(ref(db, 'gameState/targetId'), null);
+                    // FIX: Ensure button unlocks by setting phase to REVEALED after target effect
                     await update(ref(db, 'gameState'), { phase: 'REVEALED' });
                 }
             });
@@ -242,9 +213,7 @@
                 const wRef = `teams/${winnerId}/balance`;
                 updates[wRef] = newBal;
 
-                if(card.type === 'GLOBAL_ADD') {
-                    for (let k in teams) updates[`teams/${k}/balance`] = (teams[k].balance) + card.val;
-                }
+                if(card.type === 'GLOBAL_ADD') { for (let k in teams) updates[`teams/${k}/balance`] = (teams[k].balance) + card.val; }
                 if(card.type === 'ADD') updates[wRef] = newBal + card.val;
                 if(card.type === 'MULTIPLY') {
                     let val = Math.floor(newBal * card.val);
