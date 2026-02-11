@@ -46,12 +46,12 @@
 
         /* --- UPDATED: LONGER & BIGGER SLAM (2.0s) --- */
         @keyframes slamIn { 
-            0% { transform: scale(5); opacity: 0; } 
-            20% { transform: scale(1); opacity: 1; } 
+            0% { transform: scale(10); opacity: 0; filter: blur(10px); } 
+            20% { transform: scale(1); opacity: 1; filter: blur(0px); } 
             30% { transform: scale(1.4); color: #fff; text-shadow: 0 0 80px white; } /* Bounce */
             100% { transform: scale(1); color: #FFD700; } 
         }
-        .slam-text { animation: slamIn 2.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .slam-text { animation: slamIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         
         /* --- UPDATED: LONGER SCREEN SHAKE (1.0s) --- */
         .shake-screen { animation: shakeScreen 1.0s ease-in-out; }
@@ -73,7 +73,8 @@
         .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
         @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; transform: scale(1); } 50% { text-shadow: 0 0 100px red; transform: scale(1.1); } 100% { text-shadow: 0 0 50px red; transform: scale(1); } }
 
-        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 2s linear forwards; z-index: 100; }
+        /* COIN RAIN PARTICLES */
+        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 2s linear forwards; z-index: 200; pointer-events: none; }
         @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
 
         /* ENVELOPE */
@@ -96,7 +97,7 @@
 
     <div class="layer-bg"></div>
     <div class="layer-lanterns" id="lantern-container"></div>
-    <div class="layer-fx" id="fx-container"></div>
+    <div class="layer-fx" id="fx-container" style="position: absolute; inset: 0; pointer-events: none; z-index: 200;"></div>
 
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
@@ -207,22 +208,27 @@
 
         const sfxTick = document.getElementById('sfx-tick');
         let currentDeadline = 0;
-        let lastLeader = "";
+        let lastHighBid = 0;
         let spinInterval = null;
 
+        // --- GAME LOOP ---
         onValue(ref(db, 'gameState'), async (snap) => {
             const st = snap.val();
             if(!st) return;
 
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
+            
+            // TIMER UPDATE - Vital for counter
             currentDeadline = st.bidDeadline || 0;
 
+            // VIEW RESET
             ['view-grid', 'view-coin', 'view-auction', 'view-action'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
             
+            // SIDEBAR LOGIC
             if(['GRID', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
                 document.getElementById('panel-rankings').classList.remove('hidden');
                 document.getElementById('panel-leader').classList.add('hidden');
@@ -231,6 +237,7 @@
                 document.getElementById('panel-leader').classList.remove('hidden');
             }
 
+            // --- ANIMATIONS ---
             if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
@@ -272,26 +279,49 @@
                 document.getElementById('view-auction').classList.add('flex');
 
                 const leaderName = st.leaderName || "NO ONE";
+                const highBid = st.highestBid || 0;
+                
                 const leaderEl = document.getElementById('val-leader-name');
                 const bidEl = document.getElementById('val-high-bid');
+
+                // --- MEGA SLAM & EXPLOSION LOGIC (Trigger on HIGHER OR SAME but NEW bid) ---
+                // We check if highBid > lastHighBid OR if highBid changed (even if same amount, rare but possible if re-bid logic allowed)
+                // But mainly > lastHighBid tracks progress.
+                // The user asked: "even if they are same bidder but higher".
+                // Logic: If current bid > last stored high bid.
                 
-                // SLAM LOGIC
-                if (st.phase === 'BIDDING' && leaderName !== lastLeader && leaderName !== "NO ONE") {
+                if (st.phase === 'BIDDING' && highBid > lastHighBid) {
+                    // Update Text
                     leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
+                    bidEl.innerText = "RM " + highBid.toLocaleString();
                     
-                    // RESTART ANIMATION
+                    // Trigger Slam Animation (Force Reflow)
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
                     
+                    // Trigger Screen Shake
                     document.getElementById('main-body').classList.add('shake-screen');
                     setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
                     
-                    lastLeader = leaderName;
+                    // Trigger Coin Rain Logic based on amount
+                    let rainAmount = 5;
+                    if(highBid >= 1000) rainAmount = 50;
+                    else if(highBid >= 500) rainAmount = 30;
+                    else if(highBid >= 300) rainAmount = 15;
+                    else if(highBid >= 100) rainAmount = 8;
+                    
+                    spawnCoinRain(rainAmount);
+
+                    lastHighBid = highBid;
+                } else if (leaderName === "NO ONE") {
+                    leaderEl.innerText = "NO ONE";
+                    bidEl.innerText = "RM 0";
+                    lastHighBid = 0;
                 } else {
-                    if(leaderEl.innerText !== leaderName) leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + (st.highestBid||0).toLocaleString();
+                    // Just update values if refreshed
+                    leaderEl.innerText = leaderName;
+                    bidEl.innerText = "RM " + highBid.toLocaleString();
                 }
 
                 if (st.phase === 'REVEALED' && st.cardName) {
@@ -352,6 +382,7 @@
             }
         });
 
+        // ROSTER
         onValue(ref(db, 'teams'), (snap) => {
             const list = document.getElementById('roster-grid');
             list.innerHTML = '';
@@ -366,41 +397,27 @@
             });
         });
         
-        // --- UPDATED: DYNAMIC MONEY RAIN ---
-        const bidQueueRef = ref(db, 'bidQueue');
-        onChildAdded(bidQueueRef, async (snapshot) => {
-            const req = snapshot.val();
-            if(req) {
-               // Calculate Amount based on Bid
-               let count = 0;
-               if (req.isAllIn) {
-                   count = 200; 
-                   document.getElementById('val-leader-name').classList.add('all-in-glow');
-                   document.getElementById('main-body').classList.add('shake-violent'); // Violent Shake for All In
-                   setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
-               } else {
-                   count = Math.floor(req.amount / 15); // e.g. 500 bid = 33 coins
-                   document.getElementById('val-leader-name').classList.remove('all-in-glow');
-               }
-               
-               if(count > 0) spawnCoinRain(count);
-            }
-        });
-
+        // --- COIN RAIN SYSTEM ---
         function spawnCoinRain(amount) {
             const container = document.getElementById('fx-container');
+            // Check container existence
+            if(!container) return;
+            
             for(let i=0; i<amount; i++) {
                 const c = document.createElement('div');
                 c.className = 'falling-coin';
                 c.style.left = Math.random() * 100 + '%';
-                c.style.animationDuration = (1 + Math.random() * 2) + 's';
+                // Random duration for variety
+                c.style.animationDuration = (1.5 + Math.random()) + 's';
                 container.appendChild(c);
-                setTimeout(() => c.remove(), 3000);
+                // Cleanup
+                setTimeout(() => c.remove(), 2500);
             }
         }
 
         onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
+        // TIMER LOOP
         setInterval(() => {
              const status = document.getElementById('status-text').innerText;
              if(status === 'BIDDING' && currentDeadline > Date.now()) {
