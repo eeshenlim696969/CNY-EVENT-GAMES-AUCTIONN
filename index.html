@@ -7,9 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        /* (Styles remain the same as previous stable version) */
-        body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
+        /* IMPERIAL THEME */
+        body { 
+            font-family: 'Cinzel', serif; 
+            background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); 
+            color: #FFD700; 
+            overflow: hidden; 
+            cursor: none; 
+        }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
+
+        /* LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
@@ -438,6 +446,290 @@
                  document.getElementById('countdown-val').innerText = "0:00";
              }
         }, 100);
+    </script>
+</body>
+</html>
+
+### 3. `public/controller.html` (The Player)
+* **Changes:** Added "Alert" system for players getting robbed. Implemented Blind Stealing list.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Imperial Controller</title>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link href="[https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap](https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap)" rel="stylesheet">
+    <style>
+        body { background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; font-family: 'Cinzel', serif; touch-action: manipulation; }
+        .glass-panel { background: rgba(30, 0, 0, 0.9); border: 2px solid #C5A059; box-shadow: 0 4px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .btn-gold { background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%); color: #1a0505; border: 1px solid #fff; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+        .btn-gold:active { transform: scale(0.96); filter: brightness(0.9); }
+        .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
+        .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
+        .btn-quick:active { background: #FFD700; color: black; }
+        .safe-h { height: 100dvh; }
+        .flash-red { animation: flashRed 1s infinite; }
+        @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
+    </style>
+</head>
+<body class="safe-h flex flex-col p-4 overflow-hidden" id="body-main">
+
+    <div id="minigame-overlay" class="absolute inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center hidden">
+        <h2 class="text-3xl text-[#FFD700] mb-4 drop-shadow-[0_0_10px_gold]">JADE CUTTER</h2>
+        <p class="text-xs text-gray-400 mb-8">Tap STOP when bar is in GREEN</p>
+        <canvas id="game-canvas" width="300" height="50" class="mb-8 border-2 border-yellow-500 rounded"></canvas>
+        <button id="btn-strike" class="btn-gold px-12 py-6 rounded-full text-2xl shadow-[0_0_30px_gold]">STRIKE</button>
+        <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">GIVE UP</button>
+    </div>
+
+    <div id="alert-overlay" class="absolute inset-0 z-[200] bg-red-900/90 flex flex-col items-center justify-center hidden p-6 text-center">
+        <h1 class="text-4xl text-white font-black mb-4">⚠ ALERT ⚠</h1>
+        <p id="alert-msg" class="text-2xl text-yellow-300 font-bold">--</p>
+        <button onclick="dismissAlert()" class="mt-8 bg-black border border-white px-6 py-3 rounded text-white">OK</button>
+    </div>
+
+    <div id="login" class="flex flex-col items-center justify-center h-full gap-6">
+        <h1 class="text-5xl mb-4 text-[#FFD700] tracking-[0.2em] font-black text-center">IMPERIAL<br>AUCTION</h1>
+        <input id="inp-name" class="w-full glass-panel p-6 text-center text-2xl text-white rounded-2xl focus:outline-none focus:border-[#FFD700]" placeholder="DYNASTY NAME">
+        <button onclick="login()" class="btn-gold w-full py-6 text-2xl rounded-2xl shadow-xl">JOIN</button>
+    </div>
+
+    <div id="app" class="hidden flex-col h-full relative">
+        <div class="flex justify-between items-end mb-4 border-b-2 border-[#C5A059] pb-4 bg-black/40 p-4 rounded-xl shrink-0">
+            <div>
+                <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">DYNASTY</div>
+                <div id="name-display" class="text-2xl text-white leading-none font-bold">--</div>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">TREASURY</div>
+                <div class="text-4xl text-[#FFD700] drop-shadow-md font-black">RM <span id="balance">--</span></div>
+            </div>
+        </div>
+
+        <div id="status-banner" class="text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0">Waiting...</div>
+
+        <div id="view-bid" class="hidden flex-col gap-4 flex-1 min-h-0">
+            <div class="glass-panel p-4 rounded-xl text-center border-t-4 border-t-[#FFD700] shrink-0">
+                <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">CURRENT HIGH BID</div>
+                <div class="text-5xl text-white font-black drop-shadow-lg">RM <span id="high-bid">0</span></div>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-2 shrink-0">
+                <button onclick="quick(0.1)" class="btn-quick py-4 rounded-lg text-xs">+10%</button>
+                <button onclick="quick(0.25)" class="btn-quick py-4 rounded-lg text-xs">+25%</button>
+                <button onclick="quick(0.5)" class="btn-quick py-4 rounded-lg text-xs">+50%</button>
+                <button onclick="submitBid(true)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL IN</button>
+            </div>
+
+            <button id="btn-labor" onclick="openMinigame()" class="w-full py-4 bg-blue-900/40 border border-blue-400 rounded-xl text-blue-200 font-bold tracking-widest hover:bg-blue-900/60 transition shadow-lg shrink-0">⚒️ MANUAL LABOR (+200)</button>
+
+            <div class="mt-auto flex flex-col gap-2">
+                <div class="relative">
+                    <span class="absolute left-8 top-1/2 -translate-y-1/2 text-[#C5A059] text-2xl font-bold">RM</span>
+                    <input id="bid-val" type="number" class="w-full glass-panel p-5 pl-20 text-center text-4xl text-white rounded-2xl font-black focus:outline-none focus:border-[#FFD700]" placeholder="0">
+                </div>
+                <button onclick="submitBid(false)" id="btn-bid" class="btn-gold w-full py-5 text-2xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
+            </div>
+        </div>
+
+        <div id="view-target" class="hidden flex-col h-full bg-[#1a0505] absolute inset-0 z-50 p-6">
+            <h2 class="text-center text-4xl text-red-500 mb-2 animate-pulse font-black">⚔️ CHOOSE VICTIM ⚔️</h2>
+            <div id="rivals-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js)";
+        import { getDatabase, ref, onValue, get, set, push, update, remove } from "[https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js)";
+
+        const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "[https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app](https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app)", projectId: "auction-ebc97" });
+        const db = getDatabase(app);
+        
+        let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
+
+        window.login = async () => {
+            const n = document.getElementById('inp-name').value;
+            if(!n) return;
+            const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+            await set(ref(db, `teams/${id}`), { name: n, balance: 1000 });
+            myId = id; myName = n;
+            localStorage.setItem('id', id); localStorage.setItem('name', n);
+            init();
+        }
+
+        if(localStorage.getItem('id')) { myId = localStorage.getItem('id'); myName = localStorage.getItem('name'); init(); }
+
+        function init() {
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
+            document.getElementById('name-display').innerText = myName;
+
+            // LISTEN FOR BALANCE & ALERTS
+            onValue(ref(db, `teams/${myId}`), s => {
+                const data = s.val();
+                if(data) { 
+                    balance = Number(data.balance); 
+                    document.getElementById('balance').innerText = balance.toLocaleString(); 
+                    
+                    // ALERT SYSTEM
+                    if(data.alert) {
+                        document.getElementById('alert-msg').innerText = data.alert;
+                        document.getElementById('alert-overlay').classList.remove('hidden');
+                        document.getElementById('body-main').classList.add('flash-red');
+                        // Clear alert so it doesn't stick
+                        // Note: We handle clear in dismiss
+                    }
+                }
+            });
+
+            onValue(ref(db, 'gameState'), s => {
+                const st = s.val();
+                if(!st) return;
+                
+                document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
+                
+                if(st.round !== currentRound) {
+                    currentRound = st.round;
+                    localStorage.removeItem(`hasLabored_${st.round}`);
+                    localStorage.removeItem(`hasBid_${st.round}`);
+                    hasLabored = false; 
+                    hasBid = false;
+                } else {
+                    hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
+                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
+                }
+                updateButtons();
+
+                document.getElementById('view-bid').classList.add('hidden');
+                document.getElementById('view-target').classList.add('hidden');
+                
+                if (st.leaderId === myId && st.phase === 'BIDDING') {
+                    document.getElementById('status-banner').innerText = "YOU ARE WINNING!";
+                    document.getElementById('status-banner').className = "text-center bg-green-900/80 p-4 rounded-xl mb-4 text-sm text-green-200 border-2 border-green-500 animate-pulse font-bold shrink-0";
+                } else {
+                    document.getElementById('status-banner').className = "text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0";
+                    document.getElementById('status-banner').innerText = st.phase;
+                }
+
+                if (st.phase === 'BIDDING') {
+                    document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
+                } else if (st.phase === 'TARGETING' && st.leaderId === myId) {
+                    document.getElementById('view-target').classList.remove('hidden'); document.getElementById('view-target').classList.add('flex');
+                    loadRivals();
+                }
+            });
+        }
+
+        window.dismissAlert = async () => {
+            document.getElementById('alert-overlay').classList.add('hidden');
+            document.getElementById('body-main').classList.remove('flash-red');
+            await remove(ref(db, `teams/${myId}/alert`));
+        }
+
+        function updateButtons() {
+            const btnLabor = document.getElementById('btn-labor');
+            const btnBid = document.getElementById('btn-bid');
+            
+            if(hasLabored) {
+                btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
+                btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
+            } else if (hasBid) {
+                btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
+                btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
+            } else {
+                btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
+                btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
+            }
+        }
+
+        let gameActive = false, gameLoopId;
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
+
+        window.openMinigame = () => { 
+            if(hasLabored || hasBid) return;
+            document.getElementById('minigame-overlay').classList.remove('hidden'); 
+            document.getElementById('minigame-overlay').classList.add('flex'); 
+            gameActive = true; barPos = 0; gameLoop(); 
+        };
+        
+        window.closeMinigame = () => { 
+            gameActive = false; cancelAnimationFrame(gameLoopId); 
+            document.getElementById('minigame-overlay').classList.add('hidden'); 
+        };
+
+        function gameLoop() {
+            if(!gameActive) return;
+            ctx.clearRect(0,0,300,50);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(targetZone.x, 0, targetZone.w, 50);
+            const center = barPos + 5;
+            const isInside = (center >= targetZone.x && center <= targetZone.x + targetZone.w);
+            ctx.fillStyle = isInside ? '#ffffff' : '#ff0000'; 
+            ctx.fillRect(barPos, 0, 10, 50);
+            barPos += barSpeed * barDir; if(barPos > 290 || barPos < 0) barDir *= -1;
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        const btnStrike = document.getElementById('btn-strike');
+        btnStrike.addEventListener('touchstart', handleStrike);
+        btnStrike.addEventListener('click', handleStrike);
+
+        async function handleStrike(e) {
+             e.preventDefault(); if(!gameActive) return;
+             gameActive = false; cancelAnimationFrame(gameLoopId);
+             
+             const center = barPos + 5;
+             if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
+                 btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
+                 await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
+                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
+             } else {
+                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
+                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
+             }
+             
+             hasLabored = true;
+             localStorage.setItem(`hasLabored_${currentRound}`, 'true');
+             updateButtons();
+        }
+
+        window.submitBid = async (isAllIn) => {
+            let v = 0;
+            if(isAllIn) v = balance;
+            else v = parseInt(document.getElementById('bid-val').value);
+            
+            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
+            
+            hasBid = true;
+            localStorage.setItem(`hasBid_${currentRound}`, 'true');
+            updateButtons();
+            
+            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v, isAllIn: !!isAllIn });
+        }
+
+        window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p); }
+
+        function loadRivals() {
+            get(ref(db, 'teams')).then(s => {
+                const teams = s.val();
+                const list = document.getElementById('rivals-list');
+                list.innerHTML = '';
+                Object.keys(teams).forEach(tid => {
+                    if(tid !== myId) {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
+                        // HIDDEN BALANCE - BLIND STEAL
+                        btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
+                        btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) update(ref(db, 'gameState'), { targetId: tid }); };
+                        list.appendChild(btn);
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
