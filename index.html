@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
+        /* IMPERIAL THEME */
         body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
@@ -41,6 +42,7 @@
         .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.3rem; }
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
         .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
         .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .podium-box.reveal { opacity: 1; transform: translateY(0); }
         .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 4rem; }
@@ -75,13 +77,16 @@
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
             <div class="flex-1 relative flex items-center justify-center">
+                
                 <div id="view-grid" class="view-container hidden">
                     <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
                 </div>
+
                 <div id="view-coin" class="view-container hidden">
                     <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em]">DESTINY FLIPPING...</div>
                     <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
                 </div>
+
                 <div id="view-auction" class="view-container hidden">
                     <div id="timer-box" class="mb-8 text-center transition-all duration-300">
                         <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
@@ -100,6 +105,7 @@
                         <div class="envelope-lid"></div>
                     </div>
                 </div>
+
                 <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
@@ -108,6 +114,7 @@
                     </div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
+
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
                     <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl">FINAL STANDINGS</h1>
                     <div class="flex items-end justify-center gap-12 w-full max-w-6xl">
@@ -182,35 +189,37 @@
         let lastHighBid = 0;
         let spinInterval = null;
 
+        // --- GAME LOOP ---
         db.ref('gameState').on('value', (snap) => {
             const st = snap.val();
             if(!st) return;
 
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
-            currentDeadline = Number(st.bidDeadline) || 0;
+            currentDeadline = Number(st.bidDeadline) || 0; 
 
+            // HIDE ALL
             ['view-grid', 'view-coin', 'view-auction', 'view-action', 'view-leaderboard'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC - HIDE RANKINGS DURING DRAWING
+            // SIDEBAR LOGIC (Hidden in Grid & Leaderboard)
             if(['GRID', 'LEADERBOARD', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
                 document.getElementById('info-panel').classList.add('hidden');
             } else {
                 document.getElementById('info-panel').classList.remove('hidden');
                 // Rank/Leader Toggle
-                if(['CHALLENGE', 'TARGETING'].includes(st.phase)) {
-                     // Keep hidden or show leader? Let's show leader
-                     document.getElementById('panel-rankings').classList.add('hidden');
-                     document.getElementById('panel-leader').classList.remove('hidden');
+                if(['DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
+                    document.getElementById('panel-rankings').classList.remove('hidden');
+                    document.getElementById('panel-leader').classList.add('hidden');
                 } else {
-                     document.getElementById('panel-rankings').classList.add('hidden');
-                     document.getElementById('panel-leader').classList.remove('hidden');
+                    document.getElementById('panel-rankings').classList.add('hidden');
+                    document.getElementById('panel-leader').classList.remove('hidden');
                 }
             }
 
+            // --- PHASES ---
             if (st.phase === 'LEADERBOARD') {
                 document.getElementById('view-leaderboard').classList.remove('hidden');
                 document.getElementById('view-leaderboard').classList.add('flex');
@@ -221,7 +230,8 @@
                 document.getElementById('view-grid').classList.add('flex');
                 const gridItems = document.querySelectorAll('.angpao:not(.gone)');
                 if(gridItems.length > 0 && !spinInterval) {
-                    let speed = 50; let steps = 0;
+                    let speed = 50; 
+                    let steps = 0;
                     const spin = () => {
                         gridItems.forEach(el => el.classList.remove('active'));
                         const r = gridItems[Math.floor(Math.random() * gridItems.length)];
@@ -256,24 +266,25 @@
 
                 const leaderName = st.leaderName || "NO ONE";
                 const highBid = st.highestBid || 0;
-                const leaderEl = document.getElementById('val-leader-name');
-                const bidEl = document.getElementById('val-high-bid');
                 
+                // SLAM & ANIMATION LOGIC
                 if (st.phase === 'BIDDING' && highBid > lastHighBid) {
-                    leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + highBid.toLocaleString();
+                    document.getElementById('val-leader-name').innerText = leaderName;
+                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
                     
+                    const leaderEl = document.getElementById('val-leader-name');
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
                     
+                    // Check Special Effect
                     if(st.isAllIn) {
-                         leaderEl.classList.add('all-in-glow');
+                         document.getElementById('val-leader-name').classList.add('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-violent'); 
                          setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
                          spawnCoinRain(200);
                     } else {
-                         leaderEl.classList.remove('all-in-glow');
+                         document.getElementById('val-leader-name').classList.remove('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-screen');
                          setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
                          
@@ -283,14 +294,15 @@
                          else if(highBid >= 300) rainAmount = 20;
                          spawnCoinRain(rainAmount);
                     }
+
                     lastHighBid = highBid;
                 } else if (leaderName === "NO ONE") {
-                    leaderEl.innerText = "NO ONE";
-                    bidEl.innerText = "RM 0";
+                    document.getElementById('val-leader-name').innerText = "NO ONE";
+                    document.getElementById('val-high-bid').innerText = "RM 0";
                     lastHighBid = 0;
                 } else {
-                    leaderEl.innerText = leaderName;
-                    bidEl.innerText = "RM " + highBid.toLocaleString();
+                    document.getElementById('val-leader-name').innerText = leaderName;
+                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
                 }
 
                 if (st.phase === 'REVEALED' && st.cardName) {
@@ -300,7 +312,7 @@
                 } else {
                     document.getElementById('main-envelope').classList.remove('is-open');
                 }
-                
+
                 if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
                 else document.getElementById('main-envelope').classList.remove('shaking');
                 
@@ -351,7 +363,7 @@
             }
         });
 
-        // LEADERBOARD LOGIC
+        // LEADERBOARD UPDATER
         async function updateLeaderboard(revealRank) {
             const snap = await db.ref('teams').get();
             const teams = snap.val() || {};
@@ -377,7 +389,21 @@
             } else { document.getElementById('podium-1').classList.remove('reveal'); }
         }
 
-        // COIN RAIN SYSTEM
+        // ROSTER (For Sidebar - Hidden in Grid/Leaderboard)
+        db.ref('teams').on('value', (snap) => {
+            const list = document.getElementById('roster-grid');
+            list.innerHTML = '';
+            const teams = snap.val() || {};
+            const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            sorted.forEach((id, idx) => {
+                const t = teams[id];
+                const div = document.createElement('div');
+                div.className = `roster-item ${idx===0 ? 'leader' : ''}`;
+                div.innerHTML = `<span>${idx+1}. ${t.name}</span> <span class="text-[#FFD700] font-bold">${t.balance.toLocaleString()}</span>`;
+                list.appendChild(div);
+            });
+        });
+
         function spawnCoinRain(amount) {
             const container = document.getElementById('fx-container');
             if(!container) return;
