@@ -111,44 +111,42 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
-            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
-                if(data) { 
-                    balance = Number(data.balance); 
-                    document.getElementById('balance').innerText = balance.toLocaleString(); 
-                    if(data.alert) {
-                        document.getElementById('alert-msg').innerText = data.alert;
-                        document.getElementById('alert-overlay').classList.remove('hidden');
-                        document.getElementById('body-main').classList.add('flash-red');
-                    }
+                // FIX: Check if team was deleted (reset)
+                if(!data) { 
+                    localStorage.clear();
+                    location.reload();
+                    return; 
+                }
+                
+                balance = Number(data.balance); 
+                document.getElementById('balance').innerText = balance.toLocaleString(); 
+                
+                if(data.alert) {
+                    document.getElementById('alert-msg').innerText = data.alert;
+                    document.getElementById('alert-overlay').classList.remove('hidden');
+                    document.getElementById('body-main').classList.add('flash-red');
                 }
             });
 
-            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
-                // --- ROBUST ROUND RESET LOGIC ---
-                // 1. Update the current round tracking
-                currentRound = st.round;
-                
-                // 2. HARD RESET: If Round 1 is detected, wipe everything cleanly
-                if(st.round === 1 && !sessionStorage.getItem('gameStarted')) {
-                     localStorage.clear();
-                     localStorage.setItem('id', myId); 
-                     localStorage.setItem('name', myName);
-                     sessionStorage.setItem('gameStarted', 'true');
+                if(st.round !== currentRound) {
+                    currentRound = st.round;
+                    // Reset Local Flags
+                    localStorage.removeItem(`hasLabored_${st.round}`);
+                    localStorage.removeItem(`hasBid_${st.round}`);
+                    hasLabored = false; 
+                    hasBid = false;
+                } else {
+                    hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
+                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
                 }
-
-                // 3. STATELESS CHECK: Always read from the key specific to THIS round
-                // This automatically "resets" when round number changes because the key changes.
-                hasLabored = localStorage.getItem(`hasLabored_${st.round}`) === 'true';
-                hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
-
                 updateButtons();
 
                 document.getElementById('view-bid').classList.add('hidden');
@@ -181,7 +179,6 @@
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
             
-            // STRICT LOCKING
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
@@ -194,14 +191,13 @@
             }
         }
 
-        // --- MINIGAME ---
         let gameActive = false, gameLoopId;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
 
         window.openMinigame = () => { 
-            if(hasBid) return alert("You already chose to Bid!");
+            if(hasBid) return alert("You already Bid!");
             if(hasLabored) return;
             document.getElementById('minigame-overlay').classList.remove('hidden'); 
             document.getElementById('minigame-overlay').classList.add('flex'); 
@@ -235,18 +231,17 @@
              
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
-                 // INSTANT VISUAL FEEDBACK
                  btnStrike.innerText = "SUCCESS!"; 
                  btnStrike.style.background = "green";
                  
-                 // DB UPDATE IN BACKGROUND
+                 // Update DB in background
                  db.ref(`teams/${myId}`).update({ balance: balance + 200 });
                  
                  setTimeout(() => { 
                     closeMinigame(); 
                     btnStrike.innerText = "STRIKE"; 
                     btnStrike.style.background = ""; 
-                 }, 500); // Faster close
+                 }, 500);
              } else {
                  btnStrike.innerText = "MISSED"; 
                  btnStrike.style.background = "red";
@@ -269,7 +264,7 @@
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
             
-            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
+            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount");
             
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
