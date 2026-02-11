@@ -7,34 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        /* (Styles remain the same as previous stable version) */
+        /* IMPERIAL THEME */
         body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
-        .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
-        .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
-        .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
-        .layer-fx { position: absolute; inset: 0; z-index: 200; pointer-events: none; }
-        .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.6; bottom: -100px; }
-        @keyframes rise { 0% { transform: translateY(0) scale(0.8<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperial Projector</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
-    <style>
-        /* IMPERIAL THEME */
-        body { 
-            font-family: 'Cinzel', serif; 
-            background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); 
-            color: #FFD700; 
-            overflow: hidden; 
-            cursor: none; 
-        }
-        .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
-
-        /* LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
@@ -68,7 +43,6 @@
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
         .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* LEADERBOARD ANIMATIONS */
         .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .podium-box.reveal { opacity: 1; transform: translateY(0); }
         .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 4rem; }
@@ -142,7 +116,6 @@
 
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
                     <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl">FINAL STANDINGS</h1>
-                    
                     <div class="flex items-end justify-center gap-12 w-full max-w-6xl">
                         <div id="podium-2" class="podium-box flex-1 flex flex-col items-center">
                             <div class="text-2xl text-gray-400 uppercase tracking-widest mb-2">2ND PLACE</div>
@@ -184,992 +157,290 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, onChildAdded } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        // VITE FIX: Dynamic Imports to bypass build error
+        (async () => {
+            const { initializeApp } = await import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js");
+            const { getDatabase, ref, onValue, get, onChildAdded } = await import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js");
 
-        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+            const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
 
-        // LANTERNS (Background)
-        const lanternContainer = document.getElementById('lantern-container');
-        for(let i=0; i<15; i++) {
-            const l = document.createElement('div');
-            l.className = 'lantern';
-            l.style.left = Math.random() * 95 + '%';
-            l.style.animationDelay = (Math.random() * 20) + 's';
-            l.style.animationDuration = (20 + Math.random() * 10) + 's';
-            lanternContainer.appendChild(l);
-        }
-
-        // GRID GEN
-        const g = document.getElementById('grid-container');
-        for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
-        
-        // CARD GONE LOGIC
-        onValue(ref(db, 'envelopes'), (snap) => {
-            const used = snap.val() || {};
-            for(let i=1; i<=36; i++) { 
-                const el = document.getElementById(`cell-${i}`); 
-                if(used[i]) el.classList.add('gone'); else el.classList.remove('gone'); 
+            // LANTERNS
+            const lanternContainer = document.getElementById('lantern-container');
+            for(let i=0; i<15; i++) {
+                const l = document.createElement('div');
+                l.className = 'lantern';
+                l.style.left = Math.random() * 95 + '%';
+                l.style.animationDelay = (Math.random() * 20) + 's';
+                l.style.animationDuration = (20 + Math.random() * 10) + 's';
+                lanternContainer.appendChild(l);
             }
-        });
 
-        const sfxTick = document.getElementById('sfx-tick');
-        let currentDeadline = 0;
-        let lastHighBid = 0;
-        let spinInterval = null;
-
-        // --- GAME LOOP ---
-        onValue(ref(db, 'gameState'), async (snap) => {
-            const st = snap.val();
-            if(!st) return;
-
-            document.getElementById('round-num').innerText = st.round;
-            document.getElementById('status-text').innerText = st.phase;
-            currentDeadline = st.bidDeadline || 0;
-
-            // HIDE ALL
-            ['view-grid', 'view-coin', 'view-auction', 'view-action', 'view-leaderboard'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex');
-            });
+            // GRID GEN
+            const g = document.getElementById('grid-container');
+            for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
             
-            // SIDEBAR LOGIC (Hidden in Grid & Leaderboard)
-            if(['GRID', 'LEADERBOARD'].includes(st.phase)) {
-                document.getElementById('info-panel').classList.add('hidden');
-            } else {
-                document.getElementById('info-panel').classList.remove('hidden');
-                // Rank/Leader Toggle
-                if(['DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
-                    document.getElementById('panel-rankings').classList.remove('hidden');
-                    document.getElementById('panel-leader').classList.add('hidden');
+            // CARD GONE
+            onValue(ref(db, 'envelopes'), (snap) => {
+                const used = snap.val() || {};
+                for(let i=1; i<=36; i++) { 
+                    const el = document.getElementById(`cell-${i}`); 
+                    if(used[i]) el.classList.add('gone'); else el.classList.remove('gone'); 
+                }
+            });
+
+            const sfxTick = document.getElementById('sfx-tick');
+            let currentDeadline = 0;
+            let lastHighBid = 0;
+            let spinInterval = null;
+
+            // --- GAME LOOP ---
+            onValue(ref(db, 'gameState'), async (snap) => {
+                const st = snap.val();
+                if(!st) return;
+
+                document.getElementById('round-num').innerText = st.round;
+                document.getElementById('status-text').innerText = st.phase;
+                currentDeadline = Number(st.bidDeadline) || 0; // Fix Type
+
+                // HIDE ALL
+                ['view-grid', 'view-coin', 'view-auction', 'view-action', 'view-leaderboard'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                    document.getElementById(id).classList.remove('flex');
+                });
+                
+                // SIDEBAR TOGGLE
+                if(['GRID', 'LEADERBOARD', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
+                    document.getElementById('info-panel').classList.add('hidden');
                 } else {
+                    document.getElementById('info-panel').classList.remove('hidden');
                     document.getElementById('panel-rankings').classList.add('hidden');
                     document.getElementById('panel-leader').classList.remove('hidden');
                 }
-            }
 
-            // --- PHASES ---
-            if (st.phase === 'LEADERBOARD') {
-                document.getElementById('view-leaderboard').classList.remove('hidden');
-                document.getElementById('view-leaderboard').classList.add('flex');
-                updateLeaderboard(st.revealRank);
-            }
-            else if (st.phase === 'DRAWING') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                
-                const gridItems = document.querySelectorAll('.angpao:not(.gone)');
-                if(gridItems.length > 0 && !spinInterval) {
-                    let speed = 50; 
-                    let steps = 0;
-                    const spin = () => {
-                        gridItems.forEach(el => el.classList.remove('active'));
-                        const r = gridItems[Math.floor(Math.random() * gridItems.length)];
-                        r.classList.add('active');
-                        sfxTick.currentTime = 0; sfxTick.play();
-                        steps++;
-                        if(steps > 20) speed += 10;
-                        if(steps > 40) speed += 30;
-                        if(document.getElementById('status-text').innerText === 'DRAWING') spinInterval = setTimeout(spin, speed);
-                    };
-                    spin();
+                if (st.phase === 'LEADERBOARD') {
+                    document.getElementById('view-leaderboard').classList.remove('hidden');
+                    document.getElementById('view-leaderboard').classList.add('flex');
+                    updateLeaderboard(st.revealRank);
                 }
-            }
-            else if (st.phase === 'HIGHLIGHT') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
-                document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active'));
-                const winner = document.getElementById(`cell-${st.currentCard}`);
-                if(winner) winner.classList.add('highlight-winner');
-            }
-            else if (st.phase === 'GRID') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
-                if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
-                document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active', 'highlight-winner'));
-            }
-            else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
-                document.getElementById('view-auction').classList.remove('hidden');
-                document.getElementById('view-auction').classList.add('flex');
+                else if (st.phase === 'DRAWING') {
+                    document.getElementById('view-grid').classList.remove('hidden');
+                    document.getElementById('view-grid').classList.add('flex');
+                    const gridItems = document.querySelectorAll('.angpao:not(.gone)');
+                    if(gridItems.length > 0 && !spinInterval) {
+                        let speed = 50; 
+                        let steps = 0;
+                        const spin = () => {
+                            gridItems.forEach(el => el.classList.remove('active'));
+                            const r = gridItems[Math.floor(Math.random() * gridItems.length)];
+                            r.classList.add('active');
+                            sfxTick.currentTime = 0; sfxTick.play();
+                            steps++;
+                            if(steps > 20) speed += 10;
+                            if(steps > 40) speed += 30;
+                            if(document.getElementById('status-text').innerText === 'DRAWING') spinInterval = setTimeout(spin, speed);
+                        };
+                        spin();
+                    }
+                }
+                else if (st.phase === 'HIGHLIGHT') {
+                    document.getElementById('view-grid').classList.remove('hidden');
+                    document.getElementById('view-grid').classList.add('flex');
+                    if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
+                    document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active'));
+                    const winner = document.getElementById(`cell-${st.currentCard}`);
+                    if(winner) winner.classList.add('highlight-winner');
+                }
+                else if (st.phase === 'GRID') {
+                    document.getElementById('view-grid').classList.remove('hidden');
+                    document.getElementById('view-grid').classList.add('flex');
+                    document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
+                    if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
+                    document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active', 'highlight-winner'));
+                }
+                else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
+                    document.getElementById('view-auction').classList.remove('hidden');
+                    document.getElementById('view-auction').classList.add('flex');
 
-                const leaderName = st.leaderName || "NO ONE";
-                const highBid = st.highestBid || 0;
-                
-                // SLAM LOGIC
-                if (st.phase === 'BIDDING' && highBid > lastHighBid) {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
+                    const leaderName = st.leaderName || "NO ONE";
+                    const highBid = st.highestBid || 0;
                     
-                    const leaderEl = document.getElementById('val-leader-name');
-                    leaderEl.classList.remove('slam-text');
-                    void leaderEl.offsetWidth; 
-                    leaderEl.classList.add('slam-text');
+                    if (st.phase === 'BIDDING' && highBid > lastHighBid) {
+                        document.getElementById('val-leader-name').innerText = leaderName;
+                        document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
+                        
+                        const leaderEl = document.getElementById('val-leader-name');
+                        leaderEl.classList.remove('slam-text');
+                        void leaderEl.offsetWidth; 
+                        leaderEl.classList.add('slam-text');
+                        
+                        document.getElementById('main-body').classList.add('shake-screen');
+                        setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
+                        
+                        let rainAmount = 10;
+                        if(highBid >= 1000) rainAmount = 80;
+                        else if(highBid >= 500) rainAmount = 40;
+                        else if(highBid >= 300) rainAmount = 20;
+                        spawnCoinRain(rainAmount);
+
+                        lastHighBid = highBid;
+                    } else if (leaderName === "NO ONE") {
+                        document.getElementById('val-leader-name').innerText = "NO ONE";
+                        document.getElementById('val-high-bid').innerText = "RM 0";
+                        lastHighBid = 0;
+                    } else {
+                        document.getElementById('val-leader-name').innerText = leaderName;
+                        document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
+                    }
+
+                    if (st.phase === 'REVEALED' && st.cardName) {
+                        document.getElementById('card-title').innerText = st.cardName;
+                        document.getElementById('card-desc').innerText = st.cardDesc;
+                        document.getElementById('main-envelope').classList.add('is-open');
+                    } else {
+                        document.getElementById('main-envelope').classList.remove('is-open');
+                    }
+
+                    if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
+                    else document.getElementById('main-envelope').classList.remove('shaking');
                     
-                    document.getElementById('main-body').classList.add('shake-screen');
-                    setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
-                    
-                    // RAIN
-                    let rainAmount = 10;
-                    if(highBid >= 1000) rainAmount = 80;
-                    else if(highBid >= 500) rainAmount = 40;
-                    else if(highBid >= 300) rainAmount = 20;
-                    spawnCoinRain(rainAmount);
-
-                    lastHighBid = highBid;
-                } else if (leaderName === "NO ONE") {
-                    document.getElementById('val-leader-name').innerText = "NO ONE";
-                    document.getElementById('val-high-bid').innerText = "RM 0";
-                    lastHighBid = 0;
-                } else {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
-                }
-
-                if (st.phase === 'REVEALED' && st.cardName) {
-                    document.getElementById('card-title').innerText = st.cardName;
-                    document.getElementById('card-desc').innerText = st.cardDesc;
-                    document.getElementById('main-envelope').classList.add('is-open');
-                } else {
-                    document.getElementById('main-envelope').classList.remove('is-open');
-                }
-
-                if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
-                else document.getElementById('main-envelope').classList.remove('shaking');
-                
-                if(st.phase === 'SOLD') {
-                    if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
-                    else document.getElementById('unsold-stamp').classList.remove('hidden');
-                } else {
-                    document.getElementById('sold-stamp').classList.add('hidden');
-                    document.getElementById('unsold-stamp').classList.add('hidden');
-                }
-            } 
-            else if (['CHALLENGE', 'TARGETING', 'SPIN', 'WAGER'].includes(st.phase)) {
-                if(['WAGER','SPIN'].includes(st.phase)) {
-                    document.getElementById('view-coin').classList.remove('hidden');
-                    document.getElementById('view-coin').classList.add('flex');
-                    if (st.phase === 'SPIN') {
-                        const isWin = st.spinResult === 'WIN';
-                        const rot = 1800 + (isWin ? 0 : 180); 
-                        if(!window.hasProcessedSpin) {
-                            window.hasProcessedSpin = true;
-                            document.getElementById('sfx-coin').currentTime = 0; document.getElementById('sfx-coin').play();
-                            document.getElementById('the-coin').style.transform = `rotateY(${rot}deg)`;
-                            setTimeout(() => {
-                                const res = document.getElementById('coin-result');
-                                res.innerText = isWin ? "WINNER!" : "LOSS";
-                                res.style.color = isWin ? '#00ff00' : '#ff0000';
-                                res.classList.remove('hidden');
-                            }, 4000);
+                    if(st.phase === 'SOLD') {
+                        if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
+                        else document.getElementById('unsold-stamp').classList.remove('hidden');
+                    } else {
+                        document.getElementById('sold-stamp').classList.add('hidden');
+                        document.getElementById('unsold-stamp').classList.add('hidden');
+                    }
+                } 
+                else if (['CHALLENGE', 'TARGETING', 'SPIN', 'WAGER'].includes(st.phase)) {
+                    if(['WAGER','SPIN'].includes(st.phase)) {
+                        document.getElementById('view-coin').classList.remove('hidden');
+                        document.getElementById('view-coin').classList.add('flex');
+                        if (st.phase === 'SPIN') {
+                            const isWin = st.spinResult === 'WIN';
+                            const rot = 1800 + (isWin ? 0 : 180); 
+                            if(!window.hasProcessedSpin) {
+                                window.hasProcessedSpin = true;
+                                document.getElementById('sfx-coin').currentTime = 0; document.getElementById('sfx-coin').play();
+                                document.getElementById('the-coin').style.transform = `rotateY(${rot}deg)`;
+                                setTimeout(() => {
+                                    const res = document.getElementById('coin-result');
+                                    res.innerText = isWin ? "WINNER!" : "LOSS";
+                                    res.style.color = isWin ? '#00ff00' : '#ff0000';
+                                    res.classList.remove('hidden');
+                                }, 4000);
+                            }
+                        } else {
+                            window.hasProcessedSpin = false;
+                            document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
+                            document.getElementById('coin-result').classList.add('hidden');
                         }
                     } else {
-                        window.hasProcessedSpin = false;
-                        document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
-                        document.getElementById('coin-result').classList.add('hidden');
-                    }
-                } else {
-                    document.getElementById('view-action').classList.remove('hidden');
-                    document.getElementById('view-action').classList.add('flex');
-                    if(st.phase === 'CHALLENGE') {
-                        document.getElementById('action-title').innerText = "CHALLENGE";
-                        document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
-                        document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
-                    } else {
-                        document.getElementById('action-title').innerText = "SELECTING TARGET";
-                        document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
-                        document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
-                    }
-                }
-            }
-        });
-
-        // LEADERBOARD UPDATER
-        async function updateLeaderboard(revealRank) {
-            const snap = await get(ref(db, 'teams'));
-            const teams = snap.val() || {};
-            const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
-            
-            // 3rd
-            if(revealRank <= 3 && sorted[2]) {
-                document.getElementById('name-3').innerText = sorted[2].name;
-                document.getElementById('score-3').innerText = "RM " + sorted[2].balance.toLocaleString();
-                document.getElementById('podium-3').classList.add('reveal');
-            } else { document.getElementById('podium-3').classList.remove('reveal'); }
-
-            // 2nd
-            if(revealRank <= 2 && sorted[1]) {
-                document.getElementById('name-2').innerText = sorted[1].name;
-                document.getElementById('score-2').innerText = "RM " + sorted[1].balance.toLocaleString();
-                document.getElementById('podium-2').classList.add('reveal');
-            } else { document.getElementById('podium-2').classList.remove('reveal'); }
-
-            // 1st
-            if(revealRank <= 1 && sorted[0]) {
-                document.getElementById('name-1').innerText = sorted[0].name;
-                document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
-                document.getElementById('podium-1').classList.add('reveal');
-                spawnCoinRain(200); // Winner rain
-            } else { document.getElementById('podium-1').classList.remove('reveal'); }
-        }
-
-        // COIN RAIN
-        const bidQueueRef = ref(db, 'bidQueue');
-        onChildAdded(bidQueueRef, async (snapshot) => {
-            const req = snapshot.val();
-            if(req) {
-               let count = 10;
-               if(req.isAllIn) {
-                   count = 200;
-                   document.getElementById('val-leader-name').classList.add('all-in-glow');
-                   document.getElementById('main-body').classList.add('shake-violent'); 
-                   setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
-               } else {
-                   if(req.amount >= 1000) count = 100;
-                   else if(req.amount >= 500) count = 50;
-                   else if(req.amount >= 300) count = 30;
-                   document.getElementById('val-leader-name').classList.remove('all-in-glow');
-               }
-               spawnCoinRain(count);
-            }
-        });
-
-        function spawnCoinRain(amount) {
-            const container = document.getElementById('fx-container');
-            if(!container) return;
-            for(let i=0; i<amount; i++) {
-                const c = document.createElement('div');
-                c.className = 'falling-coin';
-                c.style.left = Math.random() * 100 + '%';
-                c.style.animationDuration = (1 + Math.random()) + 's';
-                container.appendChild(c);
-                setTimeout(() => c.remove(), 2500);
-            }
-        }
-
-        onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
-
-        setInterval(() => {
-             const status = document.getElementById('status-text').innerText;
-             if(status === 'BIDDING' && currentDeadline > Date.now()) {
-                 const diff = currentDeadline - Date.now();
-                 const mins = Math.floor(diff/60000);
-                 const secs = Math.floor((diff%60000)/1000);
-                 document.getElementById('countdown-val').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
-             } else if (status === 'SOLD') {
-                 document.getElementById('countdown-val').innerText = "0:00";
-             }
-        }, 100);
-    </script>
-</body>
-</html>
-
-### 3. `public/controller.html` (The Player)
-* **Changes:** Added "Alert" system for players getting robbed. Implemented Blind Stealing list.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Imperial Controller</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <link href="[https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap](https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap)" rel="stylesheet">
-    <style>
-        body { background: radial-gradient(circle at center, #2a0000 0%, #050000 100%); color: #FFD700; font-family: 'Cinzel', serif; touch-action: manipulation; }
-        .glass-panel { background: rgba(30, 0, 0, 0.9); border: 2px solid #C5A059; box-shadow: 0 4px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-        .btn-gold { background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%); color: #1a0505; border: 1px solid #fff; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-        .btn-gold:active { transform: scale(0.96); filter: brightness(0.9); }
-        .btn-gold:disabled { filter: grayscale(1); opacity: 0.5; transform: none; }
-        .btn-quick { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); color: #C5A059; font-weight: bold; transition: all 0.2s; }
-        .btn-quick:active { background: #FFD700; color: black; }
-        .safe-h { height: 100dvh; }
-        .flash-red { animation: flashRed 1s infinite; }
-        @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
-    </style>
-</head>
-<body class="safe-h flex flex-col p-4 overflow-hidden" id="body-main">
-
-    <div id="minigame-overlay" class="absolute inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center hidden">
-        <h2 class="text-3xl text-[#FFD700] mb-4 drop-shadow-[0_0_10px_gold]">JADE CUTTER</h2>
-        <p class="text-xs text-gray-400 mb-8">Tap STOP when bar is in GREEN</p>
-        <canvas id="game-canvas" width="300" height="50" class="mb-8 border-2 border-yellow-500 rounded"></canvas>
-        <button id="btn-strike" class="btn-gold px-12 py-6 rounded-full text-2xl shadow-[0_0_30px_gold]">STRIKE</button>
-        <button onclick="closeMinigame()" class="mt-8 text-xs text-red-500 border border-red-900 px-6 py-3 rounded">GIVE UP</button>
-    </div>
-
-    <div id="alert-overlay" class="absolute inset-0 z-[200] bg-red-900/90 flex flex-col items-center justify-center hidden p-6 text-center">
-        <h1 class="text-4xl text-white font-black mb-4">⚠ ALERT ⚠</h1>
-        <p id="alert-msg" class="text-2xl text-yellow-300 font-bold">--</p>
-        <button onclick="dismissAlert()" class="mt-8 bg-black border border-white px-6 py-3 rounded text-white">OK</button>
-    </div>
-
-    <div id="login" class="flex flex-col items-center justify-center h-full gap-6">
-        <h1 class="text-5xl mb-4 text-[#FFD700] tracking-[0.2em] font-black text-center">IMPERIAL<br>AUCTION</h1>
-        <input id="inp-name" class="w-full glass-panel p-6 text-center text-2xl text-white rounded-2xl focus:outline-none focus:border-[#FFD700]" placeholder="DYNASTY NAME">
-        <button onclick="login()" class="btn-gold w-full py-6 text-2xl rounded-2xl shadow-xl">JOIN</button>
-    </div>
-
-    <div id="app" class="hidden flex-col h-full relative">
-        <div class="flex justify-between items-end mb-4 border-b-2 border-[#C5A059] pb-4 bg-black/40 p-4 rounded-xl shrink-0">
-            <div>
-                <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">DYNASTY</div>
-                <div id="name-display" class="text-2xl text-white leading-none font-bold">--</div>
-            </div>
-            <div class="text-right">
-                <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">TREASURY</div>
-                <div class="text-4xl text-[#FFD700] drop-shadow-md font-black">RM <span id="balance">--</span></div>
-            </div>
-        </div>
-
-        <div id="status-banner" class="text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0">Waiting...</div>
-
-        <div id="view-bid" class="hidden flex-col gap-4 flex-1 min-h-0">
-            <div class="glass-panel p-4 rounded-xl text-center border-t-4 border-t-[#FFD700] shrink-0">
-                <div class="text-[#C5A059] text-xs uppercase tracking-widest mb-1">CURRENT HIGH BID</div>
-                <div class="text-5xl text-white font-black drop-shadow-lg">RM <span id="high-bid">0</span></div>
-            </div>
-            
-            <div class="grid grid-cols-4 gap-2 shrink-0">
-                <button onclick="quick(0.1)" class="btn-quick py-4 rounded-lg text-xs">+10%</button>
-                <button onclick="quick(0.25)" class="btn-quick py-4 rounded-lg text-xs">+25%</button>
-                <button onclick="quick(0.5)" class="btn-quick py-4 rounded-lg text-xs">+50%</button>
-                <button onclick="submitBid(true)" class="bg-red-900/60 border border-red-500 text-red-200 py-4 rounded-lg text-xs font-bold hover:bg-red-900">ALL IN</button>
-            </div>
-
-            <button id="btn-labor" onclick="openMinigame()" class="w-full py-4 bg-blue-900/40 border border-blue-400 rounded-xl text-blue-200 font-bold tracking-widest hover:bg-blue-900/60 transition shadow-lg shrink-0">⚒️ MANUAL LABOR (+200)</button>
-
-            <div class="mt-auto flex flex-col gap-2">
-                <div class="relative">
-                    <span class="absolute left-8 top-1/2 -translate-y-1/2 text-[#C5A059] text-2xl font-bold">RM</span>
-                    <input id="bid-val" type="number" class="w-full glass-panel p-5 pl-20 text-center text-4xl text-white rounded-2xl font-black focus:outline-none focus:border-[#FFD700]" placeholder="0">
-                </div>
-                <button onclick="submitBid(false)" id="btn-bid" class="btn-gold w-full py-5 text-2xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
-            </div>
-        </div>
-
-        <div id="view-target" class="hidden flex-col h-full bg-[#1a0505] absolute inset-0 z-50 p-6">
-            <h2 class="text-center text-4xl text-red-500 mb-2 animate-pulse font-black">⚔️ CHOOSE VICTIM ⚔️</h2>
-            <div id="rivals-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js)";
-        import { getDatabase, ref, onValue, get, set, push, update, remove } from "[https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js](https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js)";
-
-        const app = initializeApp({ apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", databaseURL: "[https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app](https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app)", projectId: "auction-ebc97" });
-        const db = getDatabase(app);
-        
-        let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
-
-        window.login = async () => {
-            const n = document.getElementById('inp-name').value;
-            if(!n) return;
-            const id = n.toLowerCase().replace(/[^a-z0-9]/g, '');
-            await set(ref(db, `teams/${id}`), { name: n, balance: 1000 });
-            myId = id; myName = n;
-            localStorage.setItem('id', id); localStorage.setItem('name', n);
-            init();
-        }
-
-        if(localStorage.getItem('id')) { myId = localStorage.getItem('id'); myName = localStorage.getItem('name'); init(); }
-
-        function init() {
-            document.getElementById('login').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
-            document.getElementById('name-display').innerText = myName;
-
-            // LISTEN FOR BALANCE & ALERTS
-            onValue(ref(db, `teams/${myId}`), s => {
-                const data = s.val();
-                if(data) { 
-                    balance = Number(data.balance); 
-                    document.getElementById('balance').innerText = balance.toLocaleString(); 
-                    
-                    // ALERT SYSTEM
-                    if(data.alert) {
-                        document.getElementById('alert-msg').innerText = data.alert;
-                        document.getElementById('alert-overlay').classList.remove('hidden');
-                        document.getElementById('body-main').classList.add('flash-red');
+                        document.getElementById('view-action').classList.remove('hidden');
+                        document.getElementById('view-action').classList.add('flex');
+                        if(st.phase === 'CHALLENGE') {
+                            document.getElementById('action-title').innerText = "CHALLENGE";
+                            document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
+                            document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
+                        } else {
+                            document.getElementById('action-title').innerText = "SELECTING TARGET";
+                            document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
+                            document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
+                        }
                     }
                 }
             });
 
-            onValue(ref(db, 'gameState'), s => {
-                const st = s.val();
-                if(!st) return;
+            async function updateLeaderboard(revealRank) {
+                const snap = await get(ref(db, 'teams'));
+                const teams = snap.val() || {};
+                const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
                 
-                document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
-                
-                if(st.round !== currentRound) {
-                    currentRound = st.round;
-                    localStorage.removeItem(`hasLabored_${st.round}`);
-                    localStorage.removeItem(`hasBid_${st.round}`);
-                    hasLabored = false; 
-                    hasBid = false;
-                } else {
-                    hasLabored = localStorage.getItem(`hasLabored_${currentRound}`) === 'true';
-                    hasBid = localStorage.getItem(`hasBid_${currentRound}`) === 'true';
-                }
-                updateButtons();
+                if(revealRank <= 3 && sorted[2]) {
+                    document.getElementById('name-3').innerText = sorted[2].name;
+                    document.getElementById('score-3').innerText = "RM " + sorted[2].balance.toLocaleString();
+                    document.getElementById('podium-3').classList.add('reveal');
+                } else { document.getElementById('podium-3').classList.remove('reveal'); }
 
-                document.getElementById('view-bid').classList.add('hidden');
-                document.getElementById('view-target').classList.add('hidden');
-                
-                if (st.leaderId === myId && st.phase === 'BIDDING') {
-                    document.getElementById('status-banner').innerText = "YOU ARE WINNING!";
-                    document.getElementById('status-banner').className = "text-center bg-green-900/80 p-4 rounded-xl mb-4 text-sm text-green-200 border-2 border-green-500 animate-pulse font-bold shrink-0";
-                } else {
-                    document.getElementById('status-banner').className = "text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0";
-                    document.getElementById('status-banner').innerText = st.phase;
-                }
+                if(revealRank <= 2 && sorted[1]) {
+                    document.getElementById('name-2').innerText = sorted[1].name;
+                    document.getElementById('score-2').innerText = "RM " + sorted[1].balance.toLocaleString();
+                    document.getElementById('podium-2').classList.add('reveal');
+                } else { document.getElementById('podium-2').classList.remove('reveal'); }
 
-                if (st.phase === 'BIDDING') {
-                    document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
-                } else if (st.phase === 'TARGETING' && st.leaderId === myId) {
-                    document.getElementById('view-target').classList.remove('hidden'); document.getElementById('view-target').classList.add('flex');
-                    loadRivals();
-                }
-            });
-        }
-
-        window.dismissAlert = async () => {
-            document.getElementById('alert-overlay').classList.add('hidden');
-            document.getElementById('body-main').classList.remove('flash-red');
-            await remove(ref(db, `teams/${myId}/alert`));
-        }
-
-        function updateButtons() {
-            const btnLabor = document.getElementById('btn-labor');
-            const btnBid = document.getElementById('btn-bid');
-            
-            if(hasLabored) {
-                btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
-                btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
-            } else if (hasBid) {
-                btnLabor.disabled = true; btnLabor.innerText = "LOCKED (BIDDING)"; btnLabor.classList.add('opacity-50');
-                btnBid.disabled = false; btnBid.innerText = "BID AGAIN"; btnBid.classList.remove('opacity-50');
-            } else {
-                btnLabor.disabled = false; btnLabor.innerText = "⚒️ MANUAL LABOR (+200)"; btnLabor.classList.remove('opacity-50');
-                btnBid.disabled = false; btnBid.innerText = "OFFER TRIBUTE"; btnBid.classList.remove('opacity-50');
+                if(revealRank <= 1 && sorted[0]) {
+                    document.getElementById('name-1').innerText = sorted[0].name;
+                    document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
+                    document.getElementById('podium-1').classList.add('reveal');
+                    spawnCoinRain(200); 
+                } else { document.getElementById('podium-1').classList.remove('reveal'); }
             }
-        }
 
-        let gameActive = false, gameLoopId;
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        let barPos = 0, barDir = 1, barSpeed = 3.5, targetZone = { x: 130, w: 40 };
-
-        window.openMinigame = () => { 
-            if(hasLabored || hasBid) return;
-            document.getElementById('minigame-overlay').classList.remove('hidden'); 
-            document.getElementById('minigame-overlay').classList.add('flex'); 
-            gameActive = true; barPos = 0; gameLoop(); 
-        };
-        
-        window.closeMinigame = () => { 
-            gameActive = false; cancelAnimationFrame(gameLoopId); 
-            document.getElementById('minigame-overlay').classList.add('hidden'); 
-        };
-
-        function gameLoop() {
-            if(!gameActive) return;
-            ctx.clearRect(0,0,300,50);
-            ctx.fillStyle = '#00ff00'; ctx.fillRect(targetZone.x, 0, targetZone.w, 50);
-            const center = barPos + 5;
-            const isInside = (center >= targetZone.x && center <= targetZone.x + targetZone.w);
-            ctx.fillStyle = isInside ? '#ffffff' : '#ff0000'; 
-            ctx.fillRect(barPos, 0, 10, 50);
-            barPos += barSpeed * barDir; if(barPos > 290 || barPos < 0) barDir *= -1;
-            gameLoopId = requestAnimationFrame(gameLoop);
-        }
-
-        const btnStrike = document.getElementById('btn-strike');
-        btnStrike.addEventListener('touchstart', handleStrike);
-        btnStrike.addEventListener('click', handleStrike);
-
-        async function handleStrike(e) {
-             e.preventDefault(); if(!gameActive) return;
-             gameActive = false; cancelAnimationFrame(gameLoopId);
-             
-             const center = barPos + 5;
-             if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
-                 btnStrike.innerText = "SUCCESS!"; btnStrike.style.background = "green";
-                 await update(ref(db, `teams/${myId}`), { balance: balance + 200 });
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
-             } else {
-                 btnStrike.innerText = "MISSED"; btnStrike.style.background = "red";
-                 setTimeout(() => { closeMinigame(); btnStrike.innerText = "STRIKE"; btnStrike.style.background = ""; }, 1000);
-             }
-             
-             hasLabored = true;
-             localStorage.setItem(`hasLabored_${currentRound}`, 'true');
-             updateButtons();
-        }
-
-        window.submitBid = async (isAllIn) => {
-            let v = 0;
-            if(isAllIn) v = balance;
-            else v = parseInt(document.getElementById('bid-val').value);
-            
-            if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
-            
-            hasBid = true;
-            localStorage.setItem(`hasBid_${currentRound}`, 'true');
-            updateButtons();
-            
-            await push(ref(db, 'bidQueue'), { teamId: myId, amount: v, isAllIn: !!isAllIn });
-        }
-
-        window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p); }
-
-        function loadRivals() {
-            get(ref(db, 'teams')).then(s => {
-                const teams = s.val();
-                const list = document.getElementById('rivals-list');
+            // ROSTER (For Sidebar)
+            onValue(ref(db, 'teams'), (snap) => {
+                const list = document.getElementById('roster-grid');
                 list.innerHTML = '';
-                Object.keys(teams).forEach(tid => {
-                    if(tid !== myId) {
-                        const btn = document.createElement('button');
-                        btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
-                        // HIDDEN BALANCE - BLIND STEAL
-                        btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
-                        btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) update(ref(db, 'gameState'), { targetId: tid }); };
-                        list.appendChild(btn);
-                    }
+                const teams = snap.val() || {};
+                const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+                sorted.forEach((id, idx) => {
+                    const t = teams[id];
+                    const div = document.createElement('div');
+                    div.className = `roster-item ${idx===0 ? 'leader' : ''}`;
+                    div.innerHTML = `<span>${idx+1}. ${t.name}</span> <span class="text-[#FFD700] font-bold">${t.balance.toLocaleString()}</span>`;
+                    list.appendChild(div);
                 });
             });
-        }
-    </script>
-</body>
-</html>); } 100% { transform: translateY(-120vh) scale(1); } }
-        .angpao { background: linear-gradient(135deg, #800000 0%, #500000 100%); border: 2px solid #b8860b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 2rem; color: rgba(255,215,0,0.5); transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; }
-        .angpao.highlight-winner { background: #ffaa00 !important; color: white !important; transform: scale(1.2); box-shadow: 0 0 80px orange; border: 3px solid white; z-index: 70; opacity: 1; }
-        .angpao.gone { visibility: hidden; opacity: 0; pointer-events: none; }
-        .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 12px; }
-        @keyframes slamIn { 0% { transform: scale(10); opacity: 0; filter: blur(10px); } 20% { transform: scale(1); opacity: 1; filter: blur(0px); } 30% { transform: scale(1.4); color: #fff; text-shadow: 0 0 80px white; } 100% { transform: scale(1); color: #FFD700; } }
-        .slam-text { animation: slamIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .shake-screen { animation: shakeScreen 1.0s ease-in-out; }
-        @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-15px) rotate(-1deg); } 20%, 40%, 60%, 80% { transform: translateX(15px) rotate(1deg); } }
-        .shake-violent { animation: shakeViolent 2.0s ease-in-out; }
-        @keyframes shakeViolent { 0%, 100% { transform: translate(0,0); filter: hue-rotate(0deg); } 10%, 30%, 50%, 70%, 90% { transform: translate(-30px, -30px) rotate(-3deg); filter: hue-rotate(-30deg); background-color: rgba(50,0,0,0.5); } 20%, 40%, 60%, 80% { transform: translate(30px, 30px) rotate(3deg); filter: hue-rotate(30deg); } }
-        .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
-        @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; transform: scale(1); } 50% { text-shadow: 0 0 100px red; transform: scale(1.1); } 100% { text-shadow: 0 0 50px red; transform: scale(1); } }
-        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 2s linear forwards; z-index: 200; pointer-events: none; }
-        @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
-        .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; z-index: 30; }
-        .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #900 0%, #600 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
-        .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
-        .card-insert { position: absolute; top: 2%; left: 2%; width: 96%; height: 96%; background: #fffcf5; z-index: 5; color: #2a0000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: translateY(0); transition: transform 1s; padding: 15px; border: 6px double #b8860b; }
-        .is-open .envelope-lid { transform: rotateX(180deg); z-index: 1; }
-        .is-open .card-insert { transform: translateY(-55%) scale(1.1); z-index: 100 !important; }
-        .is-open .envelope-body { transform: translateY(80%); opacity: 0; }
-        .shaking { animation: shake 2s infinite ease-in-out; }
-        .roster-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; font-size: 1.3rem; }
-        .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
-        .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        /* LEADERBOARD ANIMATIONS */
-        .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .podium-box.reveal { opacity: 1; transform: translateY(0); }
-        .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 4rem; }
-        .rank-silver { color: #C0C0C0; text-shadow: 0 0 20px #C0C0C0; font-size: 3rem; }
-        .rank-bronze { color: #CD7F32; text-shadow: 0 0 20px #CD7F32; font-size: 2.5rem; }
-    </style>
-</head>
-<body class="h-screen w-screen overflow-hidden" id="main-body">
 
-    <div class="layer-bg"></div>
-    <div class="layer-lanterns" id="lantern-container"></div>
-    <div class="layer-fx" id="fx-container" style="position: absolute; inset: 0; pointer-events: none; z-index: 200;"></div>
-
-    <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
-    <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
-    <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
-    <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
-
-    <div class="layer-ui p-8 w-full h-full">
-        <header class="h-24 flex justify-between items-center px-8 border-b-4 border-[#b8860b] mb-4 bg-[#1a0000] rounded-2xl shadow-2xl z-50">
-            <div class="flex items-center gap-4">
-                <span class="text-6xl drop-shadow-[0_0_15px_gold]">🐎</span>
-                <h1 class="font-imp text-5xl font-black tracking-[0.2em] text-[#FFD700] text-shadow-md">IMPERIAL AUCTION</h1>
-            </div>
-            <div class="font-imp text-2xl tracking-widest text-[#C5A059] font-bold">
-                ROUND <span id="round-num" class="text-white text-4xl mx-2">1</span>
-                <span id="status-text" class="text-[#FFD700] ml-6 border-l-2 border-[#C5A059] pl-6">WAITING</span>
-            </div>
-        </header>
-
-        <main class="flex-1 flex gap-8 relative overflow-hidden">
-            
-            <div class="flex-1 relative flex items-center justify-center">
-                
-                <div id="view-grid" class="view-container hidden">
-                    <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
-                </div>
-
-                <div id="view-coin" class="view-container hidden">
-                    <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em]">DESTINY FLIPPING...</div>
-                    <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
-                </div>
-
-                <div id="view-auction" class="view-container hidden">
-                    <div id="timer-box" class="mb-8 text-center transition-all duration-300">
-                        <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
-                        <div id="countdown-val" class="text-[12rem] leading-none font-black font-imp text-white drop-shadow-[0_0_40px_rgba(255,0,0,0.6)] tabular-nums">1:30</div>
-                    </div>
-                    <div class="envelope-container" id="main-envelope">
-                        <div class="card-insert">
-                            <h3 id="card-title" class="font-imp text-[#8a0000] text-3xl font-black mb-2 uppercase border-b-4 border-[#8a0000] w-full pb-2 text-center">Title</h3>
-                            <p id="card-desc" class="font-serif text-3xl font-bold text-black leading-tight text-center">Effect</p>
-                        </div>
-                        <div class="envelope-body">
-                            <span class="text-8xl text-[#FFD700] opacity-40 font-chinese mt-10">福</span>
-                            <div id="sold-stamp" class="hidden absolute inset-0 bg-black/70 flex items-center justify-center z-20 backdrop-blur-md rounded-lg"><span class="text-red-500 font-black border-[8px] border-red-500 p-4 text-7xl -rotate-12 uppercase">SOLD</span></div>
-                            <div id="unsold-stamp" class="hidden absolute inset-0 bg-black/70 flex items-center justify-center z-20 backdrop-blur-md rounded-lg"><span class="text-gray-400 font-black border-[8px] border-gray-400 p-4 text-7xl -rotate-12 uppercase">UNSOLD</span></div>
-                        </div>
-                        <div class="envelope-lid"></div>
-                    </div>
-                </div>
-
-                <div id="view-action" class="view-container hidden text-center">
-                    <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
-                    <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
-                    <div class="mt-8 text-3xl font-bold bg-black/70 px-8 py-4 rounded-xl border-2 border-[#C5A059]">
-                        <span class="text-green-400">SUCCESS: +2,000</span> <span class="text-white mx-4">|</span> <span class="text-red-500">FAIL: -500</span>
-                    </div>
-                    <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
-                </div>
-
-                <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
-                    <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl">FINAL STANDINGS</h1>
-                    
-                    <div class="flex items-end justify-center gap-12 w-full max-w-6xl">
-                        <div id="podium-2" class="podium-box flex-1 flex flex-col items-center">
-                            <div class="text-2xl text-gray-400 uppercase tracking-widest mb-2">2ND PLACE</div>
-                            <div id="name-2" class="rank-silver font-black">--</div>
-                            <div id="score-2" class="text-white text-xl">--</div>
-                            <div class="w-full h-40 bg-gradient-to-t from-gray-700 to-transparent mt-4 rounded-t-lg border-t-4 border-gray-400"></div>
-                        </div>
-                        <div id="podium-1" class="podium-box flex-1 flex flex-col items-center -mt-12">
-                            <div class="text-3xl text-yellow-300 uppercase tracking-widest mb-4">👑 EMPEROR 👑</div>
-                            <div id="name-1" class="rank-gold font-black transform scale-125">--</div>
-                            <div id="score-1" class="text-white text-2xl font-bold">--</div>
-                            <div class="w-full h-64 bg-gradient-to-t from-yellow-700 to-transparent mt-4 rounded-t-lg border-t-4 border-yellow-400 shadow-[0_0_50px_gold]"></div>
-                        </div>
-                        <div id="podium-3" class="podium-box flex-1 flex flex-col items-center">
-                            <div class="text-2xl text-orange-400 uppercase tracking-widest mb-2">3RD PLACE</div>
-                            <div id="name-3" class="rank-bronze font-black">--</div>
-                            <div id="score-3" class="text-white text-xl">--</div>
-                            <div class="w-full h-24 bg-gradient-to-t from-orange-900 to-transparent mt-4 rounded-t-lg border-t-4 border-orange-600"></div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full z-50">
-                <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden hidden">
-                    <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
-                    <div id="roster-grid" class="overflow-y-auto pr-2 flex-1 space-y-2 scrollbar-hide"></div>
-                </div>
-                <div id="panel-leader" class="glass-panel p-8 rounded-2xl flex-1 flex flex-col items-center justify-center hidden border-4 border-[#FFD700]">
-                    <div class="text-[#C5A059] text-2xl uppercase tracking-widest mb-6">CURRENT EMPEROR</div>
-                    <div id="val-leader-name" class="text-white font-black uppercase tracking-widest text-6xl text-center leading-tight mb-6 drop-shadow-[0_0_40px_gold] transition-all">--</div>
-                    <div class="text-[#C5A059] text-sm uppercase tracking-widest mb-2">OFFERING</div>
-                    <div id="val-high-bid" class="text-8xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, onChildAdded } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-        const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // LANTERNS (Background)
-        const lanternContainer = document.getElementById('lantern-container');
-        for(let i=0; i<15; i++) {
-            const l = document.createElement('div');
-            l.className = 'lantern';
-            l.style.left = Math.random() * 95 + '%';
-            l.style.animationDelay = (Math.random() * 20) + 's';
-            l.style.animationDuration = (20 + Math.random() * 10) + 's';
-            lanternContainer.appendChild(l);
-        }
-
-        // GRID GEN
-        const g = document.getElementById('grid-container');
-        for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
-        
-        // CARD GONE
-        onValue(ref(db, 'envelopes'), (snap) => {
-            const used = snap.val() || {};
-            for(let i=1; i<=36; i++) { 
-                const el = document.getElementById(`cell-${i}`); 
-                if(used[i]) el.classList.add('gone'); else el.classList.remove('gone'); 
-            }
-        });
-
-        const sfxTick = document.getElementById('sfx-tick');
-        let currentDeadline = 0;
-        let lastHighBid = 0;
-        let spinInterval = null;
-
-        // --- GAME LOOP ---
-        onValue(ref(db, 'gameState'), async (snap) => {
-            const st = snap.val();
-            if(!st) return;
-
-            document.getElementById('round-num').innerText = st.round;
-            document.getElementById('status-text').innerText = st.phase;
-            currentDeadline = st.bidDeadline || 0;
-
-            // HIDE ALL
-            ['view-grid', 'view-coin', 'view-auction', 'view-action', 'view-leaderboard'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).classList.remove('flex');
+            // COIN RAIN
+            const bidQueueRef = ref(db, 'bidQueue');
+            onChildAdded(bidQueueRef, async (snapshot) => {
+                const req = snapshot.val();
+                if(req) {
+                   let count = 10;
+                   if(req.isAllIn) {
+                       count = 200;
+                       document.getElementById('val-leader-name').classList.add('all-in-glow');
+                       document.getElementById('main-body').classList.add('shake-violent'); 
+                       setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
+                   } else {
+                       if(req.amount >= 1000) count = 100;
+                       else if(req.amount >= 500) count = 50;
+                       else if(req.amount >= 300) count = 30;
+                       document.getElementById('val-leader-name').classList.remove('all-in-glow');
+                   }
+                   spawnCoinRain(count);
+                }
             });
-            
-            // SIDEBAR LOGIC (Hidden in Grid & Leaderboard)
-            if(['GRID', 'LEADERBOARD'].includes(st.phase)) {
-                document.getElementById('info-panel').classList.add('hidden');
-            } else {
-                document.getElementById('info-panel').classList.remove('hidden');
-                // Rank/Leader Toggle
-                if(['DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
-                    document.getElementById('panel-rankings').classList.remove('hidden');
-                    document.getElementById('panel-leader').classList.add('hidden');
-                } else {
-                    document.getElementById('panel-rankings').classList.add('hidden');
-                    document.getElementById('panel-leader').classList.remove('hidden');
+
+            function spawnCoinRain(amount) {
+                const container = document.getElementById('fx-container');
+                if(!container) return;
+                for(let i=0; i<amount; i++) {
+                    const c = document.createElement('div');
+                    c.className = 'falling-coin';
+                    c.style.left = Math.random() * 100 + '%';
+                    c.style.animationDuration = (1 + Math.random()) + 's';
+                    container.appendChild(c);
+                    setTimeout(() => c.remove(), 2500);
                 }
             }
 
-            // --- PHASES ---
-            if (st.phase === 'LEADERBOARD') {
-                document.getElementById('view-leaderboard').classList.remove('hidden');
-                document.getElementById('view-leaderboard').classList.add('flex');
-                updateLeaderboard(st.revealRank);
-            }
-            else if (st.phase === 'DRAWING') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                
-                const gridItems = document.querySelectorAll('.angpao:not(.gone)');
-                if(gridItems.length > 0 && !spinInterval) {
-                    let speed = 50; 
-                    let steps = 0;
-                    const spin = () => {
-                        gridItems.forEach(el => el.classList.remove('active'));
-                        const r = gridItems[Math.floor(Math.random() * gridItems.length)];
-                        r.classList.add('active');
-                        sfxTick.currentTime = 0; sfxTick.play();
-                        steps++;
-                        if(steps > 20) speed += 10;
-                        if(steps > 40) speed += 30;
-                        if(document.getElementById('status-text').innerText === 'DRAWING') spinInterval = setTimeout(spin, speed);
-                    };
-                    spin();
-                }
-            }
-            else if (st.phase === 'HIGHLIGHT') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
-                document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active'));
-                const winner = document.getElementById(`cell-${st.currentCard}`);
-                if(winner) winner.classList.add('highlight-winner');
-            }
-            else if (st.phase === 'GRID') {
-                document.getElementById('view-grid').classList.remove('hidden');
-                document.getElementById('view-grid').classList.add('flex');
-                document.getElementById('main-envelope').classList.remove('is-open', 'shaking');
-                if(spinInterval) { clearTimeout(spinInterval); spinInterval = null; }
-                document.querySelectorAll('.angpao').forEach(el => el.classList.remove('active', 'highlight-winner'));
-            }
-            else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
-                document.getElementById('view-auction').classList.remove('hidden');
-                document.getElementById('view-auction').classList.add('flex');
+            onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
-                const leaderName = st.leaderName || "NO ONE";
-                const highBid = st.highestBid || 0;
-                
-                // SLAM LOGIC
-                if (st.phase === 'BIDDING' && highBid > lastHighBid) {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
-                    
-                    const leaderEl = document.getElementById('val-leader-name');
-                    leaderEl.classList.remove('slam-text');
-                    void leaderEl.offsetWidth; 
-                    leaderEl.classList.add('slam-text');
-                    
-                    document.getElementById('main-body').classList.add('shake-screen');
-                    setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
-                    
-                    // RAIN
-                    let rainAmount = 10;
-                    if(highBid >= 1000) rainAmount = 80;
-                    else if(highBid >= 500) rainAmount = 40;
-                    else if(highBid >= 300) rainAmount = 20;
-                    spawnCoinRain(rainAmount);
+            setInterval(() => {
+                 const status = document.getElementById('status-text').innerText;
+                 if(status === 'BIDDING' && currentDeadline > Date.now()) {
+                     const diff = currentDeadline - Date.now();
+                     const mins = Math.floor(diff/60000);
+                     const secs = Math.floor((diff%60000)/1000);
+                     document.getElementById('countdown-val').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
+                 } else if (status === 'SOLD') {
+                     document.getElementById('countdown-val').innerText = "0:00";
+                 }
+            }, 100);
 
-                    lastHighBid = highBid;
-                } else if (leaderName === "NO ONE") {
-                    document.getElementById('val-leader-name').innerText = "NO ONE";
-                    document.getElementById('val-high-bid').innerText = "RM 0";
-                    lastHighBid = 0;
-                } else {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
-                }
-
-                if (st.phase === 'REVEALED' && st.cardName) {
-                    document.getElementById('card-title').innerText = st.cardName;
-                    document.getElementById('card-desc').innerText = st.cardDesc;
-                    document.getElementById('main-envelope').classList.add('is-open');
-                } else {
-                    document.getElementById('main-envelope').classList.remove('is-open');
-                }
-
-                if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
-                else document.getElementById('main-envelope').classList.remove('shaking');
-                
-                if(st.phase === 'SOLD') {
-                    if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
-                    else document.getElementById('unsold-stamp').classList.remove('hidden');
-                } else {
-                    document.getElementById('sold-stamp').classList.add('hidden');
-                    document.getElementById('unsold-stamp').classList.add('hidden');
-                }
-            } 
-            else if (['CHALLENGE', 'TARGETING', 'SPIN', 'WAGER'].includes(st.phase)) {
-                if(['WAGER','SPIN'].includes(st.phase)) {
-                    document.getElementById('view-coin').classList.remove('hidden');
-                    document.getElementById('view-coin').classList.add('flex');
-                    if (st.phase === 'SPIN') {
-                        const isWin = st.spinResult === 'WIN';
-                        const rot = 1800 + (isWin ? 0 : 180); 
-                        if(!window.hasProcessedSpin) {
-                            window.hasProcessedSpin = true;
-                            document.getElementById('sfx-coin').currentTime = 0; document.getElementById('sfx-coin').play();
-                            document.getElementById('the-coin').style.transform = `rotateY(${rot}deg)`;
-                            setTimeout(() => {
-                                const res = document.getElementById('coin-result');
-                                res.innerText = isWin ? "WINNER!" : "LOSS";
-                                res.style.color = isWin ? '#00ff00' : '#ff0000';
-                                res.classList.remove('hidden');
-                            }, 4000);
-                        }
-                    } else {
-                        window.hasProcessedSpin = false;
-                        document.getElementById('the-coin').style.transform = 'rotateY(0deg)';
-                        document.getElementById('coin-result').classList.add('hidden');
-                    }
-                } else {
-                    document.getElementById('view-action').classList.remove('hidden');
-                    document.getElementById('view-action').classList.add('flex');
-                    if(st.phase === 'CHALLENGE') {
-                        document.getElementById('action-title').innerText = "CHALLENGE";
-                        document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
-                        document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
-                    } else {
-                        document.getElementById('action-title').innerText = "SELECTING TARGET";
-                        document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
-                        document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
-                    }
-                }
-            }
-        });
-
-        // LEADERBOARD UPDATER
-        async function updateLeaderboard(revealRank) {
-            const snap = await get(ref(db, 'teams'));
-            const teams = snap.val() || {};
-            const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
-            
-            // 3rd
-            if(revealRank <= 3 && sorted[2]) {
-                document.getElementById('name-3').innerText = sorted[2].name;
-                document.getElementById('score-3').innerText = "RM " + sorted[2].balance.toLocaleString();
-                document.getElementById('podium-3').classList.add('reveal');
-            } else { document.getElementById('podium-3').classList.remove('reveal'); }
-
-            // 2nd
-            if(revealRank <= 2 && sorted[1]) {
-                document.getElementById('name-2').innerText = sorted[1].name;
-                document.getElementById('score-2').innerText = "RM " + sorted[1].balance.toLocaleString();
-                document.getElementById('podium-2').classList.add('reveal');
-            } else { document.getElementById('podium-2').classList.remove('reveal'); }
-
-            // 1st
-            if(revealRank <= 1 && sorted[0]) {
-                document.getElementById('name-1').innerText = sorted[0].name;
-                document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
-                document.getElementById('podium-1').classList.add('reveal');
-                spawnCoinRain(200); // Winner rain
-            } else { document.getElementById('podium-1').classList.remove('reveal'); }
-        }
-
-        // COIN RAIN
-        const bidQueueRef = ref(db, 'bidQueue');
-        onChildAdded(bidQueueRef, async (snapshot) => {
-            const req = snapshot.val();
-            if(req) {
-               let count = 10;
-               if(req.isAllIn) {
-                   count = 200;
-                   document.getElementById('val-leader-name').classList.add('all-in-glow');
-                   document.getElementById('main-body').classList.add('shake-violent'); 
-                   setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
-               } else {
-                   if(req.amount >= 1000) count = 100;
-                   else if(req.amount >= 500) count = 50;
-                   else if(req.amount >= 300) count = 30;
-                   document.getElementById('val-leader-name').classList.remove('all-in-glow');
-               }
-               spawnCoinRain(count);
-            }
-        });
-
-        function spawnCoinRain(amount) {
-            const container = document.getElementById('fx-container');
-            if(!container) return;
-            for(let i=0; i<amount; i++) {
-                const c = document.createElement('div');
-                c.className = 'falling-coin';
-                c.style.left = Math.random() * 100 + '%';
-                c.style.animationDuration = (1 + Math.random()) + 's';
-                container.appendChild(c);
-                setTimeout(() => c.remove(), 2500);
-            }
-        }
-
-        onValue(ref(db, 'revealTrigger'), (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
-
-        setInterval(() => {
-             const status = document.getElementById('status-text').innerText;
-             if(status === 'BIDDING' && currentDeadline > Date.now()) {
-                 const diff = currentDeadline - Date.now();
-                 const mins = Math.floor(diff/60000);
-                 const secs = Math.floor((diff%60000)/1000);
-                 document.getElementById('countdown-val').innerText = `${mins}:${secs.toString().padStart(2,'0')}`;
-             } else if (status === 'SOLD') {
-                 document.getElementById('countdown-val').innerText = "0:00";
-             }
-        }, 100);
+        })(); // END ASYNC WRAPPER
     </script>
 </body>
 </html>
