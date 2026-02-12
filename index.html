@@ -102,6 +102,11 @@
             border: 5px solid #FFD700;
             background: rgba(255, 215, 0, 0.1);
         }
+
+        /* HISTORY LOG MARQUEE */
+        .history-bar { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); border-top: 2px solid #C5A059; padding: 10px 0; overflow: hidden; white-space: nowrap; z-index: 100; }
+        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; color: #FFD700; font-weight: bold; text-transform: uppercase; font-size: 1.2rem; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -119,9 +124,10 @@
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
-    <audio id="bgm-victory" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+    
+    <audio id="sfx-good" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio> <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/265/265-preview.mp3"></audio> <audio id="bgm-victory" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
 
-    <div class="layer-ui p-8 w-full h-full">
+    <div class="layer-ui p-8 w-full h-full pb-16">
         <header class="h-24 flex justify-between items-center px-8 border-b-4 border-[#b8860b] mb-4 bg-[#1a0000] rounded-2xl shadow-2xl z-50">
             <div class="flex items-center gap-4">
                 <span class="text-6xl drop-shadow-[0_0_15px_gold]">🐎</span>
@@ -194,6 +200,10 @@
                 </div>
             </div>
         </main>
+        
+        <div class="history-bar">
+            <div id="marquee-text" class="marquee-content">WELCOME TO THE IMPERIAL AUCTION • MAY FORTUNE FAVOR THE BOLD • BEWARE THE EMPEROR'S WRATH •</div>
+        </div>
     </div>
 
     <script>
@@ -489,7 +499,28 @@
             }
         }
 
-        db.ref('revealTrigger').on('value', (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
+        // --- SMART AUDIO & REVEAL ---
+        db.ref('revealTrigger').on('value', async (snap) => { 
+            if(snap.val()) {
+                const gs = (await db.ref('gameState').get()).val();
+                const type = gs.soundType || 'good';
+                
+                // STOP BG MUSIC MOMENTARILY? NO, JUST PLAY OVER
+                const sfx = document.getElementById(`sfx-${type}`);
+                if(sfx) { sfx.currentTime = 0; sfx.play(); }
+                else document.getElementById('sfx-gong').play(); // Fallback
+            }
+        });
+
+        // --- HISTORY TICKER ---
+        db.ref('projectorLog').on('child_added', (snap) => {
+             const val = snap.val();
+             if(!val) return;
+             const marquee = document.getElementById('marquee-text');
+             marquee.innerText = `♦ ${val.text} ${marquee.innerText}`;
+             // Keep it clean - truncate if too long? No, CSS marquee handles it looping.
+             // Just prepend new events so they appear soon.
+        });
 
         db.ref('teams').on('value', (snap) => {
             const list = document.getElementById('roster-grid');
