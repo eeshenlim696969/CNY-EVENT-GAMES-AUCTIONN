@@ -8,19 +8,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
         /* IMPERIAL THEME */
-        body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; }
+        body { 
+            font-family: 'Cinzel', serif; 
+            background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); 
+            color: #FFD700; 
+            overflow: hidden; 
+            cursor: none; 
+            transition: background 1s;
+        }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
+
+        /* WINNER MODE BACKGROUND */
+        body.winner-mode {
+            background: radial-gradient(circle at center, #5a0000 0%, #2a0000 60%, #000000 100%);
+        }
+
+        /* LAYERS */
         .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
         .layer-fx { position: absolute; inset: 0; z-index: 200; pointer-events: none; }
+        
+        /* GOD RAYS (For Winner) */
+        .god-rays {
+            position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw;
+            background: repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.1) 0deg 10deg, transparent 10deg 20deg);
+            transform: translate(-50%, -50%);
+            animation: rotateRays 60s linear infinite;
+            z-index: 5; opacity: 0; transition: opacity 2s;
+            pointer-events: none;
+        }
+        .god-rays.active { opacity: 1; }
+        @keyframes rotateRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* LANTERN ANIMATION */
         .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.6; bottom: -100px; }
         @keyframes rise { 0% { transform: translateY(0) scale(0.8); } 100% { transform: translateY(-120vh) scale(1); } }
+
+        /* COMPONENTS */
         .angpao { background: linear-gradient(135deg, #800000 0%, #500000 100%); border: 2px solid #b8860b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 2rem; color: rgba(255,215,0,0.5); transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; }
         .angpao.highlight-winner { background: #ffaa00 !important; color: white !important; transform: scale(1.2); box-shadow: 0 0 80px orange; border: 3px solid white; z-index: 70; opacity: 1; }
         .angpao.gone { visibility: hidden; opacity: 0; pointer-events: none; }
         .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 12px; }
+        
+        /* ANIMATIONS */
         @keyframes slamIn { 0% { transform: scale(10); opacity: 0; filter: blur(10px); } 20% { transform: scale(1); opacity: 1; filter: blur(0px); } 30% { transform: scale(1.4); color: #fff; text-shadow: 0 0 80px white; } 100% { transform: scale(1); color: #FFD700; } }
         .slam-text { animation: slamIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .shake-screen { animation: shakeScreen 1.0s ease-in-out; }
@@ -29,8 +61,11 @@
         @keyframes shakeViolent { 0%, 100% { transform: translate(0,0); filter: hue-rotate(0deg); } 10%, 30%, 50%, 70%, 90% { transform: translate(-30px, -30px) rotate(-3deg); filter: hue-rotate(-30deg); background-color: rgba(50,0,0,0.5); } 20%, 40%, 60%, 80% { transform: translate(30px, 30px) rotate(3deg); filter: hue-rotate(30deg); } }
         .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
         @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; transform: scale(1); } 50% { text-shadow: 0 0 100px red; transform: scale(1.1); } 100% { text-shadow: 0 0 50px red; transform: scale(1); } }
-        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 2s linear forwards; z-index: 200; pointer-events: none; }
+        
+        /* SMOOTH COIN RAIN */
+        .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 3s linear forwards; z-index: 200; pointer-events: none; }
         @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
+        
         .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; z-index: 30; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #900 0%, #600 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
@@ -43,15 +78,27 @@
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
         .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* LEADERBOARD ANIMATIONS */
-        .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* LEADERBOARD SPECIALS */
+        .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 60; }
         .podium-box.reveal { opacity: 1; transform: translateY(0); }
-        .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 6rem; }
-        .spotlight {
-            box-shadow: 0 0 100px 20px gold;
-            border: 5px solid #FFD700;
-            background: rgba(255, 215, 0, 0.1);
+        
+        /* 1st Place Text Shine */
+        .rank-gold { 
+            color: #FFD700; 
+            font-size: 8rem; 
+            font-weight: 900;
+            background: linear-gradient(to right, #b8860b 20%, #fff 50%, #FFD700 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
         }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .rank-silver { color: #C0C0C0; text-shadow: 0 0 20px #C0C0C0; font-size: 3rem; }
+        .rank-bronze { color: #CD7F32; text-shadow: 0 0 20px #CD7F32; font-size: 2.5rem; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -59,7 +106,7 @@
 <body class="h-screen w-screen overflow-hidden" id="main-body">
 
     <div class="layer-bg"></div>
-    <div class="layer-lanterns" id="lantern-container"></div>
+    <div class="god-rays" id="god-rays"></div> <div class="layer-lanterns" id="lantern-container"></div>
     <div class="layer-fx" id="fx-container" style="position: absolute; inset: 0; pointer-events: none; z-index: 200;"></div>
 
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
@@ -80,14 +127,18 @@
         </header>
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
+            
             <div class="flex-1 relative flex items-center justify-center">
+                
                 <div id="view-grid" class="view-container hidden">
                     <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
                 </div>
+
                 <div id="view-coin" class="view-container hidden">
                     <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em]">DESTINY FLIPPING...</div>
                     <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
                 </div>
+
                 <div id="view-auction" class="view-container hidden">
                     <div id="timer-box" class="mb-8 text-center transition-all duration-300">
                         <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
@@ -106,6 +157,7 @@
                         <div class="envelope-lid"></div>
                     </div>
                 </div>
+
                 <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
@@ -114,17 +166,20 @@
                     </div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
+
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
-                    <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl">FINAL STANDINGS</h1>
-                    <div class="flex items-center justify-center w-full max-w-4xl">
-                        <div id="podium-1" class="podium-box flex-1 flex flex-col items-center">
-                            <div class="text-4xl text-yellow-300 uppercase tracking-widest mb-8 font-bold">👑 EMPEROR 👑</div>
-                            <div id="name-1" class="rank-gold font-black transform scale-150 mb-4">--</div>
-                            <div id="score-1" class="text-white text-3xl font-bold">--</div>
-                            <div class="w-full h-80 bg-gradient-to-t from-yellow-700 to-transparent mt-8 rounded-t-3xl spotlight"></div>
+                    <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl z-50">FINAL STANDINGS</h1>
+                    
+                    <div class="flex items-end justify-center gap-12 w-full max-w-6xl z-50">
+                        <div id="podium-1" class="podium-box flex-1 flex flex-col items-center -mt-12">
+                            <div class="text-4xl text-yellow-300 uppercase tracking-widest mb-4 font-black drop-shadow-md">👑 EMPEROR 👑</div>
+                            <div id="name-1" class="rank-gold font-black transform scale-125">--</div>
+                            <div id="score-1" class="text-white text-3xl font-bold mt-2">--</div>
+                            <div class="w-full h-64 bg-gradient-to-t from-yellow-700 to-transparent mt-4 rounded-t-lg border-t-4 border-yellow-400 shadow-[0_0_80px_gold]"></div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full z-50">
@@ -139,6 +194,7 @@
                     <div id="val-high-bid" class="text-8xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
                 </div>
             </div>
+
         </main>
     </div>
 
@@ -147,6 +203,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // LANTERNS
         const lanternContainer = document.getElementById('lantern-container');
         for(let i=0; i<15; i++) {
             const l = document.createElement('div');
@@ -157,6 +214,7 @@
             lanternContainer.appendChild(l);
         }
 
+        // GRID GEN
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
@@ -172,7 +230,7 @@
         let currentDeadline = 0;
         let lastHighBid = 0;
         let spinInterval = null;
-        let rainInterval = null; // For constant winner rain
+        let rainInterval = null; // CONSTANT RAIN VARIABLE
 
         db.ref('gameState').on('value', (snap) => {
             const st = snap.val();
@@ -192,24 +250,30 @@
                 document.getElementById('info-panel').classList.add('hidden');
             } else {
                 document.getElementById('info-panel').classList.remove('hidden');
-                if(['CHALLENGE', 'TARGETING'].includes(st.phase)) {
-                     document.getElementById('panel-rankings').classList.add('hidden');
-                     document.getElementById('panel-leader').classList.remove('hidden');
+                if(['DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
+                    document.getElementById('panel-rankings').classList.remove('hidden');
+                    document.getElementById('panel-leader').classList.add('hidden');
                 } else {
-                     document.getElementById('panel-rankings').classList.add('hidden');
-                     document.getElementById('panel-leader').classList.remove('hidden');
+                    document.getElementById('panel-rankings').classList.add('hidden');
+                    document.getElementById('panel-leader').classList.remove('hidden');
                 }
             }
 
             if (st.phase === 'LEADERBOARD') {
                 document.getElementById('view-leaderboard').classList.remove('hidden');
                 document.getElementById('view-leaderboard').classList.add('flex');
+                document.getElementById('main-body').classList.add('winner-mode'); // New BG
+                document.getElementById('god-rays').classList.add('active'); // God Rays
                 updateLeaderboard(st.revealRank);
             }
             else {
+                // Not leaderboard? Reset FX
+                document.getElementById('main-body').classList.remove('winner-mode');
+                document.getElementById('god-rays').classList.remove('active');
                 if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
             }
 
+            // ... (Rest of view logic same as before) ...
             if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
@@ -256,7 +320,6 @@
                 if (st.phase === 'BIDDING' && highBid > lastHighBid) {
                     leaderEl.innerText = leaderName;
                     bidEl.innerText = "RM " + highBid.toLocaleString();
-                    
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
@@ -270,7 +333,6 @@
                          leaderEl.classList.remove('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-screen');
                          setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
-                         
                          let rainAmount = 10;
                          if(highBid >= 1000) rainAmount = 80;
                          else if(highBid >= 500) rainAmount = 40;
@@ -351,14 +413,15 @@
             const teams = snap.val() || {};
             const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
             
-            // Only Show 1st Place logic
+            // SHOW ONLY 1ST PLACE
             if(revealRank <= 1 && sorted[0]) {
                 document.getElementById('name-1').innerText = sorted[0].name;
                 document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
                 document.getElementById('podium-1').classList.add('reveal');
-                // CONSTANT RAIN
+                
+                // CONSTANT RAIN LOOP (Fast 100ms interval for smooth stream)
                 if(!rainInterval) {
-                     rainInterval = setInterval(() => spawnCoinRain(30), 1000);
+                     rainInterval = setInterval(() => spawnCoinRain(3), 100); 
                 }
             } else { 
                 document.getElementById('podium-1').classList.remove('reveal'); 
@@ -366,7 +429,6 @@
             }
         }
 
-        // COIN RAIN SYSTEM
         function spawnCoinRain(amount) {
             const container = document.getElementById('fx-container');
             if(!container) return;
@@ -382,7 +444,6 @@
 
         db.ref('revealTrigger').on('value', (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
 
-        // ROSTER (Hidden in Grid, but logic stays to update)
         db.ref('teams').on('value', (snap) => {
             const list = document.getElementById('roster-grid');
             list.innerHTML = '';
