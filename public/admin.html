@@ -19,41 +19,67 @@
         </div>
     </div>
 
-    <div id="gameplay-controls" class="bg-gray-800 p-6 shadow-2xl flex flex-col gap-4 rounded">
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="bg-yellow-600 text-black font-black text-xl p-5 rounded-lg mb-2">1. DRAW CARD</button>
+    <div class="bg-gray-800 p-6 shadow-2xl flex flex-col gap-4 rounded">
+        <div id="gameplay-controls" class="flex flex-col gap-4">
+            <button onclick="adminAction('DRAW')" id="btn-draw" class="bg-yellow-600 text-black font-black text-xl p-5 rounded-lg mb-2">1. DRAW CARD</button>
 
-        <div id="secret-preview" class="hidden bg-white text-black p-4 rounded border-4 border-yellow-500 font-bold text-center">
-            <p class="text-xs text-gray-500 uppercase">HOST PREVIEW</p>
-            <h2 id="secret-title" class="text-2xl text-red-700">--</h2>
-            <p id="secret-desc" class="text-sm">--</p>
-            <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
+            <div id="secret-preview" class="hidden bg-white text-black p-4 rounded border-4 border-yellow-500 font-bold text-center">
+                <p class="text-xs text-gray-500 uppercase">HOST PREVIEW</p>
+                <h2 id="secret-title" class="text-2xl text-red-700">--</h2>
+                <p id="secret-desc" class="text-sm">--</p>
+                <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
+            </div>
+            
+            <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
+            <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
+
+            <div id="challenge-controls" class="hidden flex-col gap-2 p-4 bg-gray-700 rounded border border-yellow-500">
+                <p class="text-center text-white font-bold mb-2 uppercase">Judge The Challenge</p>
+                <div class="flex gap-3">
+                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-700 p-4 rounded text-white font-bold text-xl shadow-lg">PASS (+2k)</button>
+                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-700 p-4 rounded text-white font-bold text-xl shadow-lg">FAIL (-500)</button>
+                </div>
+            </div>
+
+            <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
         </div>
-        
-        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
 
-        <div id="challenge-controls" class="hidden flex gap-3">
-            <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS (+2k)</button>
-            <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL (-500)</button>
-        </div>
-
-        <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
-        
-        <div class="mt-4 pt-4 border-t border-gray-600">
-            <button onclick="adminAction('END_GAME')" class="w-full bg-purple-900 border border-purple-500 p-3 rounded text-xs text-purple-100 font-bold">👑 END GAME & GO TO LEADERBOARD</button>
+        <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4 mt-4">
+            <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
+            <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
         </div>
     </div>
 
-    <div id="leaderboard-controls" class="hidden bg-gray-800 p-6 shadow-2xl flex-col gap-4 rounded border-2 border-yellow-600">
-        <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase mb-4">🏆 Award Ceremony 🏆</p>
-        <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
-        <button onclick="adminAction('START')" class="mt-8 bg-red-900 p-3 rounded text-xs text-red-100 font-bold w-full">⚠ RESET / NEW GAME</button>
+    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
+        <button onclick="adminAction('START')" class="bg-red-900 p-3 rounded text-xs text-red-100 font-bold">RESET GAME</button>
+        <button onclick="adminAction('END_GAME')" class="bg-purple-900 border border-purple-500 p-3 rounded text-xs text-purple-100 font-bold">👑 END GAME</button>
     </div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        // --- BID PROCESSING ---
+        db.ref('bidQueue').on('child_added', async (snapshot) => {
+            const bid = snapshot.val();
+            if(!bid) return;
+            const stateSnap = await db.ref('gameState').get();
+            const state = stateSnap.val();
+            
+            if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
+                const teamSnap = await db.ref(`teams/${bid.teamId}`).get();
+                const team = teamSnap.val();
+                
+                await db.ref('gameState').update({
+                    highestBid: bid.amount,
+                    leaderId: bid.teamId,
+                    leaderName: team.name,
+                    isAllIn: bid.isAllIn || false
+                });
+            }
+            snapshot.ref.remove();
+        });
 
         // --- DECK ---
         const deck = [
@@ -97,7 +123,6 @@
 
         let gameState = {};
 
-        // --- STATE LISTENER (CONTROLS UI) ---
         db.ref('gameState').on('value', (snap) => {
             gameState = snap.val() || {};
             document.getElementById('phase-disp').innerText = gameState.phase;
@@ -110,14 +135,14 @@
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
-            // --- UI SWITCHING LOGIC ---
+            // --- VIEW SWITCHING ---
             if(gameState.phase === 'LEADERBOARD') {
-                gameControls.classList.add('hidden'); // Hide Game Controls
-                leaderControls.classList.remove('hidden'); // Show Leaderboard Controls
+                gameControls.classList.add('hidden');
+                leaderControls.classList.remove('hidden');
                 leaderControls.classList.add('flex');
             } else {
-                gameControls.classList.remove('hidden'); // Show Game Controls
-                leaderControls.classList.add('hidden'); // Hide Leaderboard Controls
+                gameControls.classList.remove('hidden');
+                leaderControls.classList.add('hidden');
                 leaderControls.classList.remove('flex');
             }
 
@@ -130,32 +155,16 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            if (gameState.phase === 'CHALLENGE') challengeBox.classList.remove('hidden');
-            else challengeBox.classList.add('hidden');
-        });
-
-        // --- BID PROCESSING ---
-        db.ref('bidQueue').on('child_added', async (snapshot) => {
-            const bid = snapshot.val();
-            if(!bid) return;
-            const stateSnap = await db.ref('gameState').get();
-            const state = stateSnap.val();
-            
-            if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
-                const teamSnap = await db.ref(`teams/${bid.teamId}`).get();
-                const team = teamSnap.val();
-                
-                await db.ref('gameState').update({
-                    highestBid: bid.amount,
-                    leaderId: bid.teamId,
-                    leaderName: team.name,
-                    isAllIn: bid.isAllIn || false
-                });
+            // SHOW CHALLENGE BUTTONS IF PHASE IS CHALLENGE
+            if (gameState.phase === 'CHALLENGE') {
+                challengeBox.classList.remove('hidden');
+                challengeBox.classList.add('flex');
+            } else {
+                challengeBox.classList.add('hidden');
+                challengeBox.classList.remove('flex');
             }
-            snapshot.ref.remove();
         });
 
-        // AUTO-SOLD
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
@@ -164,7 +173,6 @@
             }
         }, 500);
 
-        // --- ACTION HANDLER ---
         window.adminAction = async (action, param) => {
             if(action === 'START') {
                 if(confirm("⚠ RESET GAME?")) await db.ref('/').set({ gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {}, projectorLog: {} });
@@ -223,61 +231,114 @@
             }
         };
 
+        // --- FIXED CHALLENGE LOGIC (DEDUCTS BID NOW) ---
         window.resolveChallenge = async (pass) => {
-            const leaderId = gameState.leaderId;
+            const gsSnap = await db.ref('gameState').get();
+            const gs = gsSnap.val();
+            const leaderId = gs.leaderId;
+            const bidAmount = Number(gs.highestBid) || 0;
+
             if(!leaderId) return alert("No leader found");
+
             const t = (await db.ref(`teams/${leaderId}`).get()).val();
-            
+            const currentBal = Number(t.balance) || 0;
+
+            // 1. DEDUCT BID FIRST
+            let balanceAfterBid = currentBal - bidAmount;
+
+            // 2. APPLY REWARD OR PENALTY
             if(pass) {
-                // ADD REWARD
-                await db.ref(`teams/${leaderId}`).update({ balance: (t.balance||0) + 2000 });
+                let finalBal = balanceAfterBid + 2000;
+                await db.ref(`teams/${leaderId}`).update({ balance: finalBal });
                 db.ref('projectorLog').push({ text: `CHALLENGE PASSED: ${t.name} (+2000)` });
             } else {
-                // PENALTY
-                await db.ref(`teams/${leaderId}`).update({ balance: Math.max(0, (t.balance||0) - 500) });
+                let finalBal = balanceAfterBid - 500;
+                if(finalBal < 0) finalBal = 0; // Prevent negative
+                await db.ref(`teams/${leaderId}`).update({ balance: finalBal });
                 db.ref('projectorLog').push({ text: `CHALLENGE FAILED: ${t.name} (-500)` });
             }
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- FIXED MONEY LOGIC HERE ---
+        // --- FIXED STANDARD CARD LOGIC (DEDUCTS BID NOW) ---
         async function executeEffect(card, winnerId, targetId) {
-            // 1. Get current state (Winner and Highest Bid)
+            // 1. GET STATE
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
-            const bidAmount = gs.highestBid || 0; // THIS IS THE COST
+            const bidAmount = Number(gs.highestBid) || 0;
 
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
             const winner = teams[winnerId];
             const updates = {};
             const others = Object.keys(teams).filter(id => id !== winnerId);
+            const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            // 2. DEDUCT COST FIRST (Current Balance - Bid)
-            let balanceAfterCost = winner.balance - bidAmount;
-            
+            // 2. DEDUCT BID FROM WINNER
+            let balanceAfterCost = Number(winner.balance) - bidAmount;
             const wRef = `teams/${winnerId}/balance`;
-            updates[wRef] = balanceAfterCost; // Set baseline to balance AFTER paying
+            updates[wRef] = balanceAfterCost; // Baseline update
 
+            // LOGGING
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
 
-            // 3. APPLY CARD EFFECT to the NEW balance
+            // 3. APPLY EFFECTS TO NEW BALANCE
             if(card.type === 'GLOBAL_ADD') {
-                for (let k in teams) updates[`teams/${k}/balance`] = (teams[k].balance) + card.val;
+                for (let k in teams) {
+                    let base = Number(teams[k].balance);
+                    // Special case: If this is the winner, use the deducted balance as base
+                    if(k === winnerId) base = balanceAfterCost;
+                    updates[`teams/${k}/balance`] = base + card.val;
+                }
                 log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
             }
             if(card.type === 'ADD') {
-                updates[wRef] = balanceAfterCost + card.val; // Add to post-deduction balance
+                updates[wRef] = balanceAfterCost + card.val;
                 log(`${winner.name} gained ${card.val}`);
             }
             if(card.type === 'MULTIPLY') {
-                let val = Math.floor(balanceAfterCost * card.val); // Multiply post-deduction balance
-                updates[wRef] = val;
-                log(`${winner.name} suffered ${card.name}`);
+                let val = Math.floor(balanceAfterCost * card.val);
+                if(card.val < 1 && checkShield(winnerId)) {
+                    log(`${winner.name} blocked DISASTER!`);
+                    updates[wRef] = balanceAfterCost; // Revert to just bid deduction
+                } else {
+                    updates[wRef] = val;
+                    log(`${winner.name} suffered ${card.name}`);
+                }
             }
-            // ... (Other effects follow logic) ...
-            
-            // Apply all
+            if(card.type === 'STEAL_RND') {
+                const victim = others[Math.floor(Math.random()*others.length)];
+                if(victim && !checkShield(victim)) {
+                    const amt = Math.floor(Number(teams[victim].balance) * card.val);
+                    updates[wRef] = balanceAfterCost + amt; 
+                    updates[`teams/${victim}/balance`] = Number(teams[victim].balance) - amt;
+                    updates[`teams/${victim}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
+                    log(`${winner.name} stole from ${teams[victim].name}`);
+                }
+            }
+            if(card.type === 'STEAL_TGT' && targetId) {
+                if(!checkShield(targetId)) {
+                    const amt = Math.floor(Number(teams[targetId].balance) * card.val);
+                    updates[wRef] = balanceAfterCost + amt; 
+                    updates[`teams/${targetId}/balance`] = Number(teams[targetId].balance) - amt;
+                    updates[`teams/${targetId}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
+                    log(`${winner.name} TARGETED ${teams[targetId].name}`);
+                }
+            }
+            if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
+                let tid = targetId || others[Math.floor(Math.random()*others.length)];
+                if(tid && !checkShield(tid)) { 
+                    updates[wRef] = Number(teams[tid].balance); 
+                    updates[`teams/${tid}/balance`] = balanceAfterCost;
+                    updates[`teams/${tid}/alert`] = `SWAPPED BY ${winner.name}`; 
+                    log(`${winner.name} SWAPPED funds with ${teams[tid].name}`);
+                }
+            }
+            if(card.type === 'ITEM') {
+                updates[`teams/${winnerId}/items/${card.item}`] = true;
+                log(`${winner.name} obtained ITEM`);
+            }
+
             await db.ref('/').update(updates);
         }
     </script>
