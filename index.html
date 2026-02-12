@@ -115,7 +115,7 @@
 
     <div class="layer-bg"></div>
     <div class="god-rays" id="god-rays"></div>
-    <canvas id="fireworks" class="absolute inset-0 pointer-events-none z-10"></canvas>
+    <canvas id="fireworks" class="absolute inset-0 pointer-events-none z-10 hidden"></canvas>
     
     <div class="layer-lanterns" id="lantern-container"></div>
     <div class="layer-fx" id="fx-container" style="position: absolute; inset: 0; pointer-events: none; z-index: 200;"></div>
@@ -202,7 +202,7 @@
         </main>
         
         <div class="history-bar">
-            <div id="marquee-text" class="marquee-content">WELCOME TO THE IMPERIAL AUCTION • MAY FORTUNE FAVOR THE BOLD • BEWARE THE EMPEROR'S WRATH •</div>
+            <div id="marquee-text" class="marquee-content"></div>
         </div>
     </div>
 
@@ -222,12 +222,13 @@
             lanternContainer.appendChild(l);
         }
 
-        // FIREWORKS LOGIC
+        // FIREWORKS LOGIC - FIXED: TRIGGER ON REVEAL ONLY
         const canvas = document.getElementById('fireworks');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         let particles = [];
+        let fireworksActive = false;
 
         function createFirework(x, y) {
             for (let i = 0; i < 30; i++) {
@@ -242,12 +243,13 @@
 
         function loopFireworks() {
             requestAnimationFrame(loopFireworks);
+            // Always clear canvas to prevent artifacts
             ctx.globalCompositeOperation = 'destination-out';
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.globalCompositeOperation = 'lighter';
 
-            if (Math.random() < 0.05 && document.getElementById('view-leaderboard').classList.contains('flex')) {
+            if (fireworksActive && Math.random() < 0.05) {
                 createFirework(Math.random() * canvas.width, Math.random() * canvas.height / 2);
             }
 
@@ -314,11 +316,13 @@
             else {
                 document.getElementById('main-body').classList.remove('winner-mode');
                 document.getElementById('god-rays').classList.remove('active');
+                fireworksActive = false; // Stop spawning
+                document.getElementById('fireworks').classList.add('hidden'); // Hide canvas
                 if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
             }
 
-            // ... (Drawing and Highlight Logic Same) ...
-             if (st.phase === 'DRAWING') {
+            // ... (Drawing/Highlight logic) ...
+            if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 const gridItems = document.querySelectorAll('.angpao:not(.gone)');
@@ -466,6 +470,7 @@
             const teams = snap.val() || {};
             const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
             
+            // FIXED: TRIGGER FIREWORKS ONLY IF REVEALING 1ST PLACE
             if(revealRank <= 1 && sorted[0]) {
                 document.getElementById('name-1').innerText = sorted[0].name;
                 // Animate Score
@@ -476,12 +481,18 @@
                 document.getElementById('bgm').pause();
                 const victory = document.getElementById('bgm-victory');
                 victory.currentTime = 0; victory.play();
+                
+                // ENABLE FIREWORKS
+                fireworksActive = true;
+                document.getElementById('fireworks').classList.remove('hidden');
 
                 if(!rainInterval) {
                      rainInterval = setInterval(() => spawnCoinRain(3), 100); 
                 }
             } else { 
                 document.getElementById('podium-1').classList.remove('reveal'); 
+                fireworksActive = false; // Disable fireworks if not revealed
+                document.getElementById('fireworks').classList.add('hidden');
                 if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
             }
         }
@@ -504,11 +515,9 @@
             if(snap.val()) {
                 const gs = (await db.ref('gameState').get()).val();
                 const type = gs.soundType || 'good';
-                
-                // STOP BG MUSIC MOMENTARILY? NO, JUST PLAY OVER
                 const sfx = document.getElementById(`sfx-${type}`);
                 if(sfx) { sfx.currentTime = 0; sfx.play(); }
-                else document.getElementById('sfx-gong').play(); // Fallback
+                else document.getElementById('sfx-gong').play(); 
             }
         });
 
@@ -518,8 +527,6 @@
              if(!val) return;
              const marquee = document.getElementById('marquee-text');
              marquee.innerText = `♦ ${val.text} ${marquee.innerText}`;
-             // Keep it clean - truncate if too long? No, CSS marquee handles it looping.
-             // Just prepend new events so they appear soon.
         });
 
         db.ref('teams').on('value', (snap) => {
