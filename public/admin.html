@@ -128,6 +128,7 @@
             const btnReveal = document.getElementById('btn-reveal');
             const btnNext = document.getElementById('btn-next');
             const btnSkip = document.getElementById('btn-skip');
+            const secretBox = document.getElementById('secret-preview');
             const challengeBox = document.getElementById('challenge-controls');
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
@@ -152,7 +153,6 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            // SHOW CHALLENGE BUTTONS
             if (gameState.phase === 'CHALLENGE') {
                 challengeBox.classList.remove('hidden');
                 challengeBox.classList.add('flex');
@@ -228,12 +228,31 @@
             }
         };
 
+        // --- SAFE PROCESS CARD EFFECT ---
+        async function processCardEffect(card) {
+            // Force fetch state to ensure we have a winner
+            const gsSnap = await db.ref('gameState').get();
+            const gs = gsSnap.val();
+            const leaderId = gs.leaderId;
+
+            // EMERGENCY CHECK: If no leader, alert admin
+            if(!leaderId) {
+                alert("⚠ NO WINNER FOUND! Money will not be deducted.");
+                await db.ref('gameState').update({ phase: 'REVEALED' });
+                return;
+            }
+
+            if(card.type === 'CHALLENGE') { await db.ref('gameState').update({ phase: 'CHALLENGE', challengeText: card.desc }); return; }
+            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { await db.ref('gameState').update({ phase: 'TARGETING' }); return; }
+            executeEffect(card, leaderId, null);
+        }
+
         // --- FIXED CHALLENGE LOGIC ---
         window.resolveChallenge = async (pass) => {
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
             const leaderId = gs.leaderId;
-            const bidAmount = Number(gs.highestBid) || 0; // The cost of the bid
+            const bidAmount = Number(gs.highestBid) || 0;
 
             if(!leaderId) return alert("No leader found");
 
@@ -257,12 +276,11 @@
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- FIXED CARD LOGIC ---
+        // --- FIXED CARD EXECUTION (MATH ORDER) ---
         async function executeEffect(card, winnerId, targetId) {
-            // 1. GET FRESH DATA
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
-            const bidAmount = Number(gs.highestBid) || 0; // THIS IS THE COST
+            const bidAmount = Number(gs.highestBid) || 0; // COST
 
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
@@ -271,20 +289,19 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            // 2. DEDUCT BID FROM WINNER FIRST
+            // 1. DEDUCT BID FROM WINNER FIRST
             let balanceAfterCost = Number(winner.balance) - bidAmount;
             
-            // This is the reference to update
             const wRef = `teams/${winnerId}/balance`;
-            updates[wRef] = balanceAfterCost; // Set baseline to post-deduction
+            updates[wRef] = balanceAfterCost; // Set the baseline balance
 
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
 
-            // 3. APPLY EFFECTS TO THE NEW (LOWER) BALANCE
+            // 2. APPLY CARD EFFECT (On top of deducted balance)
             if(card.type === 'GLOBAL_ADD') {
                 for (let k in teams) {
                     let base = Number(teams[k].balance);
-                    if (k === winnerId) base = balanceAfterCost; // Use new balance for winner
+                    if(k === winnerId) base = balanceAfterCost; // Use new balance for winner
                     updates[`teams/${k}/balance`] = base + card.val;
                 }
                 log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
@@ -297,7 +314,7 @@
                 let val = Math.floor(balanceAfterCost * card.val);
                 if(card.val < 1 && checkShield(winnerId)) {
                     log(`${winner.name} blocked DISASTER!`);
-                    // If blocked, they still paid the bid (line 217), so no further math needed
+                    updates[wRef] = balanceAfterCost; // Just pay bid, no disaster
                 } else {
                     updates[wRef] = val;
                     log(`${winner.name} suffered ${card.name}`);
