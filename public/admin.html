@@ -33,9 +33,12 @@
             <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
             <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
 
-            <div id="challenge-controls" class="hidden flex gap-3">
-                <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS (+2k)</button>
-                <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL (-500)</button>
+            <div id="challenge-controls" class="hidden flex-col gap-2 p-4 bg-gray-700 rounded border border-yellow-500">
+                <p class="text-center text-white font-bold mb-2 uppercase">Judge The Challenge</p>
+                <div class="flex gap-3">
+                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-700 p-4 rounded text-white font-bold text-xl shadow-lg">PASS (+2k)</button>
+                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-700 p-4 rounded text-white font-bold text-xl shadow-lg">FAIL (-500)</button>
+                </div>
             </div>
 
             <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
@@ -128,7 +131,6 @@
             const btnReveal = document.getElementById('btn-reveal');
             const btnNext = document.getElementById('btn-next');
             const btnSkip = document.getElementById('btn-skip');
-            const secretBox = document.getElementById('secret-preview');
             const challengeBox = document.getElementById('challenge-controls');
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
@@ -153,6 +155,7 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
+            // SHOW CHALLENGE BUTTONS
             if (gameState.phase === 'CHALLENGE') {
                 challengeBox.classList.remove('hidden');
                 challengeBox.classList.add('flex');
@@ -162,6 +165,7 @@
             }
         });
 
+        // AUTO-SOLD
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
@@ -212,7 +216,6 @@
             if(action === 'SKIP_TIMER') await db.ref('gameState').update({ phase: 'SOLD' });
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                // PASS AUDIO TYPE
                 await db.ref('gameState').update({ cardName: card.name, cardDesc: card.desc, phase: 'REVEALED', soundType: card.audio || 'good' });
                 await db.ref('revealTrigger').set(true); 
                 await db.ref('revealTrigger').set(false);
@@ -230,12 +233,10 @@
 
         // --- SAFE PROCESS CARD EFFECT ---
         async function processCardEffect(card) {
-            // Force fetch state to ensure we have a winner
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
             const leaderId = gs.leaderId;
 
-            // EMERGENCY CHECK: If no leader, alert admin
             if(!leaderId) {
                 alert("⚠ NO WINNER FOUND! Money will not be deducted.");
                 await db.ref('gameState').update({ phase: 'REVEALED' });
@@ -247,7 +248,7 @@
             executeEffect(card, leaderId, null);
         }
 
-        // --- FIXED CHALLENGE LOGIC ---
+        // --- FIXED CHALLENGE LOGIC (DEDUCTS BID NOW) ---
         window.resolveChallenge = async (pass) => {
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
@@ -278,6 +279,7 @@
 
         // --- FIXED CARD EXECUTION (MATH ORDER) ---
         async function executeEffect(card, winnerId, targetId) {
+            // 1. GET FRESH DATA
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
             const bidAmount = Number(gs.highestBid) || 0; // COST
@@ -289,7 +291,7 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            // 1. DEDUCT BID FROM WINNER FIRST
+            // 2. DEDUCT BID FROM WINNER FIRST
             let balanceAfterCost = Number(winner.balance) - bidAmount;
             
             const wRef = `teams/${winnerId}/balance`;
@@ -297,11 +299,12 @@
 
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
 
-            // 2. APPLY CARD EFFECT (On top of deducted balance)
+            // 3. APPLY EFFECTS TO THE NEW (LOWER) BALANCE
             if(card.type === 'GLOBAL_ADD') {
                 for (let k in teams) {
                     let base = Number(teams[k].balance);
-                    if(k === winnerId) base = balanceAfterCost; // Use new balance for winner
+                    // Special case: If this is the winner, use the deducted balance as base
+                    if(k === winnerId) base = balanceAfterCost;
                     updates[`teams/${k}/balance`] = base + card.val;
                 }
                 log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
