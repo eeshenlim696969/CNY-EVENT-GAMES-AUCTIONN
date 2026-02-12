@@ -17,7 +17,6 @@
         .safe-h { height: 100dvh; }
         .flash-red { animation: flashRed 1s infinite; }
         @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
-        /* Badge Glow */
         .emperor-badge { text-shadow: 0 0 10px gold; animation: pulse 2s infinite; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -116,7 +115,6 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
-            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
                 if(!data) { 
@@ -124,33 +122,31 @@
                     window.location.reload();
                     return;
                 }
-                
                 balance = Number(data.balance); 
                 document.getElementById('balance').innerText = balance.toLocaleString(); 
                 
                 if(data.alert) {
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // VIOLENT HAPTIC
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); 
                     document.getElementById('alert-msg').innerText = data.alert;
                     document.getElementById('alert-overlay').classList.remove('hidden');
                     document.getElementById('body-main').classList.add('flash-red');
                 }
             });
 
-            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
-                // BADGE LOGIC
                 if (st.leaderId === myId) document.getElementById('emperor-badge').classList.remove('hidden');
                 else document.getElementById('emperor-badge').classList.add('hidden');
 
-                // STATELESS ROUND CHECK
-                currentRound = st.round;
-                hasLabored = localStorage.getItem(`hasLabored_${st.round}`) === 'true';
-                hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
+                if(st.round !== currentRound) {
+                    currentRound = st.round;
+                    hasLabored = localStorage.getItem(`hasLabored_${st.round}`) === 'true';
+                    hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
+                }
 
                 updateButtons();
 
@@ -230,13 +226,14 @@
         btnStrike.addEventListener('touchstart', handleStrike);
         btnStrike.addEventListener('click', handleStrike);
 
+        // INSTANT FEEDBACK FIX
         function handleStrike(e) {
              e.preventDefault(); if(!gameActive) return;
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
-                 if (navigator.vibrate) navigator.vibrate(50); // TICK HAPTIC
+                 if (navigator.vibrate) navigator.vibrate(50);
                  btnStrike.innerText = "SUCCESS!"; 
                  btnStrike.style.background = "green";
                  
@@ -252,7 +249,7 @@
                     btnStrike.style.background = ""; 
                  }, 500);
              } else {
-                 if (navigator.vibrate) navigator.vibrate(200); // ERROR HAPTIC
+                 if (navigator.vibrate) navigator.vibrate(200);
                  btnStrike.innerText = "MISSED"; 
                  btnStrike.style.background = "red";
                  setTimeout(() => { 
@@ -272,7 +269,7 @@
             
             if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
             
-            if (navigator.vibrate) navigator.vibrate(100); // CONFIRM HAPTIC
+            if (navigator.vibrate) navigator.vibrate(100);
             
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
@@ -292,7 +289,6 @@
                     if(tid !== myId) {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
-                        // HIDDEN BALANCE - BLIND STEAL
                         btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
                         btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) db.ref('gameState').update({ targetId: tid }); };
                         list.appendChild(btn);
