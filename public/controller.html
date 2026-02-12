@@ -105,6 +105,7 @@
         let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
         let selectionTimer = null;
         let myItems = {};
+        let availableTargets = []; // Store IDs for auto-pick
 
         window.login = async () => {
             const n = document.getElementById('inp-name').value;
@@ -193,8 +194,11 @@
                 const teams = s.val();
                 const list = document.getElementById('selection-list');
                 list.innerHTML = '';
+                availableTargets = []; // Clear previous
+                
                 Object.keys(teams).forEach(tid => {
                     if(tid !== myId) {
+                        availableTargets.push(tid); // Add to auto-pick list
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-blue-900/80 border-2 border-blue-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
                         btn.innerText = teams[tid].name;
@@ -221,7 +225,15 @@
                 if(timeLeft <= 0) {
                     clearInterval(selectionTimer);
                     document.getElementById('view-selection').classList.add('hidden');
-                    // Timeout implies no action.
+                    
+                    // AUTO PICK RANDOM
+                    if(availableTargets.length > 0) {
+                         const randomTarget = availableTargets[Math.floor(Math.random() * availableTargets.length)];
+                         db.ref('gameState').update({ targetId: randomTarget });
+                    } else {
+                        // Fallback if no targets (rare)
+                        db.ref('gameState').update({ targetId: 'none' });
+                    }
                 }
             }, 1000);
         }
