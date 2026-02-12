@@ -20,29 +20,33 @@
     </div>
 
     <div class="bg-gray-800 p-6 shadow-2xl flex flex-col gap-4 rounded">
-        <button onclick="adminAction('DRAW')" id="btn-draw" class="bg-yellow-600 text-black font-black text-xl p-5 rounded-lg mb-2">1. DRAW CARD</button>
+        <div id="gameplay-controls" class="flex flex-col gap-4">
+            <button onclick="adminAction('DRAW')" id="btn-draw" class="bg-yellow-600 text-black font-black text-xl p-5 rounded-lg mb-2">1. DRAW CARD</button>
 
-        <div id="secret-preview" class="hidden bg-white text-black p-4 rounded border-4 border-yellow-500 font-bold text-center">
-            <p class="text-xs text-gray-500 uppercase">HOST PREVIEW</p>
-            <h2 id="secret-title" class="text-2xl text-red-700">--</h2>
-            <p id="secret-desc" class="text-sm">--</p>
-            <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
+            <div id="secret-preview" class="hidden bg-white text-black p-4 rounded border-4 border-yellow-500 font-bold text-center">
+                <p class="text-xs text-gray-500 uppercase">HOST PREVIEW</p>
+                <h2 id="secret-title" class="text-2xl text-red-700">--</h2>
+                <p id="secret-desc" class="text-sm">--</p>
+                <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
+            </div>
+            
+            <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
+            <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
+
+            <div id="challenge-controls" class="hidden flex gap-3">
+                <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS (+2k)</button>
+                <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL (-500)</button>
+            </div>
+
+            <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
         </div>
-        
-        <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
-        <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
 
-        <div id="challenge-controls" class="hidden flex gap-3">
-            <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS (+2k)</button>
-            <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL (-500)</button>
+        <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4">
+            <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
+            <button onclick="adminAction('REVEAL_RANK', 3)" class="bg-orange-700 border-2 border-orange-400 p-3 rounded text-white font-bold">REVEAL 3RD (BRONZE)</button>
+            <button onclick="adminAction('REVEAL_RANK', 2)" class="bg-gray-500 border-2 border-gray-300 p-3 rounded text-white font-bold">REVEAL 2ND (SILVER)</button>
+            <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL 1ST (GOLD)</button>
         </div>
-
-        <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
-    </div>
-
-    <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4 mt-4">
-        <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
-        <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
     </div>
 
     <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
@@ -51,14 +55,17 @@
     </div>
 
     <script>
+        // INIT FIREBASE (Global Namespace)
         const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- BID PROCESSING ---
+        // --- BID PROCESSING ENGINE ---
         db.ref('bidQueue').on('child_added', async (snapshot) => {
             const bid = snapshot.val();
             if(!bid) return;
+            
+            // Get State Once
             const stateSnap = await db.ref('gameState').get();
             const state = stateSnap.val();
             
@@ -70,50 +77,27 @@
                     highestBid: bid.amount,
                     leaderId: bid.teamId,
                     leaderName: team.name,
-                    isAllIn: bid.isAllIn || false
+                    isAllIn: bid.isAllIn || false // Pass Flag
                 });
             }
             snapshot.ref.remove();
         });
 
-        // --- DECK WITH AUDIO TYPES (FIXED) ---
+        // --- DECK ---
         const deck = [
-            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200, audio: 'good' }, 
-            { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000, audio: 'good' }, 
-            { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000, audio: 'good' }, 
-            { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500, audio: 'good' }, 
-            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888, audio: 'good' }, 
-            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000, audio: 'good' }, 
-            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0, audio: 'good' }, 
-            { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500, audio: 'good' }, 
-            { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000, audio: 'good' }, 
-            { id: 10, name: "Small Rain", desc: "+200 TO EVERYONE", type: "GLOBAL_ADD", val: 200, audio: 'good' },
-            { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5, audio: 'bad' }, 
-            { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90, audio: 'bad' }, 
-            { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95, audio: 'bad' }, 
-            { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75, audio: 'bad' }, 
-            { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5, audio: 'bad' }, 
-            { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90, audio: 'bad' }, 
-            { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0, audio: 'bad' }, 
-            { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70, audio: 'bad' }, 
-            { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85, audio: 'bad' }, 
-            { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80, audio: 'bad' },
-            { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30, audio: 'bad' }, 
-            { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15, audio: 'bad' }, 
-            { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0, audio: 'bad' }, 
-            { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0, audio: 'bad' }, 
-            { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active", audio: 'good' }, 
-            { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal", audio: 'good' },
-            { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE", audio: 'good' }, 
-            { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE", audio: 'good' }, 
-            { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE", audio: 'good' }, 
-            { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE", audio: 'good' }, 
-            { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE", audio: 'good' }, 
-            { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE", audio: 'good' }, 
-            { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE", audio: 'good' }, 
-            { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE", audio: 'good' }, 
-            { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE", audio: 'good' }, 
-            { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE", audio: 'good' }
+            { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200 }, 
+            { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000 }, 
+            { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000 }, 
+            { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500 }, 
+            { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888 }, 
+            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000 }, 
+            { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0 }, 
+            { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500 }, 
+            { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000 }, 
+            { id: 10, name: "Small Rain", desc: "+200 TO EVERYONE", type: "GLOBAL_ADD", val: 200 },
+            { id: 11, name: "Market Crash", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 12, name: "Bandits", desc: "Lose 10% Wealth", type: "MULTIPLY", val: 0.90 }, { id: 13, name: "Broken Vase", desc: "Lose 5% Wealth", type: "MULTIPLY", val: 0.95 }, { id: 14, name: "Bad Omen", desc: "Lose 25% Wealth", type: "MULTIPLY", val: 0.75 }, { id: 15, name: "Nian Monster", desc: "Lose 50% Wealth", type: "MULTIPLY", val: 0.5 }, { id: 16, name: "Shared Bill", desc: "Everyone loses 10%", type: "GLOBAL_HIT", val: 0.90 }, { id: 17, name: "Emperor's Wrath", desc: "BANKRUPT (Lose 100%)", type: "MULTIPLY", val: 0 }, { id: 18, name: "Ancestor's Debt", desc: "Lose 30% Wealth", type: "MULTIPLY", val: 0.70 }, { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85 }, { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80 },
+            { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30 }, { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15 }, { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0 }, { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0 }, { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active" }, { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal" },
+            { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE" }, { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE" }, { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE" }, { id: 30, name: "Dancer", desc: "Challenge: Do a 10s Dance", type: "CHALLENGE" }, { id: 31, name: "Joker", desc: "Challenge: Make us laugh", type: "CHALLENGE" }, { id: 32, name: "Compliment", desc: "Challenge: Compliment Admin", type: "CHALLENGE" }, { id: 33, name: "Actor", desc: "Challenge: Act like a Horse", type: "CHALLENGE" }, { id: 34, name: "Fitness", desc: "Challenge: 10 Pushups", type: "CHALLENGE" }, { id: 35, name: "Trivia", desc: "Challenge: Answer a Question", type: "CHALLENGE" }, { id: 36, name: "Orator", desc: "Challenge: Give a Speech", type: "CHALLENGE" }
         ];
 
         let gameState = {};
@@ -131,6 +115,7 @@
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
+            // View Switching Logic
             if(gameState.phase === 'LEADERBOARD') {
                 gameControls.classList.add('hidden');
                 leaderControls.classList.remove('hidden');
@@ -154,6 +139,7 @@
             else challengeBox.classList.add('hidden');
         });
 
+        // AUTO-SOLD TIMER CHECK
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
@@ -164,7 +150,7 @@
 
         window.adminAction = async (action, param) => {
             if(action === 'START') {
-                if(confirm("⚠ RESET GAME?")) await db.ref('/').set({ gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {}, projectorLog: {} });
+                if(confirm("⚠ RESET GAME?")) await db.ref('/').set({ gameState: { phase: 'GRID', round: 1 }, envelopes: {}, teams: {}, bidQueue: {} });
             }
             if(action === 'END_GAME') {
                 if(confirm("👑 END THE GAME and go to Leaderboard?")) {
@@ -179,6 +165,7 @@
                 const used = usedSnap.val() || {};
                 const available = deck.filter(c => !used[c.id]);
                 if(available.length === 0) return alert("Deck Empty!");
+                
                 const card = available[Math.floor(Math.random() * available.length)];
                 
                 document.getElementById('secret-title').innerText = card.name;
@@ -204,10 +191,8 @@
             if(action === 'SKIP_TIMER') await db.ref('gameState').update({ phase: 'SOLD' });
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                // PASS AUDIO TYPE
-                await db.ref('gameState').update({ cardName: card.name, cardDesc: card.desc, phase: 'REVEALED', soundType: card.audio || 'good' });
-                await db.ref('revealTrigger').set(true); 
-                await db.ref('revealTrigger').set(false);
+                await db.ref('gameState').update({ cardName: card.name, cardDesc: card.desc, phase: 'REVEALED' });
+                await db.ref('revealTrigger').set(true);
                 setTimeout(() => processCardEffect(card), 2000);
             }
             if(action === 'NEXT') {
@@ -246,24 +231,20 @@
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
-            if(!leaderId) return alert("No leader found");
+            if(!leaderId) return alert("No leader");
             const t = (await db.ref(`teams/${leaderId}`).get()).val();
             
             if(pass) {
                 await db.ref(`teams/${leaderId}`).update({ balance: (t.balance||0) + 2000 });
-                db.ref('projectorLog').push({ text: `CHALLENGE PASSED: ${t.name} (+2000)` });
+                alert(`Passed: +2000`);
             } else {
                 await db.ref(`teams/${leaderId}`).update({ balance: Math.max(0, (t.balance||0) - 500) });
-                db.ref('projectorLog').push({ text: `CHALLENGE FAILED: ${t.name} (-500)` });
+                alert(`Failed: -500`);
             }
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
         async function executeEffect(card, winnerId, targetId) {
-            const gsSnap = await db.ref('gameState').get();
-            const gs = gsSnap.val();
-            const bidAmount = gs.highestBid || 0;
-
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
             const winner = teams[winnerId];
@@ -271,29 +252,17 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            let newBal = winner.balance - bidAmount;
+            let newBal = winner.balance - (gameState.highestBid || 0);
             const wRef = `teams/${winnerId}/balance`;
             updates[wRef] = newBal;
 
-            // LOGGING HELPER
-            const log = (msg) => db.ref('projectorLog').push({ text: msg });
-
             if(card.type === 'GLOBAL_ADD') {
                 for (let k in teams) updates[`teams/${k}/balance`] = (teams[k].balance) + card.val;
-                log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
             }
-            if(card.type === 'ADD') {
-                updates[wRef] = newBal + card.val;
-                log(`${winner.name} gained ${card.val}`);
-            }
+            if(card.type === 'ADD') updates[wRef] = newBal + card.val;
             if(card.type === 'MULTIPLY') {
                 let val = Math.floor(newBal * card.val);
-                if(card.val < 1 && checkShield(winnerId)) {
-                    log(`${winner.name} blocked DISASTER!`);
-                } else {
-                    updates[wRef] = val;
-                    log(`${winner.name} suffered ${card.name}`);
-                }
+                if(card.val < 1 && checkShield(winnerId)) {} else updates[wRef] = val;
             }
             if(card.type === 'STEAL_RND') {
                 const victim = others[Math.floor(Math.random()*others.length)];
@@ -302,7 +271,6 @@
                     updates[wRef] = newBal + amt; 
                     updates[`teams/${victim}/balance`] = teams[victim].balance - amt;
                     updates[`teams/${victim}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
-                    log(`${winner.name} stole from ${teams[victim].name}`);
                 }
             }
             if(card.type === 'STEAL_TGT' && targetId) {
@@ -311,7 +279,6 @@
                     updates[wRef] = newBal + amt; 
                     updates[`teams/${targetId}/balance`] = teams[targetId].balance - amt;
                     updates[`teams/${targetId}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
-                    log(`${winner.name} TARGETED ${teams[targetId].name}`);
                 }
             }
             if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
@@ -320,13 +287,9 @@
                     updates[wRef] = teams[tid].balance; 
                     updates[`teams/${tid}/balance`] = newBal;
                     updates[`teams/${tid}/alert`] = `SWAPPED BY ${winner.name}`; 
-                    log(`${winner.name} SWAPPED funds with ${teams[tid].name}`);
                 }
             }
-            if(card.type === 'ITEM') {
-                updates[`teams/${winnerId}/items/${card.item}`] = true;
-                log(`${winner.name} obtained ITEM`);
-            }
+            if(card.type === 'ITEM') updates[`teams/${winnerId}/items/${card.item}`] = true;
 
             await db.ref('/').update(updates);
         }
