@@ -53,11 +53,6 @@
         .rank-gold { color: #FFD700; font-size: 8rem; font-weight: 900; background: linear-gradient(to right, #b8860b 20%, #fff 50%, #FFD700 80%); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
         @keyframes shine { to { background-position: 200% center; } }
         .spotlight { box-shadow: 0 0 100px 20px gold; border: 5px solid #FFD700; background: rgba(255, 215, 0, 0.1); }
-        
-        /* HISTORY MARQUEE */
-        .history-bar { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); border-top: 2px solid #C5A059; padding: 10px 0; overflow: hidden; white-space: nowrap; z-index: 100; }
-        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; color: #FFD700; font-weight: bold; text-transform: uppercase; font-size: 1.2rem; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -152,10 +147,6 @@
                 </div>
             </div>
         </main>
-        
-        <div class="history-bar">
-            <div id="marquee-text" class="marquee-content"></div>
-        </div>
     </div>
 
     <script>
@@ -452,13 +443,6 @@
                 if(sfx) { sfx.currentTime = 0; sfx.play(); }
                 else document.getElementById('sfx-gong').play(); 
             }
-        });
-
-        db.ref('projectorLog').on('child_added', (snap) => {
-             const val = snap.val();
-             if(!val) return;
-             const marquee = document.getElementById('marquee-text');
-             marquee.innerText = `♦ ${val.text} ${marquee.innerText}`;
         });
 
         db.ref('teams').on('value', (snap) => {
