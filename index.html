@@ -43,11 +43,15 @@
         .roster-item.leader { background: linear-gradient(90deg, rgba(255,215,0,0.4), transparent); border-left: 4px solid #FFD700; }
         .view-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
+        /* LEADERBOARD ANIMATIONS */
         .podium-box { opacity: 0; transform: translateY(100px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .podium-box.reveal { opacity: 1; transform: translateY(0); }
-        .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 4rem; }
-        .rank-silver { color: #C0C0C0; text-shadow: 0 0 20px #C0C0C0; font-size: 3rem; }
-        .rank-bronze { color: #CD7F32; text-shadow: 0 0 20px #CD7F32; font-size: 2.5rem; }
+        .rank-gold { color: #FFD700; text-shadow: 0 0 20px #FFD700; font-size: 6rem; }
+        .spotlight {
+            box-shadow: 0 0 100px 20px gold;
+            border: 5px solid #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -77,16 +81,13 @@
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
             <div class="flex-1 relative flex items-center justify-center">
-                
                 <div id="view-grid" class="view-container hidden">
                     <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
                 </div>
-
                 <div id="view-coin" class="view-container hidden">
                     <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em]">DESTINY FLIPPING...</div>
                     <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
                 </div>
-
                 <div id="view-auction" class="view-container hidden">
                     <div id="timer-box" class="mb-8 text-center transition-all duration-300">
                         <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
@@ -105,7 +106,6 @@
                         <div class="envelope-lid"></div>
                     </div>
                 </div>
-
                 <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
@@ -114,27 +114,14 @@
                     </div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
-
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
                     <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl">FINAL STANDINGS</h1>
-                    <div class="flex items-end justify-center gap-12 w-full max-w-6xl">
-                        <div id="podium-2" class="podium-box flex-1 flex flex-col items-center">
-                            <div class="text-2xl text-gray-400 uppercase tracking-widest mb-2">2ND PLACE</div>
-                            <div id="name-2" class="rank-silver font-black">--</div>
-                            <div id="score-2" class="text-white text-xl">--</div>
-                            <div class="w-full h-40 bg-gradient-to-t from-gray-700 to-transparent mt-4 rounded-t-lg border-t-4 border-gray-400"></div>
-                        </div>
-                        <div id="podium-1" class="podium-box flex-1 flex flex-col items-center -mt-12">
-                            <div class="text-3xl text-yellow-300 uppercase tracking-widest mb-4">👑 EMPEROR 👑</div>
-                            <div id="name-1" class="rank-gold font-black transform scale-125">--</div>
-                            <div id="score-1" class="text-white text-2xl font-bold">--</div>
-                            <div class="w-full h-64 bg-gradient-to-t from-yellow-700 to-transparent mt-4 rounded-t-lg border-t-4 border-yellow-400 shadow-[0_0_50px_gold]"></div>
-                        </div>
-                        <div id="podium-3" class="podium-box flex-1 flex flex-col items-center">
-                            <div class="text-2xl text-orange-400 uppercase tracking-widest mb-2">3RD PLACE</div>
-                            <div id="name-3" class="rank-bronze font-black">--</div>
-                            <div id="score-3" class="text-white text-xl">--</div>
-                            <div class="w-full h-24 bg-gradient-to-t from-orange-900 to-transparent mt-4 rounded-t-lg border-t-4 border-orange-600"></div>
+                    <div class="flex items-center justify-center w-full max-w-4xl">
+                        <div id="podium-1" class="podium-box flex-1 flex flex-col items-center">
+                            <div class="text-4xl text-yellow-300 uppercase tracking-widest mb-8 font-bold">👑 EMPEROR 👑</div>
+                            <div id="name-1" class="rank-gold font-black transform scale-150 mb-4">--</div>
+                            <div id="score-1" class="text-white text-3xl font-bold">--</div>
+                            <div class="w-full h-80 bg-gradient-to-t from-yellow-700 to-transparent mt-8 rounded-t-3xl spotlight"></div>
                         </div>
                     </div>
                 </div>
@@ -160,7 +147,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // LANTERNS
         const lanternContainer = document.getElementById('lantern-container');
         for(let i=0; i<15; i++) {
             const l = document.createElement('div');
@@ -171,11 +157,9 @@
             lanternContainer.appendChild(l);
         }
 
-        // GRID GEN
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
         
-        // CARD GONE
         db.ref('envelopes').on('value', (snap) => {
             const used = snap.val() || {};
             for(let i=1; i<=36; i++) { 
@@ -188,50 +172,50 @@
         let currentDeadline = 0;
         let lastHighBid = 0;
         let spinInterval = null;
+        let rainInterval = null; // For constant winner rain
 
-        // --- GAME LOOP ---
         db.ref('gameState').on('value', (snap) => {
             const st = snap.val();
             if(!st) return;
 
             document.getElementById('round-num').innerText = st.round;
             document.getElementById('status-text').innerText = st.phase;
-            currentDeadline = Number(st.bidDeadline) || 0; 
+            currentDeadline = Number(st.bidDeadline) || 0;
 
-            // HIDE ALL
             ['view-grid', 'view-coin', 'view-auction', 'view-action', 'view-leaderboard'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
                 document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC (Hidden in Grid & Leaderboard)
+            // SIDEBAR LOGIC
             if(['GRID', 'LEADERBOARD', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
                 document.getElementById('info-panel').classList.add('hidden');
             } else {
                 document.getElementById('info-panel').classList.remove('hidden');
-                // Rank/Leader Toggle
-                if(['DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
-                    document.getElementById('panel-rankings').classList.remove('hidden');
-                    document.getElementById('panel-leader').classList.add('hidden');
+                if(['CHALLENGE', 'TARGETING'].includes(st.phase)) {
+                     document.getElementById('panel-rankings').classList.add('hidden');
+                     document.getElementById('panel-leader').classList.remove('hidden');
                 } else {
-                    document.getElementById('panel-rankings').classList.add('hidden');
-                    document.getElementById('panel-leader').classList.remove('hidden');
+                     document.getElementById('panel-rankings').classList.add('hidden');
+                     document.getElementById('panel-leader').classList.remove('hidden');
                 }
             }
 
-            // --- PHASES ---
             if (st.phase === 'LEADERBOARD') {
                 document.getElementById('view-leaderboard').classList.remove('hidden');
                 document.getElementById('view-leaderboard').classList.add('flex');
                 updateLeaderboard(st.revealRank);
             }
-            else if (st.phase === 'DRAWING') {
+            else {
+                if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
+            }
+
+            if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 const gridItems = document.querySelectorAll('.angpao:not(.gone)');
                 if(gridItems.length > 0 && !spinInterval) {
-                    let speed = 50; 
-                    let steps = 0;
+                    let speed = 50; let steps = 0;
                     const spin = () => {
                         gridItems.forEach(el => el.classList.remove('active'));
                         const r = gridItems[Math.floor(Math.random() * gridItems.length)];
@@ -266,25 +250,24 @@
 
                 const leaderName = st.leaderName || "NO ONE";
                 const highBid = st.highestBid || 0;
+                const leaderEl = document.getElementById('val-leader-name');
+                const bidEl = document.getElementById('val-high-bid');
                 
-                // SLAM & ANIMATION LOGIC
                 if (st.phase === 'BIDDING' && highBid > lastHighBid) {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
+                    leaderEl.innerText = leaderName;
+                    bidEl.innerText = "RM " + highBid.toLocaleString();
                     
-                    const leaderEl = document.getElementById('val-leader-name');
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
                     
-                    // Check Special Effect
                     if(st.isAllIn) {
-                         document.getElementById('val-leader-name').classList.add('all-in-glow');
+                         leaderEl.classList.add('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-violent'); 
                          setTimeout(() => document.getElementById('main-body').classList.remove('shake-violent'), 2000);
                          spawnCoinRain(200);
                     } else {
-                         document.getElementById('val-leader-name').classList.remove('all-in-glow');
+                         leaderEl.classList.remove('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-screen');
                          setTimeout(() => document.getElementById('main-body').classList.remove('shake-screen'), 1000);
                          
@@ -294,15 +277,14 @@
                          else if(highBid >= 300) rainAmount = 20;
                          spawnCoinRain(rainAmount);
                     }
-
                     lastHighBid = highBid;
                 } else if (leaderName === "NO ONE") {
-                    document.getElementById('val-leader-name').innerText = "NO ONE";
-                    document.getElementById('val-high-bid').innerText = "RM 0";
+                    leaderEl.innerText = "NO ONE";
+                    bidEl.innerText = "RM 0";
                     lastHighBid = 0;
                 } else {
-                    document.getElementById('val-leader-name').innerText = leaderName;
-                    document.getElementById('val-high-bid').innerText = "RM " + highBid.toLocaleString();
+                    leaderEl.innerText = leaderName;
+                    bidEl.innerText = "RM " + highBid.toLocaleString();
                 }
 
                 if (st.phase === 'REVEALED' && st.cardName) {
@@ -312,7 +294,7 @@
                 } else {
                     document.getElementById('main-envelope').classList.remove('is-open');
                 }
-
+                
                 if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
                 else document.getElementById('main-envelope').classList.remove('shaking');
                 
@@ -363,47 +345,28 @@
             }
         });
 
-        // LEADERBOARD UPDATER
+        // LEADERBOARD LOGIC
         async function updateLeaderboard(revealRank) {
             const snap = await db.ref('teams').get();
             const teams = snap.val() || {};
             const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
             
-            if(revealRank <= 3 && sorted[2]) {
-                document.getElementById('name-3').innerText = sorted[2].name;
-                document.getElementById('score-3').innerText = "RM " + sorted[2].balance.toLocaleString();
-                document.getElementById('podium-3').classList.add('reveal');
-            } else { document.getElementById('podium-3').classList.remove('reveal'); }
-
-            if(revealRank <= 2 && sorted[1]) {
-                document.getElementById('name-2').innerText = sorted[1].name;
-                document.getElementById('score-2').innerText = "RM " + sorted[1].balance.toLocaleString();
-                document.getElementById('podium-2').classList.add('reveal');
-            } else { document.getElementById('podium-2').classList.remove('reveal'); }
-
+            // Only Show 1st Place logic
             if(revealRank <= 1 && sorted[0]) {
                 document.getElementById('name-1').innerText = sorted[0].name;
                 document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
                 document.getElementById('podium-1').classList.add('reveal');
-                spawnCoinRain(200); 
-            } else { document.getElementById('podium-1').classList.remove('reveal'); }
+                // CONSTANT RAIN
+                if(!rainInterval) {
+                     rainInterval = setInterval(() => spawnCoinRain(30), 1000);
+                }
+            } else { 
+                document.getElementById('podium-1').classList.remove('reveal'); 
+                if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
+            }
         }
 
-        // ROSTER (For Sidebar - Hidden in Grid/Leaderboard)
-        db.ref('teams').on('value', (snap) => {
-            const list = document.getElementById('roster-grid');
-            list.innerHTML = '';
-            const teams = snap.val() || {};
-            const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
-            sorted.forEach((id, idx) => {
-                const t = teams[id];
-                const div = document.createElement('div');
-                div.className = `roster-item ${idx===0 ? 'leader' : ''}`;
-                div.innerHTML = `<span>${idx+1}. ${t.name}</span> <span class="text-[#FFD700] font-bold">${t.balance.toLocaleString()}</span>`;
-                list.appendChild(div);
-            });
-        });
-
+        // COIN RAIN SYSTEM
         function spawnCoinRain(amount) {
             const container = document.getElementById('fx-container');
             if(!container) return;
@@ -418,6 +381,21 @@
         }
 
         db.ref('revealTrigger').on('value', (snap) => { if(snap.val()) document.getElementById('sfx-gong').play(); });
+
+        // ROSTER (Hidden in Grid, but logic stays to update)
+        db.ref('teams').on('value', (snap) => {
+            const list = document.getElementById('roster-grid');
+            list.innerHTML = '';
+            const teams = snap.val() || {};
+            const sorted = Object.keys(teams).sort((a,b) => teams[b].balance - teams[a].balance);
+            sorted.forEach((id, idx) => {
+                const t = teams[id];
+                const div = document.createElement('div');
+                div.className = `roster-item ${idx===0 ? 'leader' : ''}`;
+                div.innerHTML = `<span>${idx+1}. ${t.name}</span> <span class="text-[#FFD700] font-bold">${t.balance.toLocaleString()}</span>`;
+                list.appendChild(div);
+            });
+        });
 
         setInterval(() => {
              const status = document.getElementById('status-text').innerText;
