@@ -43,9 +43,7 @@
 
         <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4">
             <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
-            <button onclick="adminAction('REVEAL_RANK', 3)" class="bg-orange-700 border-2 border-orange-400 p-3 rounded text-white font-bold">REVEAL 3RD (BRONZE)</button>
-            <button onclick="adminAction('REVEAL_RANK', 2)" class="bg-gray-500 border-2 border-gray-300 p-3 rounded text-white font-bold">REVEAL 2ND (SILVER)</button>
-            <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL 1ST (GOLD)</button>
+            <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-6 rounded text-black font-black text-2xl shadow-[0_0_20px_gold] animate-pulse">REVEAL THE EMPEROR</button>
         </div>
     </div>
 
@@ -55,7 +53,6 @@
     </div>
 
     <script>
-        // INIT FIREBASE (Global Namespace)
         const firebaseConfig = { apiKey: "AIzaSyDdUHww7xef3DzLgSj5ZblQkTSu861jGQM", authDomain: "auction-ebc97.firebaseapp.com", databaseURL: "https://auction-ebc97-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "auction-ebc97" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -65,7 +62,6 @@
             const bid = snapshot.val();
             if(!bid) return;
             
-            // Get State Once
             const stateSnap = await db.ref('gameState').get();
             const state = stateSnap.val();
             
@@ -77,7 +73,7 @@
                     highestBid: bid.amount,
                     leaderId: bid.teamId,
                     leaderName: team.name,
-                    isAllIn: bid.isAllIn || false // Pass Flag
+                    isAllIn: bid.isAllIn || false
                 });
             }
             snapshot.ref.remove();
@@ -115,7 +111,6 @@
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
-            // View Switching Logic
             if(gameState.phase === 'LEADERBOARD') {
                 gameControls.classList.add('hidden');
                 leaderControls.classList.remove('hidden');
@@ -139,7 +134,7 @@
             else challengeBox.classList.add('hidden');
         });
 
-        // AUTO-SOLD TIMER CHECK
+        // AUTO-SOLD
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
@@ -165,7 +160,6 @@
                 const used = usedSnap.val() || {};
                 const available = deck.filter(c => !used[c.id]);
                 if(available.length === 0) return alert("Deck Empty!");
-                
                 const card = available[Math.floor(Math.random() * available.length)];
                 
                 document.getElementById('secret-title').innerText = card.name;
@@ -231,7 +225,7 @@
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
-            if(!leaderId) return alert("No leader");
+            if(!leaderId) return alert("No leader found");
             const t = (await db.ref(`teams/${leaderId}`).get()).val();
             
             if(pass) {
@@ -245,6 +239,11 @@
         };
 
         async function executeEffect(card, winnerId, targetId) {
+            // FIX: FETCH FRESH STATE TO ENSURE MATH IS CORRECT
+            const gsSnap = await db.ref('gameState').get();
+            const gs = gsSnap.val();
+            const bidAmount = gs.highestBid || 0;
+
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
             const winner = teams[winnerId];
@@ -252,7 +251,8 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            let newBal = winner.balance - (gameState.highestBid || 0);
+            // DEDUCT BID FIRST
+            let newBal = winner.balance - bidAmount;
             const wRef = `teams/${winnerId}/balance`;
             updates[wRef] = newBal;
 
