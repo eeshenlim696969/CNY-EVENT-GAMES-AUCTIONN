@@ -42,9 +42,7 @@
 
     <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4 mt-4">
         <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
-        <button onclick="adminAction('REVEAL_RANK', 3)" class="bg-orange-700 border-2 border-orange-400 p-3 rounded text-white font-bold">REVEAL 3RD (BRONZE)</button>
-        <button onclick="adminAction('REVEAL_RANK', 2)" class="bg-gray-500 border-2 border-gray-300 p-3 rounded text-white font-bold">REVEAL 2ND (SILVER)</button>
-        <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL 1ST (GOLD)</button>
+        <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
     </div>
 
     <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
@@ -78,7 +76,7 @@
             snapshot.ref.remove();
         });
 
-        // --- DECK WITH AUDIO TYPES ---
+        // --- DECK WITH AUDIO TYPES (FIXED) ---
         const deck = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200, audio: 'good' }, 
             { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000, audio: 'good' }, 
@@ -206,10 +204,10 @@
             if(action === 'SKIP_TIMER') await db.ref('gameState').update({ phase: 'SOLD' });
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                // PASS AUDIO TYPE TO GAMESTATE
+                // PASS AUDIO TYPE
                 await db.ref('gameState').update({ cardName: card.name, cardDesc: card.desc, phase: 'REVEALED', soundType: card.audio || 'good' });
-                await db.ref('revealTrigger').set(true); // Toggle to play sound
-                await db.ref('revealTrigger').set(false); // Reset immediately
+                await db.ref('revealTrigger').set(true); 
+                await db.ref('revealTrigger').set(false);
                 setTimeout(() => processCardEffect(card), 2000);
             }
             if(action === 'NEXT') {
@@ -253,11 +251,9 @@
             
             if(pass) {
                 await db.ref(`teams/${leaderId}`).update({ balance: (t.balance||0) + 2000 });
-                // LOG
                 db.ref('projectorLog').push({ text: `CHALLENGE PASSED: ${t.name} (+2000)` });
             } else {
                 await db.ref(`teams/${leaderId}`).update({ balance: Math.max(0, (t.balance||0) - 500) });
-                // LOG
                 db.ref('projectorLog').push({ text: `CHALLENGE FAILED: ${t.name} (-500)` });
             }
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
