@@ -51,6 +51,10 @@
         .rank-gold { color: #FFD700; font-size: 8rem; font-weight: 900; background: linear-gradient(to right, #b8860b 20%, #fff 50%, #FFD700 80%); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
         @keyframes shine { to { background-position: 200% center; } }
         .spotlight { box-shadow: 0 0 100px 20px gold; border: 5px solid #FFD700; background: rgba(255, 215, 0, 0.1); }
+        /* HISTORY MARQUEE */
+        .history-bar { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); border-top: 2px solid #C5A059; padding: 10px 0; overflow: hidden; white-space: nowrap; z-index: 100; }
+        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 20s linear infinite; color: #FFD700; font-weight: bold; text-transform: uppercase; font-size: 1.2rem; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -67,6 +71,7 @@
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    
     <audio id="sfx-good" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio> 
     <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/265/265-preview.mp3"></audio> 
     <audio id="bgm-victory" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
@@ -113,9 +118,11 @@
                 <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
-                    <div class="mt-8 text-3xl font-bold bg-black/70 px-8 py-4 rounded-xl border-2 border-[#C5A059]">
+                    
+                    <div id="challenge-rewards" class="mt-8 text-3xl font-bold bg-black/70 px-8 py-4 rounded-xl border-2 border-[#C5A059]">
                         <span class="text-green-400">SUCCESS: +2,000</span> <span class="text-white mx-4">|</span> <span class="text-red-500">FAIL: -500</span>
                     </div>
+
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
@@ -130,6 +137,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full z-50">
                 <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden hidden">
                     <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
@@ -326,6 +334,7 @@
                     leaderEl.innerText = leaderName;
                     bidEl.innerText = "RM " + highBid.toLocaleString();
                 }
+
                 if (st.phase === 'REVEALED' && st.cardName) {
                     document.getElementById('card-title').innerText = st.cardName;
                     document.getElementById('card-desc').innerText = st.cardDesc;
@@ -369,14 +378,20 @@
                 } else {
                     document.getElementById('view-action').classList.remove('hidden');
                     document.getElementById('view-action').classList.add('flex');
+                    
                     if(st.phase === 'CHALLENGE') {
                         document.getElementById('action-title').innerText = "CHALLENGE";
                         document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
                         document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
+                        // SHOW REWARDS
+                        document.getElementById('challenge-rewards').classList.remove('hidden');
                     } else {
+                        // TARGETING
                         document.getElementById('action-title').innerText = "SELECTING TARGET";
                         document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
                         document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
+                        // HIDE REWARDS
+                        document.getElementById('challenge-rewards').classList.add('hidden');
                     }
                 }
             }
