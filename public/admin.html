@@ -134,7 +134,7 @@
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
-            // UI SWITCH
+            // UI TOGGLES
             if(gameState.phase === 'LEADERBOARD') {
                 gameControls.classList.add('hidden');
                 leaderControls.classList.remove('hidden');
@@ -153,7 +153,7 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            // PHASE UI
+            // CHALLENGE UI
             if (gameState.phase === 'CHALLENGE') {
                 document.getElementById('challenge-controls').classList.remove('hidden');
                 document.getElementById('challenge-controls').classList.add('flex');
@@ -161,6 +161,7 @@
                 document.getElementById('challenge-controls').classList.add('hidden');
             }
             
+            // WAITING FOR TARGET
             if (gameState.phase === 'TARGETING') {
                 document.getElementById('waiting-player').classList.remove('hidden');
             } else {
@@ -221,7 +222,7 @@
                 }, 5000);
             }
             
-            // --- STRICT SOLD LOGIC (DEDUCTION ONLY) ---
+            // --- SOLD LOGIC (DEDUCT ONLY) ---
             if(action === 'SOLD') {
                 const gs = (await db.ref('gameState').get()).val();
                 if(gs.phase === 'SOLD') return; 
@@ -238,7 +239,6 @@
                      db.ref('projectorLog').push({ text: `UNSOLD (No Bids)` });
                 }
                 
-                // DO NOT RESET HIGHEST BID HERE (KEEPS IT VISIBLE)
                 await db.ref('gameState').update({ phase: 'SOLD' });
             }
 
@@ -250,14 +250,13 @@
                 setTimeout(() => processCardEffect(card), 2000);
             }
             
-            // --- NEXT ROUND RESET ---
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
                 updates['gameState/phase'] = 'GRID'; 
                 updates['gameState/round'] = (gameState.round||1)+1;
                 updates['gameState/currentCard'] = null; 
-                updates['gameState/highestBid'] = 0; // RESET BID HERE
+                updates['gameState/highestBid'] = 0; 
                 updates['gameState/leaderId'] = null;
                 updates['gameState/cardName'] = null; 
                 updates['gameState/cardDesc'] = null;
@@ -272,7 +271,6 @@
                 return;
             }
 
-            // TRIGGER PLAYER SELECTION ON CONTROLLER
             if(['STEAL_TGT', 'SWAP_TGT', 'ALLY_ADD'].includes(card.type)) {
                 await db.ref('gameState').update({ phase: 'TARGETING' });
                 return;
@@ -285,7 +283,7 @@
             executeEffect(card, leaderId, null);
         }
 
-        // LISTEN FOR PLAYER SELECTION
+        // --- PLAYER SELECTION LISTENER ---
         db.ref('gameState/targetId').on('value', async (snap) => {
             if(gameState.phase === 'TARGETING' && snap.val()) {
                 const card = deck.find(c => c.id === gameState.currentCard);
@@ -308,7 +306,7 @@
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- EFFECT LOGIC (POST-DEDUCTION) ---
+        // --- MATH LOGIC ---
         async function executeEffect(card, winnerId, targetId) {
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
@@ -325,7 +323,6 @@
                 return false; 
             };
 
-            // Money already deducted in SOLD phase. Use current balance.
             let currentBal = Number(winner.balance);
 
             if(card.type === 'GLOBAL_ADD') {
@@ -369,7 +366,6 @@
                 }
             }
             else if(card.type === 'SWAP_RND') {
-                // FIXED SWAP RANDOM
                 const tid = others[Math.floor(Math.random()*others.length)];
                 if(tid && !checkShield(tid)) {
                     updates[`teams/${winnerId}/balance`] = Number(teams[tid].balance);
