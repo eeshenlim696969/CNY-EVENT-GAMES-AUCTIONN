@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        /* (Styles same as previous - Imperial Theme) */
+        /* (Styles same as previous) */
         body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; transition: background 1s; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
         body.winner-mode { background: radial-gradient(circle at center, #5a0000 0%, #2a0000 60%, #000000 100%); }
@@ -51,9 +51,6 @@
         .rank-gold { color: #FFD700; font-size: 8rem; font-weight: 900; background: linear-gradient(to right, #b8860b 20%, #fff 50%, #FFD700 80%); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
         @keyframes shine { to { background-position: 200% center; } }
         .spotlight { box-shadow: 0 0 100px 20px gold; border: 5px solid #FFD700; background: rgba(255, 215, 0, 0.1); }
-        
-        /* PLAYER ACTION MARQUEE (New) */
-        .action-banner { position: absolute; top: 20%; width: 100%; text-align: center; z-index: 100; animation: pulse 1s infinite; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -70,7 +67,6 @@
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
-    
     <audio id="sfx-good" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio> 
     <audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/265/265-preview.mp3"></audio> 
     <audio id="bgm-victory" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
@@ -88,10 +84,6 @@
         </header>
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
-            <div id="player-picking" class="hidden action-banner">
-                <h2 class="text-5xl text-red-500 font-black bg-black/80 inline-block px-8 py-4 rounded border-2 border-red-500">⚠ PLAYER IS CHOOSING TARGET...</h2>
-            </div>
-
             <div class="flex-1 relative flex items-center justify-center">
                 <div id="view-grid" class="view-container hidden">
                     <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
@@ -138,7 +130,6 @@
                     </div>
                 </div>
             </div>
-
             <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full z-50">
                 <div id="panel-rankings" class="glass-panel p-6 rounded-2xl flex-1 flex flex-col overflow-hidden hidden">
                     <h3 class="font-imp text-center text-2xl text-[#FFD700] border-b-2 border-[#C5A059] pb-3 mb-4 tracking-[0.2em]">DYNASTY RANKINGS</h3>
@@ -152,10 +143,6 @@
                 </div>
             </div>
         </main>
-        
-        <div class="history-bar">
-            <div id="marquee-text" class="marquee-content"></div>
-        </div>
     </div>
 
     <script>
@@ -239,7 +226,6 @@
                 document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC
             if(['GRID', 'LEADERBOARD', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
                 document.getElementById('info-panel').classList.add('hidden');
             } else {
@@ -251,13 +237,6 @@
                     document.getElementById('panel-rankings').classList.add('hidden');
                     document.getElementById('panel-leader').classList.remove('hidden');
                 }
-            }
-            
-            // TARGETING OVERLAY
-            if(st.phase === 'TARGETING') {
-                document.getElementById('player-picking').classList.remove('hidden');
-            } else {
-                document.getElementById('player-picking').classList.add('hidden');
             }
 
             if (st.phase === 'LEADERBOARD') {
@@ -275,7 +254,6 @@
                 if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
             }
 
-            // ... (Drawing/Highlight logic) ...
             if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
@@ -348,7 +326,6 @@
                     leaderEl.innerText = leaderName;
                     bidEl.innerText = "RM " + highBid.toLocaleString();
                 }
-
                 if (st.phase === 'REVEALED' && st.cardName) {
                     document.getElementById('card-title').innerText = st.cardName;
                     document.getElementById('card-desc').innerText = st.cardDesc;
@@ -366,7 +343,7 @@
                     document.getElementById('unsold-stamp').classList.add('hidden');
                 }
             } 
-            else if (['CHALLENGE', 'SPIN', 'WAGER'].includes(st.phase)) {
+            else if (['CHALLENGE', 'TARGETING', 'SPIN', 'WAGER'].includes(st.phase)) {
                 if(['WAGER','SPIN'].includes(st.phase)) {
                     document.getElementById('view-coin').classList.remove('hidden');
                     document.getElementById('view-coin').classList.add('flex');
@@ -396,6 +373,10 @@
                         document.getElementById('action-title').innerText = "CHALLENGE";
                         document.getElementById('action-desc').innerText = st.challengeText || "Perform the task!";
                         document.getElementById('action-status').innerText = "👨‍⚖️ JUDGES ARE DECIDING...";
+                    } else {
+                        document.getElementById('action-title').innerText = "SELECTING TARGET";
+                        document.getElementById('action-desc').innerText = `${st.leaderName} is choosing a victim...`;
+                        document.getElementById('action-status').innerText = "📱 CHECK YOUR PHONE";
                     }
                 }
             }
@@ -458,13 +439,6 @@
                 if(sfx) { sfx.currentTime = 0; sfx.play(); }
                 else document.getElementById('sfx-gong').play(); 
             }
-        });
-
-        db.ref('projectorLog').on('child_added', (snap) => {
-             const val = snap.val();
-             if(!val) return;
-             const marquee = document.getElementById('marquee-text');
-             marquee.innerText = `♦ ${val.text} ${marquee.innerText}`;
         });
 
         db.ref('teams').on('value', (snap) => {
