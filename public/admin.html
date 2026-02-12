@@ -30,7 +30,7 @@
                 <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
             </div>
             
-            <button onclick="adminAction('SOLD')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">2. END BIDDING (DEDUCT $$$)</button>
+            <button onclick="adminAction('SOLD')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">2. SOLD (DEDUCT MONEY)</button>
             <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. REVEAL CARD</button>
 
             <div id="challenge-controls" class="hidden flex-col gap-2 p-4 bg-gray-700 rounded border border-yellow-500">
@@ -41,9 +41,9 @@
                 </div>
             </div>
 
-            <div id="target-controls" class="hidden flex-col gap-2 p-4 bg-gray-800 border-2 border-red-500 rounded">
-                <p class="text-center text-red-400 font-bold uppercase mb-2">PICK TARGET TEAM</p>
-                <div id="target-list" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto"></div>
+            <div id="waiting-player" class="hidden bg-blue-900/50 p-4 rounded text-center border border-blue-400 animate-pulse">
+                <p class="text-xl font-bold">WAITING FOR WINNER TO PICK TARGET...</p>
+                <p class="text-xs">Check Player Phone</p>
             </div>
 
             <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>4. NEXT ROUND ➡</button>
@@ -52,12 +52,12 @@
         <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4 mt-4">
             <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
             <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
-            <button onclick="adminAction('START')" class="mt-4 bg-red-900 text-white text-xs p-2 rounded">RESET GAME</button>
         </div>
     </div>
 
-    <div class="mt-4 text-center">
-        <button onclick="adminAction('END_GAME')" class="bg-purple-900 border border-purple-500 p-2 rounded text-xs text-purple-100 font-bold">👑 GO TO LEADERBOARD</button>
+    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
+        <button onclick="adminAction('START')" class="bg-red-900 p-3 rounded text-xs text-red-100 font-bold">RESET GAME</button>
+        <button onclick="adminAction('END_GAME')" class="bg-purple-900 border border-purple-500 p-3 rounded text-xs text-purple-100 font-bold">👑 END GAME</button>
     </div>
 
     <script>
@@ -82,7 +82,6 @@
             snapshot.ref.remove();
         });
 
-        // --- DECK ---
         const deck = [
             { id: 1, name: "The Magic Bowl", desc: "+1,200 Gold", type: "ADD", val: 1200, audio: 'good' }, 
             { id: 2, name: "Dragon's Mercy", desc: "+1,000 TO EVERYONE", type: "GLOBAL_ADD", val: 1000, audio: 'good' }, 
@@ -135,7 +134,7 @@
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
-            // UI TOGGLES
+            // UI SWITCH
             if(gameState.phase === 'LEADERBOARD') {
                 gameControls.classList.add('hidden');
                 leaderControls.classList.remove('hidden');
@@ -154,7 +153,7 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            // CHALLENGE UI
+            // PHASE UI
             if (gameState.phase === 'CHALLENGE') {
                 document.getElementById('challenge-controls').classList.remove('hidden');
                 document.getElementById('challenge-controls').classList.add('flex');
@@ -162,13 +161,10 @@
                 document.getElementById('challenge-controls').classList.add('hidden');
             }
             
-            // TARGET UI
             if (gameState.phase === 'TARGETING') {
-                 loadTargetList();
-                 document.getElementById('target-controls').classList.remove('hidden');
-                 document.getElementById('target-controls').classList.add('flex');
+                document.getElementById('waiting-player').classList.remove('hidden');
             } else {
-                 document.getElementById('target-controls').classList.add('hidden');
+                document.getElementById('waiting-player').classList.add('hidden');
             }
         });
 
@@ -176,7 +172,7 @@
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
-                    adminAction('SOLD'); // USE THE FUNCTION TO ENSURE DEDUCTION
+                    adminAction('SOLD');
                 }
             }
         }, 500);
@@ -206,7 +202,7 @@
 
                 await db.ref('gameState').update({ 
                     phase: 'DRAWING', 
-                    cardName: card.name, // SAVE CARD INFO EARLY FOR SPY
+                    cardName: card.name, 
                     cardDesc: card.desc
                 });
                 
@@ -225,10 +221,10 @@
                 }, 5000);
             }
             
-            // --- STRICT SOLD LOGIC (DEDUCTION HAPPENS HERE) ---
+            // --- STRICT SOLD LOGIC (DEDUCTION ONLY) ---
             if(action === 'SOLD') {
                 const gs = (await db.ref('gameState').get()).val();
-                if(gs.phase === 'SOLD') return; // Prevent double click
+                if(gs.phase === 'SOLD') return; 
                 
                 const leaderId = gs.leaderId;
                 const cost = Number(gs.highestBid) || 0;
@@ -242,8 +238,8 @@
                      db.ref('projectorLog').push({ text: `UNSOLD (No Bids)` });
                 }
                 
-                // IMPORTANT: RESET HIGHEST BID SO IT DOESNT GET DEDUCTED AGAIN
-                await db.ref('gameState').update({ phase: 'SOLD', highestBid: 0 });
+                // DO NOT RESET HIGHEST BID HERE (KEEPS IT VISIBLE)
+                await db.ref('gameState').update({ phase: 'SOLD' });
             }
 
             if(action === 'REVEAL') {
@@ -254,12 +250,17 @@
                 setTimeout(() => processCardEffect(card), 2000);
             }
             
+            // --- NEXT ROUND RESET ---
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
-                updates['gameState/phase'] = 'GRID'; updates['gameState/round'] = (gameState.round||1)+1;
-                updates['gameState/currentCard'] = null; updates['gameState/highestBid'] = 0; updates['gameState/leaderId'] = null;
-                updates['gameState/cardName'] = null; updates['gameState/cardDesc'] = null;
+                updates['gameState/phase'] = 'GRID'; 
+                updates['gameState/round'] = (gameState.round||1)+1;
+                updates['gameState/currentCard'] = null; 
+                updates['gameState/highestBid'] = 0; // RESET BID HERE
+                updates['gameState/leaderId'] = null;
+                updates['gameState/cardName'] = null; 
+                updates['gameState/cardDesc'] = null;
                 await db.ref('/').update(updates);
             }
         };
@@ -271,7 +272,7 @@
                 return;
             }
 
-            // TARGETING PHASE HANDLER
+            // TRIGGER PLAYER SELECTION ON CONTROLLER
             if(['STEAL_TGT', 'SWAP_TGT', 'ALLY_ADD'].includes(card.type)) {
                 await db.ref('gameState').update({ phase: 'TARGETING' });
                 return;
@@ -281,29 +282,18 @@
                 return; 
             }
 
-            // IMMEDIATE EFFECTS
             executeEffect(card, leaderId, null);
         }
 
-        // --- ADMIN TARGET PICKER ---
-        function loadTargetList() {
-            db.ref('teams').get().then(s => {
-                const teams = s.val();
-                const list = document.getElementById('target-list');
-                list.innerHTML = '';
-                Object.keys(teams).forEach(tid => {
-                    const btn = document.createElement('button');
-                    btn.className = "bg-gray-600 text-white p-2 rounded text-xs hover:bg-yellow-600";
-                    btn.innerText = teams[tid].name;
-                    btn.onclick = () => {
-                         const card = deck.find(c => c.id === gameState.currentCard);
-                         executeEffect(card, gameState.leaderId, tid);
-                         db.ref('gameState').update({ phase: 'REVEALED' }); // Close Targeting
-                    };
-                    list.appendChild(btn);
-                });
-            });
-        }
+        // LISTEN FOR PLAYER SELECTION
+        db.ref('gameState/targetId').on('value', async (snap) => {
+            if(gameState.phase === 'TARGETING' && snap.val()) {
+                const card = deck.find(c => c.id === gameState.currentCard);
+                await executeEffect(card, gameState.leaderId, snap.val());
+                await db.ref('gameState/targetId').remove();
+                await db.ref('gameState').update({ phase: 'REVEALED' });
+            }
+        });
 
         window.resolveChallenge = async (pass) => {
             const leaderId = gameState.leaderId;
@@ -318,12 +308,13 @@
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- MAIN LOGIC (BID IS ALREADY PAID) ---
+        // --- EFFECT LOGIC (POST-DEDUCTION) ---
         async function executeEffect(card, winnerId, targetId) {
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
             const winner = teams[winnerId];
             const updates = {};
+            const others = Object.keys(teams).filter(id => id !== winnerId);
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
             
             const checkShield = (tid) => { 
@@ -334,7 +325,7 @@
                 return false; 
             };
 
-            // NOTE: Money is ALREADY deducted in 'SOLD' phase. We work with current balance.
+            // Money already deducted in SOLD phase. Use current balance.
             let currentBal = Number(winner.balance);
 
             if(card.type === 'GLOBAL_ADD') {
@@ -375,6 +366,16 @@
                     updates[`teams/${targetId}/balance`] = Number(teams[targetId].balance) - amt;
                     updates[`teams/${targetId}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
                     log(`${winner.name} STOLE ${amt} from ${teams[targetId].name}`);
+                }
+            }
+            else if(card.type === 'SWAP_RND') {
+                // FIXED SWAP RANDOM
+                const tid = others[Math.floor(Math.random()*others.length)];
+                if(tid && !checkShield(tid)) {
+                    updates[`teams/${winnerId}/balance`] = Number(teams[tid].balance);
+                    updates[`teams/${tid}/balance`] = currentBal;
+                    updates[`teams/${tid}/alert`] = `SWAPPED BY ${winner.name}`;
+                    log(`${winner.name} SWAPPED WITH ${teams[tid].name}`);
                 }
             }
             else if(card.type === 'SWAP_TGT' && targetId) {
