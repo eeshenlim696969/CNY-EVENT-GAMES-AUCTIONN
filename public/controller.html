@@ -17,6 +17,7 @@
         .safe-h { height: 100dvh; }
         .flash-red { animation: flashRed 1s infinite; }
         @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
+        /* Badge Glow */
         .emperor-badge { text-shadow: 0 0 10px gold; animation: pulse 2s infinite; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -115,6 +116,7 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
+            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
                 if(!data) { 
@@ -133,6 +135,7 @@
                 }
             });
 
+            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
