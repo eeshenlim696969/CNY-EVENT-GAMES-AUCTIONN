@@ -97,8 +97,11 @@
         }
         @keyframes shine { to { background-position: 200% center; } }
 
-        .rank-silver { color: #C0C0C0; text-shadow: 0 0 20px #C0C0C0; font-size: 3rem; }
-        .rank-bronze { color: #CD7F32; text-shadow: 0 0 20px #CD7F32; font-size: 2.5rem; }
+        .spotlight {
+            box-shadow: 0 0 100px 20px gold;
+            border: 5px solid #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -106,13 +109,17 @@
 <body class="h-screen w-screen overflow-hidden" id="main-body">
 
     <div class="layer-bg"></div>
-    <div class="god-rays" id="god-rays"></div> <div class="layer-lanterns" id="lantern-container"></div>
+    <div class="god-rays" id="god-rays"></div>
+    <canvas id="fireworks" class="absolute inset-0 pointer-events-none z-10"></canvas>
+    
+    <div class="layer-lanterns" id="lantern-container"></div>
     <div class="layer-fx" id="fx-container" style="position: absolute; inset: 0; pointer-events: none; z-index: 200;"></div>
 
     <audio id="bgm" loop src="https://assets.mixkit.co/active_storage/sfx/888/888-preview.mp3"></audio>
     <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
     <audio id="sfx-gong" src="https://assets.mixkit.co/active_storage/sfx/1547/1547-preview.mp3"></audio>
     <audio id="sfx-coin" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <audio id="bgm-victory" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
 
     <div class="layer-ui p-8 w-full h-full">
         <header class="h-24 flex justify-between items-center px-8 border-b-4 border-[#b8860b] mb-4 bg-[#1a0000] rounded-2xl shadow-2xl z-50">
@@ -127,18 +134,14 @@
         </header>
 
         <main class="flex-1 flex gap-8 relative overflow-hidden">
-            
             <div class="flex-1 relative flex items-center justify-center">
-                
                 <div id="view-grid" class="view-container hidden">
                     <div id="grid-container" class="grid grid-cols-6 gap-6 w-full h-full max-h-[80vh] aspect-square p-4"></div>
                 </div>
-
                 <div id="view-coin" class="view-container hidden">
                     <div class="text-[#FFD700] text-7xl font-imp mb-12 tracking-[0.2em]">DESTINY FLIPPING...</div>
                     <div id="coin-result" class="mt-16 text-[8rem] font-black font-imp text-white hidden animate-bounce drop-shadow-[0_0_50px_gold]">WINNER</div>
                 </div>
-
                 <div id="view-auction" class="view-container hidden">
                     <div id="timer-box" class="mb-8 text-center transition-all duration-300">
                         <p class="text-[#C5A059] text-xl tracking-[0.8em] uppercase font-bold mb-2">BIDDING ENDS IN</p>
@@ -157,7 +160,6 @@
                         <div class="envelope-lid"></div>
                     </div>
                 </div>
-
                 <div id="view-action" class="view-container hidden text-center">
                     <h2 id="action-title" class="text-7xl font-imp text-[#FFD700] mb-8 drop-shadow-[0_0_40px_gold]">CHALLENGE</h2>
                     <div class="text-5xl text-white font-serif max-w-3xl bg-black/90 p-12 rounded-3xl border-4 border-[#C5A059]" id="action-desc">--</div>
@@ -166,20 +168,17 @@
                     </div>
                     <div id="action-status" class="mt-12 text-4xl text-gray-400 animate-pulse font-imp tracking-widest uppercase">Waiting for Judge...</div>
                 </div>
-
                 <div id="view-leaderboard" class="view-container hidden w-full h-full flex flex-col gap-8">
                     <h1 class="text-6xl font-black text-[#FFD700] tracking-[0.5em] mb-12 drop-shadow-xl z-50">FINAL STANDINGS</h1>
-                    
                     <div class="flex items-end justify-center gap-12 w-full max-w-6xl z-50">
                         <div id="podium-1" class="podium-box flex-1 flex flex-col items-center -mt-12">
                             <div class="text-4xl text-yellow-300 uppercase tracking-widest mb-4 font-black drop-shadow-md">👑 EMPEROR 👑</div>
                             <div id="name-1" class="rank-gold font-black transform scale-125">--</div>
                             <div id="score-1" class="text-white text-3xl font-bold mt-2">--</div>
-                            <div class="w-full h-64 bg-gradient-to-t from-yellow-700 to-transparent mt-4 rounded-t-lg border-t-4 border-yellow-400 shadow-[0_0_80px_gold]"></div>
+                            <div class="w-full h-64 bg-gradient-to-t from-yellow-700 to-transparent mt-4 rounded-t-lg border-t-4 border-yellow-400 spotlight"></div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div id="info-panel" class="w-[450px] flex flex-col gap-6 h-full z-50">
@@ -194,7 +193,6 @@
                     <div id="val-high-bid" class="text-8xl font-imp text-[#FFD700] drop-shadow-lg">0</div>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -214,6 +212,44 @@
             lanternContainer.appendChild(l);
         }
 
+        // FIREWORKS LOGIC
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function createFirework(x, y) {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    alpha: 1, color: `hsl(${40 + Math.random() * 20}, 100%, 50%)`
+                });
+            }
+        }
+
+        function loopFireworks() {
+            requestAnimationFrame(loopFireworks);
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'lighter';
+
+            if (Math.random() < 0.05 && document.getElementById('view-leaderboard').classList.contains('flex')) {
+                createFirework(Math.random() * canvas.width, Math.random() * canvas.height / 2);
+            }
+
+            particles.forEach((p, index) => {
+                p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= 0.01;
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill();
+                if (p.alpha <= 0) particles.splice(index, 1);
+            });
+        }
+        loopFireworks();
+
         // GRID GEN
         const g = document.getElementById('grid-container');
         for(let i=1; i<=36; i++) { const d=document.createElement('div'); d.className='angpao'; d.innerText=i; d.id=`cell-${i}`; g.appendChild(d); }
@@ -230,7 +266,7 @@
         let currentDeadline = 0;
         let lastHighBid = 0;
         let spinInterval = null;
-        let rainInterval = null; // CONSTANT RAIN VARIABLE
+        let rainInterval = null;
 
         db.ref('gameState').on('value', (snap) => {
             const st = snap.val();
@@ -245,7 +281,6 @@
                 document.getElementById(id).classList.remove('flex');
             });
             
-            // SIDEBAR LOGIC
             if(['GRID', 'LEADERBOARD', 'DRAWING', 'HIGHLIGHT'].includes(st.phase)) {
                 document.getElementById('info-panel').classList.add('hidden');
             } else {
@@ -262,19 +297,18 @@
             if (st.phase === 'LEADERBOARD') {
                 document.getElementById('view-leaderboard').classList.remove('hidden');
                 document.getElementById('view-leaderboard').classList.add('flex');
-                document.getElementById('main-body').classList.add('winner-mode'); // New BG
-                document.getElementById('god-rays').classList.add('active'); // God Rays
+                document.getElementById('main-body').classList.add('winner-mode');
+                document.getElementById('god-rays').classList.add('active');
                 updateLeaderboard(st.revealRank);
             }
             else {
-                // Not leaderboard? Reset FX
                 document.getElementById('main-body').classList.remove('winner-mode');
                 document.getElementById('god-rays').classList.remove('active');
                 if(rainInterval) { clearInterval(rainInterval); rainInterval = null; }
             }
 
-            // ... (Rest of view logic same as before) ...
-            if (st.phase === 'DRAWING') {
+            // ... (Drawing and Highlight Logic Same) ...
+             if (st.phase === 'DRAWING') {
                 document.getElementById('view-grid').classList.remove('hidden');
                 document.getElementById('view-grid').classList.add('flex');
                 const gridItems = document.querySelectorAll('.angpao:not(.gone)');
@@ -311,7 +345,7 @@
             else if (['BIDDING', 'SOLD', 'REVEALED'].includes(st.phase)) {
                 document.getElementById('view-auction').classList.remove('hidden');
                 document.getElementById('view-auction').classList.add('flex');
-
+                // ... Bidding Logic ...
                 const leaderName = st.leaderName || "NO ONE";
                 const highBid = st.highestBid || 0;
                 const leaderEl = document.getElementById('val-leader-name');
@@ -323,7 +357,6 @@
                     leaderEl.classList.remove('slam-text');
                     void leaderEl.offsetWidth; 
                     leaderEl.classList.add('slam-text');
-                    
                     if(st.isAllIn) {
                          leaderEl.classList.add('all-in-glow');
                          document.getElementById('main-body').classList.add('shake-violent'); 
@@ -356,10 +389,8 @@
                 } else {
                     document.getElementById('main-envelope').classList.remove('is-open');
                 }
-                
                 if(st.phase === 'BIDDING') document.getElementById('main-envelope').classList.add('shaking');
                 else document.getElementById('main-envelope').classList.remove('shaking');
-                
                 if(st.phase === 'SOLD') {
                     if(st.leaderId) document.getElementById('sold-stamp').classList.remove('hidden');
                     else document.getElementById('unsold-stamp').classList.remove('hidden');
@@ -407,19 +438,35 @@
             }
         });
 
-        // LEADERBOARD LOGIC
+        // COUNT UP ANIMATION
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                obj.innerHTML = "RM " + current.toLocaleString();
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        }
+
         async function updateLeaderboard(revealRank) {
             const snap = await db.ref('teams').get();
             const teams = snap.val() || {};
             const sorted = Object.values(teams).sort((a,b) => b.balance - a.balance);
             
-            // SHOW ONLY 1ST PLACE
             if(revealRank <= 1 && sorted[0]) {
                 document.getElementById('name-1').innerText = sorted[0].name;
-                document.getElementById('score-1').innerText = "RM " + sorted[0].balance.toLocaleString();
+                // Animate Score
+                animateValue(document.getElementById('score-1'), 0, sorted[0].balance, 3000);
                 document.getElementById('podium-1').classList.add('reveal');
                 
-                // CONSTANT RAIN LOOP (Fast 100ms interval for smooth stream)
+                // Play Victory Music
+                document.getElementById('bgm').pause();
+                const victory = document.getElementById('bgm-victory');
+                victory.currentTime = 0; victory.play();
+
                 if(!rainInterval) {
                      rainInterval = setInterval(() => spawnCoinRain(3), 100); 
                 }
