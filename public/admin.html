@@ -30,29 +30,34 @@
                 <p id="secret-type" class="text-xs text-blue-500 mt-1">--</p>
             </div>
             
-            <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
-            <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
+            <button onclick="adminAction('SOLD')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">2. END BIDDING (DEDUCT $$$)</button>
+            <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. REVEAL CARD</button>
 
             <div id="challenge-controls" class="hidden flex-col gap-2 p-4 bg-gray-700 rounded border border-yellow-500">
                 <p class="text-center text-white font-bold mb-2 uppercase">Judge The Challenge</p>
                 <div class="flex gap-3">
-                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-700 p-4 rounded text-white font-bold text-xl shadow-lg">PASS (+2k)</button>
-                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-700 p-4 rounded text-white font-bold text-xl shadow-lg">FAIL (-500)</button>
+                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 p-4 rounded text-white font-bold">PASS (+2k)</button>
+                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 p-4 rounded text-white font-bold">FAIL (-500)</button>
                 </div>
             </div>
 
-            <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
+            <div id="target-controls" class="hidden flex-col gap-2 p-4 bg-gray-800 border-2 border-red-500 rounded">
+                <p class="text-center text-red-400 font-bold uppercase mb-2">PICK TARGET TEAM</p>
+                <div id="target-list" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto"></div>
+            </div>
+
+            <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>4. NEXT ROUND ➡</button>
         </div>
 
         <div id="leaderboard-controls" class="hidden flex-col gap-3 border-t border-gray-600 pt-4 mt-4">
             <p class="text-center text-[#C5A059] font-bold tracking-widest uppercase">🏆 Award Ceremony 🏆</p>
             <button onclick="adminAction('REVEAL_RANK', 1)" class="bg-yellow-600 border-2 border-yellow-300 p-4 rounded text-black font-black text-xl shadow-[0_0_15px_gold]">REVEAL EMPEROR (1ST)</button>
+            <button onclick="adminAction('START')" class="mt-4 bg-red-900 text-white text-xs p-2 rounded">RESET GAME</button>
         </div>
     </div>
 
-    <div class="mt-8 border-t border-gray-700 pt-8 opacity-80 grid grid-cols-2 gap-3">
-        <button onclick="adminAction('START')" class="bg-red-900 p-3 rounded text-xs text-red-100 font-bold">RESET GAME</button>
-        <button onclick="adminAction('END_GAME')" class="bg-purple-900 border border-purple-500 p-3 rounded text-xs text-purple-100 font-bold">👑 END GAME</button>
+    <div class="mt-4 text-center">
+        <button onclick="adminAction('END_GAME')" class="bg-purple-900 border border-purple-500 p-2 rounded text-xs text-purple-100 font-bold">👑 GO TO LEADERBOARD</button>
     </div>
 
     <script>
@@ -60,17 +65,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- BID PROCESSING ---
+        // --- BID QUEUE ---
         db.ref('bidQueue').on('child_added', async (snapshot) => {
             const bid = snapshot.val();
             if(!bid) return;
-            const stateSnap = await db.ref('gameState').get();
-            const state = stateSnap.val();
-            
+            const state = (await db.ref('gameState').get()).val();
             if (state.phase === 'BIDDING' && bid.amount > (state.highestBid || 0)) {
-                const teamSnap = await db.ref(`teams/${bid.teamId}`).get();
-                const team = teamSnap.val();
-                
+                const team = (await db.ref(`teams/${bid.teamId}`).get()).val();
                 await db.ref('gameState').update({
                     highestBid: bid.amount,
                     leaderId: bid.teamId,
@@ -88,7 +89,7 @@
             { id: 3, name: "Imperial Grant", desc: "+3,000 Gold", type: "ADD", val: 3000, audio: 'good' }, 
             { id: 4, name: "Interest Rate", desc: "+500 Gold", type: "ADD", val: 500, audio: 'good' }, 
             { id: 5, name: "God of Wealth", desc: "JACKPOT! +8,888", type: "ADD", val: 8888, audio: 'good' }, 
-            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally", type: "GIVE_CHOICE", val: 1000, audio: 'good' }, 
+            { id: 6, name: "Twin Carp", desc: "+1,000 You & Ally (Pick One)", type: "ALLY_ADD", val: 1000, audio: 'good' }, 
             { id: 7, name: "Phoenix", desc: "Reset to 3k if <1k", type: "PHOENIX", val: 0, audio: 'good' }, 
             { id: 8, name: "Lucky Song", desc: "+1,500 Gold", type: "ADD", val: 1500, audio: 'good' }, 
             { id: 9, name: "Dragon Ascension", desc: "+4,000 Gold", type: "ADD", val: 4000, audio: 'good' }, 
@@ -104,11 +105,11 @@
             { id: 19, name: "Bad Luck", desc: "Lose 15% Wealth", type: "MULTIPLY", val: 0.85, audio: 'bad' }, 
             { id: 20, name: "Fool's Gold", desc: "Lose 20% Wealth", type: "MULTIPLY", val: 0.80, audio: 'bad' },
             { id: 21, name: "Tax Collector", desc: "Steal 30% from Richest", type: "STEAL_PCT", val: 0.30, audio: 'bad' }, 
-            { id: 22, name: "Robin Hood", desc: "Steal 15% (Random)", type: "STEAL_RND", val: 0.15, audio: 'bad' }, 
+            { id: 22, name: "Robin Hood", desc: "Steal 15% (Pick Target)", type: "STEAL_TGT", val: 0.15, audio: 'bad' }, 
             { id: 23, name: "Chaos Swap", desc: "Swap with Random", type: "SWAP_RND", val: 0, audio: 'bad' }, 
             { id: 24, name: "Nemesis Swap", desc: "Swap with Target", type: "SWAP_TGT", val: 0, audio: 'bad' }, 
-            { id: 25, name: "The Spy", desc: "Peek Next Card", type: "ITEM", item: "spy_active", audio: 'good' }, 
-            { id: 26, name: "Jade Seal", desc: "Protection Item", type: "ITEM", item: "jade_seal", audio: 'good' },
+            { id: 25, name: "The Spy", desc: "See Next Card (Use on Phone)", type: "ITEM", item: "spy_active", audio: 'good' }, 
+            { id: 26, name: "Jade Seal", desc: "Protection Item (Auto-Use)", type: "ITEM", item: "jade_seal", audio: 'good' },
             { id: 27, name: "Lion's Roar", desc: "Challenge: Roar loudly!", type: "CHALLENGE", audio: 'good' }, 
             { id: 28, name: "CNY Singer", desc: "Challenge: Sing a CNY Song", type: "CHALLENGE", audio: 'good' }, 
             { id: 29, name: "Poet", desc: "Challenge: Recite a Poem", type: "CHALLENGE", audio: 'good' }, 
@@ -131,11 +132,10 @@
             const btnReveal = document.getElementById('btn-reveal');
             const btnNext = document.getElementById('btn-next');
             const btnSkip = document.getElementById('btn-skip');
-            const challengeBox = document.getElementById('challenge-controls');
             const gameControls = document.getElementById('gameplay-controls');
             const leaderControls = document.getElementById('leaderboard-controls');
 
-            // --- VIEW SWITCHING ---
+            // UI TOGGLES
             if(gameState.phase === 'LEADERBOARD') {
                 gameControls.classList.add('hidden');
                 leaderControls.classList.remove('hidden');
@@ -143,7 +143,6 @@
             } else {
                 gameControls.classList.remove('hidden');
                 leaderControls.classList.add('hidden');
-                leaderControls.classList.remove('flex');
             }
 
             btnReveal.disabled = (gameState.phase !== 'SOLD');
@@ -155,13 +154,21 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            // SHOW CHALLENGE BUTTONS
+            // CHALLENGE UI
             if (gameState.phase === 'CHALLENGE') {
-                challengeBox.classList.remove('hidden');
-                challengeBox.classList.add('flex');
+                document.getElementById('challenge-controls').classList.remove('hidden');
+                document.getElementById('challenge-controls').classList.add('flex');
             } else {
-                challengeBox.classList.add('hidden');
-                challengeBox.classList.remove('flex');
+                document.getElementById('challenge-controls').classList.add('hidden');
+            }
+            
+            // TARGET UI
+            if (gameState.phase === 'TARGETING') {
+                 loadTargetList();
+                 document.getElementById('target-controls').classList.remove('hidden');
+                 document.getElementById('target-controls').classList.add('flex');
+            } else {
+                 document.getElementById('target-controls').classList.add('hidden');
             }
         });
 
@@ -169,7 +176,7 @@
         setInterval(() => {
             if (gameState.phase === 'BIDDING' && gameState.bidDeadline) {
                 if (Date.now() > gameState.bidDeadline) {
-                    db.ref('gameState').update({ phase: 'SOLD' });
+                    adminAction('SOLD'); // USE THE FUNCTION TO ENSURE DEDUCTION
                 }
             }
         }, 500);
@@ -197,7 +204,11 @@
                 document.getElementById('secret-desc').innerText = card.desc;
                 document.getElementById('secret-type').innerText = card.type;
 
-                await db.ref('gameState').update({ phase: 'DRAWING' });
+                await db.ref('gameState').update({ 
+                    phase: 'DRAWING', 
+                    cardName: card.name, // SAVE CARD INFO EARLY FOR SPY
+                    cardDesc: card.desc
+                });
                 
                 setTimeout(async () => {
                     await db.ref('gameState').update({ phase: 'HIGHLIGHT', currentCard: card.id });
@@ -213,14 +224,36 @@
                     }, 2000);
                 }, 5000);
             }
-            if(action === 'SKIP_TIMER') await db.ref('gameState').update({ phase: 'SOLD' });
+            
+            // --- STRICT SOLD LOGIC (DEDUCTION HAPPENS HERE) ---
+            if(action === 'SOLD') {
+                const gs = (await db.ref('gameState').get()).val();
+                if(gs.phase === 'SOLD') return; // Prevent double click
+                
+                const leaderId = gs.leaderId;
+                const cost = Number(gs.highestBid) || 0;
+                
+                if (leaderId && cost > 0) {
+                     const team = (await db.ref(`teams/${leaderId}`).get()).val();
+                     const newBal = Number(team.balance) - cost;
+                     await db.ref(`teams/${leaderId}`).update({ balance: newBal });
+                     db.ref('projectorLog').push({ text: `SOLD! ${team.name} paid ${cost}` });
+                } else {
+                     db.ref('projectorLog').push({ text: `UNSOLD (No Bids)` });
+                }
+                
+                // IMPORTANT: RESET HIGHEST BID SO IT DOESNT GET DEDUCTED AGAIN
+                await db.ref('gameState').update({ phase: 'SOLD', highestBid: 0 });
+            }
+
             if(action === 'REVEAL') {
                 const card = deck.find(c => c.id === gameState.currentCard);
-                await db.ref('gameState').update({ cardName: card.name, cardDesc: card.desc, phase: 'REVEALED', soundType: card.audio || 'good' });
+                await db.ref('gameState').update({ phase: 'REVEALED', soundType: card.audio || 'good' });
                 await db.ref('revealTrigger').set(true); 
                 await db.ref('revealTrigger').set(false);
                 setTimeout(() => processCardEffect(card), 2000);
             }
+            
             if(action === 'NEXT') {
                 const updates = {};
                 if(gameState.currentCard) updates[`envelopes/${gameState.currentCard}`] = true;
@@ -231,129 +264,131 @@
             }
         };
 
-        // --- SAFE PROCESS CARD EFFECT ---
         async function processCardEffect(card) {
-            const gsSnap = await db.ref('gameState').get();
-            const gs = gsSnap.val();
-            const leaderId = gs.leaderId;
-
+            const leaderId = gameState.leaderId;
             if(!leaderId) {
-                alert("⚠ NO WINNER FOUND! Money will not be deducted.");
-                await db.ref('gameState').update({ phase: 'REVEALED' });
+                alert("No Winner. No Effect.");
                 return;
             }
 
-            if(card.type === 'CHALLENGE') { await db.ref('gameState').update({ phase: 'CHALLENGE', challengeText: card.desc }); return; }
-            if(card.type === 'STEAL_TGT' || card.type === 'SWAP_TGT') { await db.ref('gameState').update({ phase: 'TARGETING' }); return; }
+            // TARGETING PHASE HANDLER
+            if(['STEAL_TGT', 'SWAP_TGT', 'ALLY_ADD'].includes(card.type)) {
+                await db.ref('gameState').update({ phase: 'TARGETING' });
+                return;
+            }
+            if(card.type === 'CHALLENGE') { 
+                await db.ref('gameState').update({ phase: 'CHALLENGE', challengeText: card.desc }); 
+                return; 
+            }
+
+            // IMMEDIATE EFFECTS
             executeEffect(card, leaderId, null);
         }
 
-        // --- FIXED CHALLENGE LOGIC (DEDUCTS BID NOW) ---
+        // --- ADMIN TARGET PICKER ---
+        function loadTargetList() {
+            db.ref('teams').get().then(s => {
+                const teams = s.val();
+                const list = document.getElementById('target-list');
+                list.innerHTML = '';
+                Object.keys(teams).forEach(tid => {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-gray-600 text-white p-2 rounded text-xs hover:bg-yellow-600";
+                    btn.innerText = teams[tid].name;
+                    btn.onclick = () => {
+                         const card = deck.find(c => c.id === gameState.currentCard);
+                         executeEffect(card, gameState.leaderId, tid);
+                         db.ref('gameState').update({ phase: 'REVEALED' }); // Close Targeting
+                    };
+                    list.appendChild(btn);
+                });
+            });
+        }
+
         window.resolveChallenge = async (pass) => {
-            const gsSnap = await db.ref('gameState').get();
-            const gs = gsSnap.val();
-            const leaderId = gs.leaderId;
-            const bidAmount = Number(gs.highestBid) || 0;
-
-            if(!leaderId) return alert("No leader found");
-
+            const leaderId = gameState.leaderId;
             const t = (await db.ref(`teams/${leaderId}`).get()).val();
-            const currentBal = Number(t.balance) || 0;
-
-            // 1. DEDUCT BID FIRST
-            let balanceAfterBid = currentBal - bidAmount;
-
-            // 2. APPLY REWARD OR PENALTY
             if(pass) {
-                let finalBal = balanceAfterBid + 2000;
-                await db.ref(`teams/${leaderId}`).update({ balance: finalBal });
-                db.ref('projectorLog').push({ text: `CHALLENGE PASSED: ${t.name} (+2000)` });
+                await db.ref(`teams/${leaderId}`).update({ balance: Number(t.balance) + 2000 });
+                db.ref('projectorLog').push({ text: `CHALLENGE PASSED (+2000)` });
             } else {
-                let finalBal = balanceAfterBid - 500;
-                if(finalBal < 0) finalBal = 0;
-                await db.ref(`teams/${leaderId}`).update({ balance: finalBal });
-                db.ref('projectorLog').push({ text: `CHALLENGE FAILED: ${t.name} (-500)` });
+                await db.ref(`teams/${leaderId}`).update({ balance: Math.max(0, Number(t.balance) - 500) });
+                db.ref('projectorLog').push({ text: `CHALLENGE FAILED (-500)` });
             }
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- FIXED CARD EXECUTION (MATH ORDER) ---
+        // --- MAIN LOGIC (BID IS ALREADY PAID) ---
         async function executeEffect(card, winnerId, targetId) {
-            // 1. GET FRESH DATA
-            const gsSnap = await db.ref('gameState').get();
-            const gs = gsSnap.val();
-            const bidAmount = Number(gs.highestBid) || 0; // COST
-
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
             const winner = teams[winnerId];
             const updates = {};
-            const others = Object.keys(teams).filter(id => id !== winnerId);
-            const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
-            
-            // 2. DEDUCT BID FROM WINNER FIRST
-            let balanceAfterCost = Number(winner.balance) - bidAmount;
-            
-            const wRef = `teams/${winnerId}/balance`;
-            updates[wRef] = balanceAfterCost; // Set the baseline balance
-
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
+            
+            const checkShield = (tid) => { 
+                if(teams[tid]?.items?.jade_seal) { 
+                    updates[`teams/${tid}/items/jade_seal`] = null; 
+                    return true; 
+                } 
+                return false; 
+            };
 
-            // 3. APPLY EFFECTS TO THE NEW (LOWER) BALANCE
+            // NOTE: Money is ALREADY deducted in 'SOLD' phase. We work with current balance.
+            let currentBal = Number(winner.balance);
+
             if(card.type === 'GLOBAL_ADD') {
-                for (let k in teams) {
-                    let base = Number(teams[k].balance);
-                    // Special case: If this is the winner, use the deducted balance as base
-                    if(k === winnerId) base = balanceAfterCost;
-                    updates[`teams/${k}/balance`] = base + card.val;
-                }
-                log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
+                for (let k in teams) updates[`teams/${k}/balance`] = Number(teams[k].balance) + card.val;
+                log(`GLOBAL: +${card.val} to ALL`);
             }
             else if(card.type === 'ADD') {
-                updates[wRef] = balanceAfterCost + card.val;
-                log(`${winner.name} gained ${card.val}`);
+                updates[`teams/${winnerId}/balance`] = currentBal + card.val;
+                log(`${winner.name} GAINED ${card.val}`);
+            }
+            else if(card.type === 'ALLY_ADD' && targetId) {
+                updates[`teams/${winnerId}/balance`] = currentBal + card.val;
+                updates[`teams/${targetId}/balance`] = Number(teams[targetId].balance) + card.val;
+                log(`${winner.name} & ${teams[targetId].name} GAINED ${card.val}`);
             }
             else if(card.type === 'MULTIPLY') {
-                let val = Math.floor(balanceAfterCost * card.val);
                 if(card.val < 1 && checkShield(winnerId)) {
-                    log(`${winner.name} blocked DISASTER!`);
-                    updates[wRef] = balanceAfterCost; // Just pay bid, no disaster
+                    log(`${winner.name} USED JADE SEAL! Blocked Disaster.`);
                 } else {
-                    updates[wRef] = val;
-                    log(`${winner.name} suffered ${card.name}`);
+                    updates[`teams/${winnerId}/balance`] = Math.floor(currentBal * card.val);
+                    log(`${winner.name} Balance Multiplied by ${card.val}`);
                 }
             }
-            else if(card.type === 'STEAL_RND') {
-                const victim = others[Math.floor(Math.random()*others.length)];
-                if(victim && !checkShield(victim)) {
-                    const amt = Math.floor(Number(teams[victim].balance) * card.val);
-                    updates[wRef] = balanceAfterCost + amt; 
-                    updates[`teams/${victim}/balance`] = Number(teams[victim].balance) - amt;
-                    updates[`teams/${victim}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
-                    log(`${winner.name} stole from ${teams[victim].name}`);
+            else if(card.type === 'PHOENIX') {
+                if(currentBal < 1000) {
+                    updates[`teams/${winnerId}/balance`] = 3000;
+                    log(`${winner.name} PHOENIX RISES! Balance set to 3000.`);
+                } else {
+                    log(`${winner.name} PHOENIX Failed (>1k)`);
                 }
             }
             else if(card.type === 'STEAL_TGT' && targetId) {
-                if(!checkShield(targetId)) {
+                if(checkShield(targetId)) {
+                    log(`${teams[targetId].name} BLOCKED THE STEAL!`);
+                } else {
                     const amt = Math.floor(Number(teams[targetId].balance) * card.val);
-                    updates[wRef] = balanceAfterCost + amt; 
+                    updates[`teams/${winnerId}/balance`] = currentBal + amt; 
                     updates[`teams/${targetId}/balance`] = Number(teams[targetId].balance) - amt;
                     updates[`teams/${targetId}/alert`] = `ROBBED BY ${winner.name} (-${amt})`;
-                    log(`${winner.name} TARGETED ${teams[targetId].name}`);
+                    log(`${winner.name} STOLE ${amt} from ${teams[targetId].name}`);
                 }
             }
-            else if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
-                let tid = targetId || others[Math.floor(Math.random()*others.length)];
-                if(tid && !checkShield(tid)) { 
-                    updates[wRef] = Number(teams[tid].balance); 
-                    updates[`teams/${tid}/balance`] = balanceAfterCost;
-                    updates[`teams/${tid}/alert`] = `SWAPPED BY ${winner.name}`; 
-                    log(`${winner.name} SWAPPED funds with ${teams[tid].name}`);
+            else if(card.type === 'SWAP_TGT' && targetId) {
+                 if(checkShield(targetId)) {
+                    log(`${teams[targetId].name} BLOCKED THE SWAP!`);
+                } else {
+                    updates[`teams/${winnerId}/balance`] = Number(teams[targetId].balance);
+                    updates[`teams/${targetId}/balance`] = currentBal;
+                    log(`${winner.name} SWAPPED WITH ${teams[targetId].name}`);
                 }
             }
             else if(card.type === 'ITEM') {
                 updates[`teams/${winnerId}/items/${card.item}`] = true;
-                log(`${winner.name} obtained ITEM`);
+                log(`${winner.name} GOT ITEM: ${card.item}`);
             }
 
             await db.ref('/').update(updates);
