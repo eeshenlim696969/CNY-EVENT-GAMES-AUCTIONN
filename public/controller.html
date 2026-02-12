@@ -17,6 +17,8 @@
         .safe-h { height: 100dvh; }
         .flash-red { animation: flashRed 1s infinite; }
         @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
+        /* Badge Glow */
+        .emperor-badge { text-shadow: 0 0 10px gold; animation: pulse 2s infinite; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -47,7 +49,10 @@
         <div class="flex justify-between items-end mb-4 border-b-2 border-[#C5A059] pb-4 bg-black/40 p-4 rounded-xl shrink-0">
             <div>
                 <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">DYNASTY</div>
-                <div id="name-display" class="text-2xl text-white leading-none font-bold">--</div>
+                <div class="flex items-center gap-2">
+                    <div id="name-display" class="text-2xl text-white leading-none font-bold">--</div>
+                    <div id="emperor-badge" class="hidden text-xl emperor-badge">👑</div>
+                </div>
             </div>
             <div class="text-right">
                 <div class="text-[10px] text-[#C5A059] tracking-[0.3em] uppercase mb-1">TREASURY</div>
@@ -111,11 +116,9 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
-            // LISTEN FOR BALANCE & ALERTS
+            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
-                
-                // IF DATA IS NULL (ADMIN RESET GAME), RESET LOCAL & RELOAD
                 if(!data) { 
                     localStorage.clear();
                     window.location.reload();
@@ -126,18 +129,24 @@
                 document.getElementById('balance').innerText = balance.toLocaleString(); 
                 
                 if(data.alert) {
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); // VIOLENT HAPTIC
                     document.getElementById('alert-msg').innerText = data.alert;
                     document.getElementById('alert-overlay').classList.remove('hidden');
                     document.getElementById('body-main').classList.add('flash-red');
                 }
             });
 
+            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
                 
                 document.getElementById('high-bid').innerText = (st.highestBid||0).toLocaleString();
                 
+                // BADGE LOGIC
+                if (st.leaderId === myId) document.getElementById('emperor-badge').classList.remove('hidden');
+                else document.getElementById('emperor-badge').classList.add('hidden');
+
                 // STATELESS ROUND CHECK
                 currentRound = st.round;
                 hasLabored = localStorage.getItem(`hasLabored_${st.round}`) === 'true';
@@ -221,17 +230,16 @@
         btnStrike.addEventListener('touchstart', handleStrike);
         btnStrike.addEventListener('click', handleStrike);
 
-        // --- FIXED: INSTANT FEEDBACK, NO DELAY ---
         function handleStrike(e) {
              e.preventDefault(); if(!gameActive) return;
              gameActive = false; cancelAnimationFrame(gameLoopId);
              
              const center = barPos + 5;
              if(center >= targetZone.x && center <= targetZone.x + targetZone.w) {
+                 if (navigator.vibrate) navigator.vibrate(50); // TICK HAPTIC
                  btnStrike.innerText = "SUCCESS!"; 
                  btnStrike.style.background = "green";
                  
-                 // FIRE AND FORGET - NO AWAIT
                  db.ref(`teams/${myId}`).update({ balance: balance + 200 });
                  
                  hasLabored = true;
@@ -244,6 +252,7 @@
                     btnStrike.style.background = ""; 
                  }, 500);
              } else {
+                 if (navigator.vibrate) navigator.vibrate(200); // ERROR HAPTIC
                  btnStrike.innerText = "MISSED"; 
                  btnStrike.style.background = "red";
                  setTimeout(() => { 
@@ -263,6 +272,8 @@
             
             if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
             
+            if (navigator.vibrate) navigator.vibrate(100); // CONFIRM HAPTIC
+            
             hasBid = true;
             localStorage.setItem(`hasBid_${currentRound}`, 'true');
             updateButtons();
@@ -281,6 +292,7 @@
                     if(tid !== myId) {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
+                        // HIDDEN BALANCE - BLIND STEAL
                         btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
                         btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) db.ref('gameState').update({ targetId: tid }); };
                         list.appendChild(btn);
