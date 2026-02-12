@@ -33,12 +33,9 @@
             <button onclick="adminAction('SKIP_TIMER')" id="btn-skip" class="hidden bg-red-600 text-white font-bold py-3 rounded animate-pulse">⚠ FORCE END AUCTION ⚠</button>
             <button onclick="adminAction('REVEAL')" id="btn-reveal" class="bg-blue-900 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>2. REVEAL CARD</button>
 
-            <div id="challenge-controls" class="hidden flex-col gap-2 p-4 bg-gray-700 rounded border border-yellow-500">
-                <p class="text-center text-white font-bold mb-2 uppercase">Judge The Challenge</p>
-                <div class="flex gap-3">
-                    <button onclick="resolveChallenge(true)" class="flex-1 bg-green-600 hover:bg-green-700 p-4 rounded text-white font-bold text-xl shadow-lg">PASS (+2k)</button>
-                    <button onclick="resolveChallenge(false)" class="flex-1 bg-red-600 hover:bg-red-700 p-4 rounded text-white font-bold text-xl shadow-lg">FAIL (-500)</button>
-                </div>
+            <div id="challenge-controls" class="hidden flex gap-3">
+                <button onclick="resolveChallenge(true)" class="flex-1 bg-green-700 p-3 rounded text-white font-bold">PASS (+2k)</button>
+                <button onclick="resolveChallenge(false)" class="flex-1 bg-red-700 p-3 rounded text-white font-bold">FAIL (-500)</button>
             </div>
 
             <button onclick="adminAction('NEXT')" id="btn-next" class="bg-gray-700 text-white font-bold text-lg p-4 rounded-lg disabled:opacity-50" disabled>3. NEXT ROUND ➡</button>
@@ -155,7 +152,7 @@
             if(['GRID', 'LEADERBOARD'].includes(gameState.phase)) document.getElementById('secret-preview').classList.add('hidden');
             else if(gameState.currentCard) document.getElementById('secret-preview').classList.remove('hidden');
 
-            // SHOW CHALLENGE BUTTONS IF PHASE IS CHALLENGE
+            // SHOW CHALLENGE BUTTONS
             if (gameState.phase === 'CHALLENGE') {
                 challengeBox.classList.remove('hidden');
                 challengeBox.classList.add('flex');
@@ -231,12 +228,12 @@
             }
         };
 
-        // --- FIXED CHALLENGE LOGIC (DEDUCTS BID NOW) ---
+        // --- FIXED CHALLENGE LOGIC ---
         window.resolveChallenge = async (pass) => {
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
             const leaderId = gs.leaderId;
-            const bidAmount = Number(gs.highestBid) || 0;
+            const bidAmount = Number(gs.highestBid) || 0; // The cost of the bid
 
             if(!leaderId) return alert("No leader found");
 
@@ -253,19 +250,19 @@
                 db.ref('projectorLog').push({ text: `CHALLENGE PASSED: ${t.name} (+2000)` });
             } else {
                 let finalBal = balanceAfterBid - 500;
-                if(finalBal < 0) finalBal = 0; // Prevent negative
+                if(finalBal < 0) finalBal = 0;
                 await db.ref(`teams/${leaderId}`).update({ balance: finalBal });
                 db.ref('projectorLog').push({ text: `CHALLENGE FAILED: ${t.name} (-500)` });
             }
             await db.ref('gameState').update({ phase: 'REVEALED' }); 
         };
 
-        // --- FIXED STANDARD CARD LOGIC (DEDUCTS BID NOW) ---
+        // --- FIXED CARD LOGIC ---
         async function executeEffect(card, winnerId, targetId) {
-            // 1. GET STATE
+            // 1. GET FRESH DATA
             const gsSnap = await db.ref('gameState').get();
             const gs = gsSnap.val();
-            const bidAmount = Number(gs.highestBid) || 0;
+            const bidAmount = Number(gs.highestBid) || 0; // THIS IS THE COST
 
             const teamsSnap = await db.ref('teams').get();
             const teams = teamsSnap.val();
@@ -274,39 +271,39 @@
             const others = Object.keys(teams).filter(id => id !== winnerId);
             const checkShield = (tid) => { if(teams[tid]?.items?.jade_seal) { updates[`teams/${tid}/items/jade_seal`] = null; return true; } return false; };
             
-            // 2. DEDUCT BID FROM WINNER
+            // 2. DEDUCT BID FROM WINNER FIRST
             let balanceAfterCost = Number(winner.balance) - bidAmount;
+            
+            // This is the reference to update
             const wRef = `teams/${winnerId}/balance`;
-            updates[wRef] = balanceAfterCost; // Baseline update
+            updates[wRef] = balanceAfterCost; // Set baseline to post-deduction
 
-            // LOGGING
             const log = (msg) => db.ref('projectorLog').push({ text: msg });
 
-            // 3. APPLY EFFECTS TO NEW BALANCE
+            // 3. APPLY EFFECTS TO THE NEW (LOWER) BALANCE
             if(card.type === 'GLOBAL_ADD') {
                 for (let k in teams) {
                     let base = Number(teams[k].balance);
-                    // Special case: If this is the winner, use the deducted balance as base
-                    if(k === winnerId) base = balanceAfterCost;
+                    if (k === winnerId) base = balanceAfterCost; // Use new balance for winner
                     updates[`teams/${k}/balance`] = base + card.val;
                 }
                 log(`GLOBAL EVENT: ${card.name} (+${card.val} ALL)`);
             }
-            if(card.type === 'ADD') {
+            else if(card.type === 'ADD') {
                 updates[wRef] = balanceAfterCost + card.val;
                 log(`${winner.name} gained ${card.val}`);
             }
-            if(card.type === 'MULTIPLY') {
+            else if(card.type === 'MULTIPLY') {
                 let val = Math.floor(balanceAfterCost * card.val);
                 if(card.val < 1 && checkShield(winnerId)) {
                     log(`${winner.name} blocked DISASTER!`);
-                    updates[wRef] = balanceAfterCost; // Revert to just bid deduction
+                    // If blocked, they still paid the bid (line 217), so no further math needed
                 } else {
                     updates[wRef] = val;
                     log(`${winner.name} suffered ${card.name}`);
                 }
             }
-            if(card.type === 'STEAL_RND') {
+            else if(card.type === 'STEAL_RND') {
                 const victim = others[Math.floor(Math.random()*others.length)];
                 if(victim && !checkShield(victim)) {
                     const amt = Math.floor(Number(teams[victim].balance) * card.val);
@@ -316,7 +313,7 @@
                     log(`${winner.name} stole from ${teams[victim].name}`);
                 }
             }
-            if(card.type === 'STEAL_TGT' && targetId) {
+            else if(card.type === 'STEAL_TGT' && targetId) {
                 if(!checkShield(targetId)) {
                     const amt = Math.floor(Number(teams[targetId].balance) * card.val);
                     updates[wRef] = balanceAfterCost + amt; 
@@ -325,7 +322,7 @@
                     log(`${winner.name} TARGETED ${teams[targetId].name}`);
                 }
             }
-            if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
+            else if(card.type === 'SWAP_RND' || (card.type === 'SWAP_TGT' && targetId)) {
                 let tid = targetId || others[Math.floor(Math.random()*others.length)];
                 if(tid && !checkShield(tid)) { 
                     updates[wRef] = Number(teams[tid].balance); 
@@ -334,7 +331,7 @@
                     log(`${winner.name} SWAPPED funds with ${teams[tid].name}`);
                 }
             }
-            if(card.type === 'ITEM') {
+            else if(card.type === 'ITEM') {
                 updates[`teams/${winnerId}/items/${card.item}`] = true;
                 log(`${winner.name} obtained ITEM`);
             }
