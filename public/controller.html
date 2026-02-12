@@ -17,7 +17,6 @@
         .safe-h { height: 100dvh; }
         .flash-red { animation: flashRed 1s infinite; }
         @keyframes flashRed { 0%,100% { background: #2a0000; } 50% { background: #ff0000; } }
-        /* Badge Glow */
         .emperor-badge { text-shadow: 0 0 10px gold; animation: pulse 2s infinite; }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -61,6 +60,12 @@
         </div>
 
         <div id="status-banner" class="text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0">Waiting...</div>
+        
+        <div id="spy-info" class="hidden bg-purple-900/50 border border-purple-400 p-3 rounded mb-4 text-center">
+            <p class="text-[10px] text-purple-200 uppercase tracking-widest">🕵️ SPY REVEAL</p>
+            <p id="spy-text" class="text-xl font-bold text-white">--</p>
+            <p class="text-[10px] text-gray-400">(Single Use)</p>
+        </div>
 
         <div id="view-bid" class="hidden flex-col gap-4 flex-1 min-h-0">
             <div class="glass-panel p-4 rounded-xl text-center border-t-4 border-t-[#FFD700] shrink-0">
@@ -85,11 +90,6 @@
                 <button onclick="submitBid(false)" id="btn-bid" class="btn-gold w-full py-5 text-2xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
             </div>
         </div>
-
-        <div id="view-target" class="hidden flex-col h-full bg-[#1a0505] absolute inset-0 z-50 p-6">
-            <h2 class="text-center text-4xl text-red-500 mb-2 animate-pulse font-black">⚔️ CHOOSE VICTIM ⚔️</h2>
-            <div id="rivals-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
-        </div>
     </div>
 
     <script>
@@ -98,6 +98,7 @@
         const db = firebase.database();
         
         let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
+        let myItems = {};
 
         window.login = async () => {
             const n = document.getElementById('inp-name').value;
@@ -116,16 +117,12 @@
             document.getElementById('app').classList.remove('hidden'); document.getElementById('app').classList.add('flex');
             document.getElementById('name-display').innerText = myName;
 
-            // BALANCE LISTENER
             db.ref(`teams/${myId}`).on('value', s => {
                 const data = s.val();
-                if(!data) { 
-                    localStorage.clear();
-                    window.location.reload();
-                    return;
-                }
+                if(!data) { localStorage.clear(); window.location.reload(); return; }
                 balance = Number(data.balance); 
                 document.getElementById('balance').innerText = balance.toLocaleString(); 
+                myItems = data.items || {};
                 
                 if(data.alert) {
                     if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]); 
@@ -135,7 +132,6 @@
                 }
             });
 
-            // GAME STATE LISTENER
             db.ref('gameState').on('value', s => {
                 const st = s.val();
                 if(!st) return;
@@ -151,10 +147,21 @@
                     hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
                 }
 
+                // SPY LOGIC
+                if (st.phase === 'BIDDING' && myItems.spy_active) {
+                    document.getElementById('spy-info').classList.remove('hidden');
+                    document.getElementById('spy-text').innerText = `${st.cardName} (${st.cardDesc})`;
+                } else {
+                    document.getElementById('spy-info').classList.add('hidden');
+                }
+                // IF SPY USED, REMOVE IT
+                if (st.phase === 'REVEALED' && myItems.spy_active) {
+                     db.ref(`teams/${myId}/items/spy_active`).remove();
+                }
+
                 updateButtons();
 
                 document.getElementById('view-bid').classList.add('hidden');
-                document.getElementById('view-target').classList.add('hidden');
                 
                 if (st.leaderId === myId && st.phase === 'BIDDING') {
                     document.getElementById('status-banner').innerText = "YOU ARE WINNING!";
@@ -166,9 +173,6 @@
 
                 if (st.phase === 'BIDDING') {
                     document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
-                } else if (st.phase === 'TARGETING' && st.leaderId === myId) {
-                    document.getElementById('view-target').classList.remove('hidden'); document.getElementById('view-target').classList.add('flex');
-                    loadRivals();
                 }
             });
         }
@@ -182,7 +186,6 @@
         function updateButtons() {
             const btnLabor = document.getElementById('btn-labor');
             const btnBid = document.getElementById('btn-bid');
-            
             if(hasLabored) {
                 btnLabor.disabled = true; btnLabor.innerText = "✅ ACTION USED"; btnLabor.classList.add('opacity-50');
                 btnBid.disabled = true; btnBid.innerText = "LOCKED (LABORED)"; btnBid.classList.add('opacity-50');
@@ -229,7 +232,6 @@
         btnStrike.addEventListener('touchstart', handleStrike);
         btnStrike.addEventListener('click', handleStrike);
 
-        // INSTANT FEEDBACK FIX
         function handleStrike(e) {
              e.preventDefault(); if(!gameActive) return;
              gameActive = false; cancelAnimationFrame(gameLoopId);
@@ -241,7 +243,6 @@
                  btnStrike.style.background = "green";
                  
                  db.ref(`teams/${myId}`).update({ balance: balance + 200 });
-                 
                  hasLabored = true;
                  localStorage.setItem(`hasLabored_${currentRound}`, 'true');
                  updateButtons();
@@ -265,13 +266,10 @@
 
         window.submitBid = async (isAllIn) => {
             if(hasLabored) return alert("You already Labored!");
-            
             let v = 0;
             if(isAllIn) v = balance;
             else v = parseInt(document.getElementById('bid-val').value);
-            
             if(isNaN(v) || v <= 0 || v > balance) return alert("Invalid Amount or Insufficient Funds");
-            
             if (navigator.vibrate) navigator.vibrate(100);
             
             hasBid = true;
@@ -282,23 +280,6 @@
         }
 
         window.quick = (p) => { document.getElementById('bid-val').value = Math.floor(balance * p); }
-
-        function loadRivals() {
-            db.ref('teams').get().then(s => {
-                const teams = s.val();
-                const list = document.getElementById('rivals-list');
-                list.innerHTML = '';
-                Object.keys(teams).forEach(tid => {
-                    if(tid !== myId) {
-                        const btn = document.createElement('button');
-                        btn.className = "w-full p-6 bg-red-900/80 border-2 border-red-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
-                        btn.innerHTML = `<span>🎯 ${teams[tid].name}</span> <span class="text-sm opacity-50">???</span>`;
-                        btn.onclick = () => { if(confirm(`ATTACK ${teams[tid].name}?`)) db.ref('gameState').update({ targetId: tid }); };
-                        list.appendChild(btn);
-                    }
-                });
-            });
-        }
     </script>
 </body>
 </html>
