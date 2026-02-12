@@ -64,7 +64,6 @@
         <div id="spy-info" class="hidden bg-purple-900/50 border border-purple-400 p-3 rounded mb-4 text-center">
             <p class="text-[10px] text-purple-200 uppercase tracking-widest">🕵️ SPY REVEAL</p>
             <p id="spy-text" class="text-xl font-bold text-white">--</p>
-            <p class="text-[10px] text-gray-400">(Single Use)</p>
         </div>
 
         <div id="view-bid" class="hidden flex-col gap-4 flex-1 min-h-0">
@@ -90,6 +89,12 @@
                 <button onclick="submitBid(false)" id="btn-bid" class="btn-gold w-full py-5 text-2xl rounded-2xl shadow-[0_0_40px_rgba(255,215,0,0.3)] tracking-[0.1em]">OFFER TRIBUTE</button>
             </div>
         </div>
+
+        <div id="view-selection" class="hidden flex-col h-full bg-[#1a0505] absolute inset-0 z-50 p-6">
+            <h2 class="text-center text-3xl text-yellow-400 mb-2 font-black">CHOOSE TARGET</h2>
+            <div class="text-center text-4xl font-black text-red-500 mb-4" id="selection-timer">10</div>
+            <div id="selection-list" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
+        </div>
     </div>
 
     <script>
@@ -98,6 +103,7 @@
         const db = firebase.database();
         
         let myId, myName, balance = 0, currentRound = 0, hasLabored = false, hasBid = false;
+        let selectionTimer = null;
         let myItems = {};
 
         window.login = async () => {
@@ -147,14 +153,12 @@
                     hasBid = localStorage.getItem(`hasBid_${st.round}`) === 'true';
                 }
 
-                // SPY LOGIC
                 if (st.phase === 'BIDDING' && myItems.spy_active) {
                     document.getElementById('spy-info').classList.remove('hidden');
                     document.getElementById('spy-text').innerText = `${st.cardName} (${st.cardDesc})`;
                 } else {
                     document.getElementById('spy-info').classList.add('hidden');
                 }
-                // IF SPY USED, REMOVE IT
                 if (st.phase === 'REVEALED' && myItems.spy_active) {
                      db.ref(`teams/${myId}/items/spy_active`).remove();
                 }
@@ -162,6 +166,17 @@
                 updateButtons();
 
                 document.getElementById('view-bid').classList.add('hidden');
+                document.getElementById('view-selection').classList.add('hidden');
+                
+                // TARGETING PHASE LOGIC
+                if (st.phase === 'TARGETING' && st.leaderId === myId) {
+                     document.getElementById('view-selection').classList.remove('hidden');
+                     document.getElementById('view-selection').classList.add('flex');
+                     loadSelectionList();
+                     startSelectionTimer();
+                } else if (st.phase === 'BIDDING') {
+                     document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
+                }
                 
                 if (st.leaderId === myId && st.phase === 'BIDDING') {
                     document.getElementById('status-banner').innerText = "YOU ARE WINNING!";
@@ -170,11 +185,45 @@
                     document.getElementById('status-banner').className = "text-center bg-black/60 border border-gray-700 p-4 rounded-xl mb-4 text-sm text-gray-400 uppercase tracking-widest font-bold shrink-0";
                     document.getElementById('status-banner').innerText = st.phase;
                 }
-
-                if (st.phase === 'BIDDING') {
-                    document.getElementById('view-bid').classList.remove('hidden'); document.getElementById('view-bid').classList.add('flex');
-                }
             });
+        }
+
+        function loadSelectionList() {
+            db.ref('teams').get().then(s => {
+                const teams = s.val();
+                const list = document.getElementById('selection-list');
+                list.innerHTML = '';
+                Object.keys(teams).forEach(tid => {
+                    if(tid !== myId) {
+                        const btn = document.createElement('button');
+                        btn.className = "w-full p-6 bg-blue-900/80 border-2 border-blue-500 rounded-xl text-white font-bold text-left mb-2 shadow-lg";
+                        btn.innerText = teams[tid].name;
+                        btn.onclick = () => { 
+                             db.ref('gameState').update({ targetId: tid });
+                             document.getElementById('view-selection').classList.add('hidden');
+                             if(selectionTimer) clearInterval(selectionTimer);
+                        };
+                        list.appendChild(btn);
+                    }
+                });
+            });
+        }
+
+        function startSelectionTimer() {
+            let timeLeft = 10;
+            const display = document.getElementById('selection-timer');
+            if(selectionTimer) clearInterval(selectionTimer);
+            
+            display.innerText = timeLeft;
+            selectionTimer = setInterval(() => {
+                timeLeft--;
+                display.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(selectionTimer);
+                    document.getElementById('view-selection').classList.add('hidden');
+                    // Timeout implies no action.
+                }
+            }, 1000);
         }
 
         window.dismissAlert = async () => {
@@ -243,6 +292,7 @@
                  btnStrike.style.background = "green";
                  
                  db.ref(`teams/${myId}`).update({ balance: balance + 200 });
+                 
                  hasLabored = true;
                  localStorage.setItem(`hasLabored_${currentRound}`, 'true');
                  updateButtons();
