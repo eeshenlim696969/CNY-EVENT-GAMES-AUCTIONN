@@ -7,58 +7,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        /* IMPERIAL THEME */
-        body { 
-            font-family: 'Cinzel', serif; 
-            /* --- UPDATED BACKGROUND IMAGE --- */
-            background: url('https://static.vecteezy.com/system/resources/thumbnails/001/873/156/small/chinese-new-year-background-design-free-vector.jpg') no-repeat center center fixed;
-            background-size: cover;
-            /* -------------------------------- */
-            color: #FFD700; 
-            overflow: hidden; 
-            cursor: none; 
-            transition: all 1s;
-        }
+        /* (Styles same as previous) */
+        body { font-family: 'Cinzel', serif; background: radial-gradient(circle at center, #3a0000 0%, #1a0000 50%, #000000 100%); color: #FFD700; overflow: hidden; cursor: none; transition: background 1s; }
         .font-chinese { font-family: 'Ma Shan Zheng', cursive; }
-
-        /* WINNER MODE - INTENSIFY IMAGE INSTEAD OF REPLACING IT */
-        body.winner-mode {
-            filter: brightness(1.2) contrast(1.1) saturate(1.2);
-            box-shadow: inset 0 0 200px rgba(255, 215, 0, 0.3);
-        }
-
-        /* LAYERS */
-        /* Lowered opacity slightly so the image pops through the texture */
-        .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.15; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
+        body.winner-mode { background: radial-gradient(circle at center, #5a0000 0%, #2a0000 60%, #000000 100%); }
+        .layer-bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; background-image: repeating-linear-gradient(45deg, #b8860b 0, #b8860b 1px, transparent 0, transparent 50%); background-size: 30px 30px; }
         .layer-lanterns { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; } 
         .layer-ui { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; }
         .layer-fx { position: absolute; inset: 0; z-index: 200; pointer-events: none; }
-        
-        /* GOD RAYS (For Winner) */
-        .god-rays {
-            position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw;
-            background: repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.2) 0deg 10deg, transparent 10deg 20deg);
-            transform: translate(-50%, -50%);
-            animation: rotateRays 60s linear infinite;
-            z-index: 5; opacity: 0; transition: opacity 2s;
-            pointer-events: none;
-            mix-blend-mode: overlay; /* Blends nicely with the image */
-        }
+        .god-rays { position: absolute; top: 50%; left: 50%; width: 200vw; height: 200vw; background: repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.1) 0deg 10deg, transparent 10deg 20deg); transform: translate(-50%, -50%); animation: rotateRays 60s linear infinite; z-index: 5; opacity: 0; transition: opacity 2s; pointer-events: none; }
         .god-rays.active { opacity: 1; }
         @keyframes rotateRays { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-
-        /* LANTERN ANIMATION */
         .lantern { position: absolute; width: 60px; height: 80px; background: radial-gradient(circle, #ff3333 0%, #800000 100%); border-radius: 12px; border-top: 3px solid #333; border-bottom: 3px solid gold; box-shadow: 0 0 30px rgba(255, 50, 0, 0.6); animation: rise 25s linear infinite; opacity: 0.6; bottom: -100px; }
         @keyframes rise { 0% { transform: translateY(0) scale(0.8); } 100% { transform: translateY(-120vh) scale(1); } }
-
-        /* COMPONENTS */
         .angpao { background: linear-gradient(135deg, #800000 0%, #500000 100%); border: 2px solid #b8860b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 2rem; color: rgba(255,215,0,0.5); transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .angpao.active { background: #FFD700 !important; box-shadow: 0 0 60px #FFD700; transform: scale(1.1); z-index: 60; border-color: #fff; color: #000 !important; opacity: 1; text-shadow: none; }
         .angpao.highlight-winner { background: #ffaa00 !important; color: white !important; transform: scale(1.2); box-shadow: 0 0 80px orange; border: 3px solid white; z-index: 70; opacity: 1; }
         .angpao.gone { visibility: hidden; opacity: 0; pointer-events: none; }
         .glass-panel { background: rgba(0, 0, 0, 0.8); border: 2px solid #C5A059; box-shadow: 0 0 40px rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-radius: 12px; }
-        
-        /* ANIMATIONS */
         @keyframes slamIn { 0% { transform: scale(10); opacity: 0; filter: blur(10px); } 20% { transform: scale(1); opacity: 1; filter: blur(0px); } 30% { transform: scale(1.4); color: #fff; text-shadow: 0 0 80px white; } 100% { transform: scale(1); color: #FFD700; } }
         .slam-text { animation: slamIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .shake-screen { animation: shakeScreen 1.0s ease-in-out; }
@@ -67,11 +33,8 @@
         @keyframes shakeViolent { 0%, 100% { transform: translate(0,0); filter: hue-rotate(0deg); } 10%, 30%, 50%, 70%, 90% { transform: translate(-30px, -30px) rotate(-3deg); filter: hue-rotate(-30deg); background-color: rgba(50,0,0,0.5); } 20%, 40%, 60%, 80% { transform: translate(30px, 30px) rotate(3deg); filter: hue-rotate(30deg); } }
         .all-in-glow { text-shadow: 0 0 50px red, 0 0 20px gold; color: #fff; animation: pulseRed 0.5s infinite; }
         @keyframes pulseRed { 0% { text-shadow: 0 0 50px red; transform: scale(1); } 50% { text-shadow: 0 0 100px red; transform: scale(1.1); } 100% { text-shadow: 0 0 50px red; transform: scale(1); } }
-        
-        /* SMOOTH COIN RAIN */
         .falling-coin { position: absolute; width: 40px; height: 40px; background: radial-gradient(circle, #FFD700, #B8860B); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px gold; animation: fall 3s linear forwards; z-index: 200; pointer-events: none; }
         @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
-        
         .envelope-container { perspective: 1200px; width: 320px; height: 440px; position: relative; transition: all 0.5s; z-index: 30; }
         .envelope-body { width: 100%; height: 100%; background: linear-gradient(180deg, #900 0%, #600 100%); border: 3px solid #FFD700; border-radius: 8px; position: absolute; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 1s; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
         .envelope-lid { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(180deg, #a00 0%, #700 100%); clip-path: polygon(0 0, 50% 100%, 100% 0); z-index: 12; transform-origin: top; transition: transform 0.8s ease-in-out; border-top: 4px solid #FFD700; }
@@ -367,7 +330,6 @@
                     leaderEl.innerText = leaderName;
                     bidEl.innerText = "RM " + highBid.toLocaleString();
                 }
-
                 if (st.phase === 'REVEALED' && st.cardName) {
                     document.getElementById('card-title').innerText = st.cardName;
                     document.getElementById('card-desc').innerText = st.cardDesc;
